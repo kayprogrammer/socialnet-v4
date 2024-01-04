@@ -1,4 +1,4 @@
-package ent
+package schema
 
 import (
 	"entgo.io/ent"
@@ -6,12 +6,13 @@ import (
 )
 
 type SiteDetail struct {
-	BaseModel
+	ent.Schema
 }
 
 // Fields of the SiteDetail.
 func (SiteDetail) Fields() []ent.Field {
-	return []ent.Field{
+	return append(
+		CommonFields, 
 		field.String("name").
 			Default("SocialNet"),
         field.String("email").
@@ -28,5 +29,5 @@ func (SiteDetail) Fields() []ent.Field {
 			Default("https://wa.me/2348133831036"),
         field.String("ig").
 			Default("https://instagram.com"),
-	}
+	)
 }
