@@ -9,6 +9,42 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent"
 )
 
+// The CityFunc type is an adapter to allow the use of ordinary
+// function as City mutator.
+type CityFunc func(context.Context, *ent.CityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CityMutation", m)
+}
+
+// The FileFunc type is an adapter to allow the use of ordinary
+// function as File mutator.
+type FileFunc func(context.Context, *ent.FileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileMutation", m)
+}
+
+// The OtpFunc type is an adapter to allow the use of ordinary
+// function as Otp mutator.
+type OtpFunc func(context.Context, *ent.OtpMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OtpFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OtpMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OtpMutation", m)
+}
+
 // The SiteDetailFunc type is an adapter to allow the use of ordinary
 // function as SiteDetail mutator.
 type SiteDetailFunc func(context.Context, *ent.SiteDetailMutation) (ent.Value, error)
@@ -19,6 +55,18 @@ func (f SiteDetailFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SiteDetailMutation", m)
+}
+
+// The UserFunc type is an adapter to allow the use of ordinary
+// function as User mutator.
+type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
 // Condition is a hook condition function.

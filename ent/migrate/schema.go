@@ -8,6 +8,54 @@ import (
 )
 
 var (
+	// CitiesColumns holds the columns for the "cities" table.
+	CitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+	}
+	// CitiesTable holds the schema information for the "cities" table.
+	CitiesTable = &schema.Table{
+		Name:       "cities",
+		Columns:    CitiesColumns,
+		PrimaryKey: []*schema.Column{CitiesColumns[0]},
+	}
+	// FilesColumns holds the columns for the "files" table.
+	FilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "resource_type", Type: field.TypeString},
+	}
+	// FilesTable holds the schema information for the "files" table.
+	FilesTable = &schema.Table{
+		Name:       "files",
+		Columns:    FilesColumns,
+		PrimaryKey: []*schema.Column{FilesColumns[0]},
+	}
+	// OtpsColumns holds the columns for the "otps" table.
+	OtpsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true},
+	}
+	// OtpsTable holds the schema information for the "otps" table.
+	OtpsTable = &schema.Table{
+		Name:       "otps",
+		Columns:    OtpsColumns,
+		PrimaryKey: []*schema.Column{OtpsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "otps_users_otp",
+				Columns:    []*schema.Column{OtpsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// SiteDetailsColumns holds the columns for the "site_details" table.
 	SiteDetailsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -28,11 +76,58 @@ var (
 		Columns:    SiteDetailsColumns,
 		PrimaryKey: []*schema.Column{SiteDetailsColumns[0]},
 	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "first_name", Type: field.TypeString},
+		{Name: "last_name", Type: field.TypeString},
+		{Name: "username", Type: field.TypeString, Unique: true},
+		{Name: "email", Type: field.TypeString},
+		{Name: "terms_agreement", Type: field.TypeBool, Default: false},
+		{Name: "is_email_verified", Type: field.TypeBool, Default: false},
+		{Name: "is_staff", Type: field.TypeBool, Default: false},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "bio", Type: field.TypeString, Nullable: true},
+		{Name: "dob", Type: field.TypeTime, Nullable: true},
+		{Name: "access", Type: field.TypeString, Nullable: true},
+		{Name: "refresh", Type: field.TypeString, Nullable: true},
+		{Name: "city_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "avatar_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_cities_users",
+				Columns:    []*schema.Column{UsersColumns[15]},
+				RefColumns: []*schema.Column{CitiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_files_users",
+				Columns:    []*schema.Column{UsersColumns[16]},
+				RefColumns: []*schema.Column{FilesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CitiesTable,
+		FilesTable,
+		OtpsTable,
 		SiteDetailsTable,
+		UsersTable,
 	}
 )
 
 func init() {
+	OtpsTable.ForeignKeys[0].RefTable = UsersTable
+	UsersTable.ForeignKeys[0].RefTable = CitiesTable
+	UsersTable.ForeignKeys[1].RefTable = FilesTable
 }

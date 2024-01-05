@@ -6,14 +6,78 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/schema"
 	"github.com/kayprogrammer/socialnet-v4/ent/sitedetail"
+	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	cityFields := schema.City{}.Fields()
+	_ = cityFields
+	// cityDescCreatedAt is the schema descriptor for created_at field.
+	cityDescCreatedAt := cityFields[1].Descriptor()
+	// city.DefaultCreatedAt holds the default value on creation for the created_at field.
+	city.DefaultCreatedAt = cityDescCreatedAt.Default.(func() time.Time)
+	// cityDescUpdatedAt is the schema descriptor for updated_at field.
+	cityDescUpdatedAt := cityFields[2].Descriptor()
+	// city.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	city.DefaultUpdatedAt = cityDescUpdatedAt.Default.(func() time.Time)
+	// city.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	city.UpdateDefaultUpdatedAt = cityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cityDescName is the schema descriptor for name field.
+	cityDescName := cityFields[3].Descriptor()
+	// city.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	city.NameValidator = cityDescName.Validators[0].(func(string) error)
+	// cityDescID is the schema descriptor for id field.
+	cityDescID := cityFields[0].Descriptor()
+	// city.DefaultID holds the default value on creation for the id field.
+	city.DefaultID = cityDescID.Default.(func() uuid.UUID)
+	fileFields := schema.File{}.Fields()
+	_ = fileFields
+	// fileDescCreatedAt is the schema descriptor for created_at field.
+	fileDescCreatedAt := fileFields[1].Descriptor()
+	// file.DefaultCreatedAt holds the default value on creation for the created_at field.
+	file.DefaultCreatedAt = fileDescCreatedAt.Default.(func() time.Time)
+	// fileDescUpdatedAt is the schema descriptor for updated_at field.
+	fileDescUpdatedAt := fileFields[2].Descriptor()
+	// file.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	file.DefaultUpdatedAt = fileDescUpdatedAt.Default.(func() time.Time)
+	// file.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	file.UpdateDefaultUpdatedAt = fileDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// fileDescResourceType is the schema descriptor for resource_type field.
+	fileDescResourceType := fileFields[3].Descriptor()
+	// file.ResourceTypeValidator is a validator for the "resource_type" field. It is called by the builders before save.
+	file.ResourceTypeValidator = fileDescResourceType.Validators[0].(func(string) error)
+	// fileDescID is the schema descriptor for id field.
+	fileDescID := fileFields[0].Descriptor()
+	// file.DefaultID holds the default value on creation for the id field.
+	file.DefaultID = fileDescID.Default.(func() uuid.UUID)
+	otpFields := schema.Otp{}.Fields()
+	_ = otpFields
+	// otpDescCreatedAt is the schema descriptor for created_at field.
+	otpDescCreatedAt := otpFields[1].Descriptor()
+	// otp.DefaultCreatedAt holds the default value on creation for the created_at field.
+	otp.DefaultCreatedAt = otpDescCreatedAt.Default.(func() time.Time)
+	// otpDescUpdatedAt is the schema descriptor for updated_at field.
+	otpDescUpdatedAt := otpFields[2].Descriptor()
+	// otp.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	otp.DefaultUpdatedAt = otpDescUpdatedAt.Default.(func() time.Time)
+	// otp.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	otp.UpdateDefaultUpdatedAt = otpDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// otpDescCode is the schema descriptor for code field.
+	otpDescCode := otpFields[3].Descriptor()
+	// otp.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	otp.CodeValidator = otpDescCode.Validators[0].(func(string) error)
+	// otpDescID is the schema descriptor for id field.
+	otpDescID := otpFields[0].Descriptor()
+	// otp.DefaultID holds the default value on creation for the id field.
+	otp.DefaultID = otpDescID.Default.(func() uuid.UUID)
 	sitedetailFields := schema.SiteDetail{}.Fields()
 	_ = sitedetailFields
 	// sitedetailDescCreatedAt is the schema descriptor for created_at field.
@@ -62,4 +126,52 @@ func init() {
 	sitedetailDescID := sitedetailFields[0].Descriptor()
 	// sitedetail.DefaultID holds the default value on creation for the id field.
 	sitedetail.DefaultID = sitedetailDescID.Default.(func() uuid.UUID)
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[1].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[2].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userDescFirstName is the schema descriptor for first_name field.
+	userDescFirstName := userFields[3].Descriptor()
+	// user.FirstNameValidator is a validator for the "first_name" field. It is called by the builders before save.
+	user.FirstNameValidator = userDescFirstName.Validators[0].(func(string) error)
+	// userDescLastName is the schema descriptor for last_name field.
+	userDescLastName := userFields[4].Descriptor()
+	// user.LastNameValidator is a validator for the "last_name" field. It is called by the builders before save.
+	user.LastNameValidator = userDescLastName.Validators[0].(func(string) error)
+	// userDescUsername is the schema descriptor for username field.
+	userDescUsername := userFields[5].Descriptor()
+	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
+	// userDescEmail is the schema descriptor for email field.
+	userDescEmail := userFields[6].Descriptor()
+	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	// userDescTermsAgreement is the schema descriptor for terms_agreement field.
+	userDescTermsAgreement := userFields[7].Descriptor()
+	// user.DefaultTermsAgreement holds the default value on creation for the terms_agreement field.
+	user.DefaultTermsAgreement = userDescTermsAgreement.Default.(bool)
+	// userDescIsEmailVerified is the schema descriptor for is_email_verified field.
+	userDescIsEmailVerified := userFields[8].Descriptor()
+	// user.DefaultIsEmailVerified holds the default value on creation for the is_email_verified field.
+	user.DefaultIsEmailVerified = userDescIsEmailVerified.Default.(bool)
+	// userDescIsStaff is the schema descriptor for is_staff field.
+	userDescIsStaff := userFields[9].Descriptor()
+	// user.DefaultIsStaff holds the default value on creation for the is_staff field.
+	user.DefaultIsStaff = userDescIsStaff.Default.(bool)
+	// userDescIsActive is the schema descriptor for is_active field.
+	userDescIsActive := userFields[10].Descriptor()
+	// user.DefaultIsActive holds the default value on creation for the is_active field.
+	user.DefaultIsActive = userDescIsActive.Default.(bool)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 }
