@@ -12,12 +12,11 @@ import (
 var CommonFields = []ent.Field{
 	field.UUID("id", uuid.UUID{}).
 		Default(uuid.New).
-		Unique().
-		StructTag(`json:"oid,omitempty"`),
+		Unique().StructTag("json:'-'"),
 	field.Time("created_at").
-		Default(time.Now),
+		Default(time.Now).StructTag("json:'-'"),
 	field.Time("updated_at").
-		Default(time.Now).
+		Default(time.Now).StructTag("json:'-'").
 		UpdateDefault(time.Now),
 }
 

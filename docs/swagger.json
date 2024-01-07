@@ -1,0 +1,144 @@
+{
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "A simple bidding API built with Fiber",
+        "title": "SOCIALNET API",
+        "contact": {},
+        "version": "4.0"
+    },
+    "basePath": "/api/v4",
+    "paths": {
+        "/general/site-detail": {
+            "get": {
+                "description": "This endpoint retrieves few details of the site/application.",
+                "tags": [
+                    "General"
+                ],
+                "summary": "Retrieve site details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.SiteDetailResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthcheck": {
+            "get": {
+                "description": "This endpoint checks the health of our application.",
+                "tags": [
+                    "HealthCheck"
+                ],
+                "summary": "HealthCheck",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/routes.HealthCheckSchema"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "ent.SiteDetail": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "Address holds the value of the \"address\" field.",
+                    "type": "string",
+                    "example": "234, Lagos, Nigeria"
+                },
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email holds the value of the \"email\" field.",
+                    "type": "string",
+                    "example": "kayprogrammer1@gmail.com"
+                },
+                "fb": {
+                    "description": "Fb holds the value of the \"fb\" field.",
+                    "type": "string",
+                    "example": "https://facebook.com"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "ig": {
+                    "description": "Ig holds the value of the \"ig\" field.",
+                    "type": "string",
+                    "example": "https://instagram.com"
+                },
+                "name": {
+                    "description": "Name holds the value of the \"name\" field.",
+                    "type": "string",
+                    "example": "SocialNet"
+                },
+                "phone": {
+                    "description": "Phone holds the value of the \"phone\" field.",
+                    "type": "string",
+                    "example": "+2348133831036"
+                },
+                "tw": {
+                    "description": "Tw holds the value of the \"tw\" field.",
+                    "type": "string",
+                    "example": "https://twitter.com"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
+                    "type": "string"
+                },
+                "wh": {
+                    "description": "Wh holds the value of the \"wh\" field.",
+                    "type": "string",
+                    "example": "https://wa.me/2348133831036"
+                }
+            }
+        },
+        "routes.HealthCheckSchema": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "string",
+                    "example": "pong"
+                }
+            }
+        },
+        "schemas.SiteDetailResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/ent.SiteDetail"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type 'Bearer jwt_string' to correctly set the API Key",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -1,0 +1,102 @@
+basePath: /api/v4
+consumes:
+- application/json
+definitions:
+  ent.SiteDetail:
+    properties:
+      address:
+        description: Address holds the value of the "address" field.
+        example: 234, Lagos, Nigeria
+        type: string
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      email:
+        description: Email holds the value of the "email" field.
+        example: kayprogrammer1@gmail.com
+        type: string
+      fb:
+        description: Fb holds the value of the "fb" field.
+        example: https://facebook.com
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      ig:
+        description: Ig holds the value of the "ig" field.
+        example: https://instagram.com
+        type: string
+      name:
+        description: Name holds the value of the "name" field.
+        example: SocialNet
+        type: string
+      phone:
+        description: Phone holds the value of the "phone" field.
+        example: "+2348133831036"
+        type: string
+      tw:
+        description: Tw holds the value of the "tw" field.
+        example: https://twitter.com
+        type: string
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+      wh:
+        description: Wh holds the value of the "wh" field.
+        example: https://wa.me/2348133831036
+        type: string
+    type: object
+  routes.HealthCheckSchema:
+    properties:
+      success:
+        example: pong
+        type: string
+    type: object
+  schemas.SiteDetailResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/ent.SiteDetail'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+info:
+  contact: {}
+  description: A simple bidding API built with Fiber
+  title: SOCIALNET API
+  version: "4.0"
+paths:
+  /general/site-detail:
+    get:
+      description: This endpoint retrieves few details of the site/application.
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.SiteDetailResponseSchema'
+      summary: Retrieve site details
+      tags:
+      - General
+  /healthcheck:
+    get:
+      description: This endpoint checks the health of our application.
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/routes.HealthCheckSchema'
+      summary: HealthCheck
+      tags:
+      - HealthCheck
+produces:
+- application/json
+securityDefinitions:
+  BearerAuth:
+    description: Type 'Bearer jwt_string' to correctly set the API Key
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

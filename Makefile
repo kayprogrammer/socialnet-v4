@@ -16,6 +16,9 @@ down:
 
 show-logs:
 	docker-compose logs
-	
+
+mig:
+	go generate ./ent
+
 test:
 	go test ./tests -v -count=1

@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/swagger"
 	"github.com/kayprogrammer/socialnet-v4/config"
+	"github.com/kayprogrammer/socialnet-v4/database"
 	"github.com/kayprogrammer/socialnet-v4/routes"
 
 	_ "github.com/kayprogrammer/socialnet-v4/docs"
@@ -25,19 +26,18 @@ import (
 // @description Type 'Bearer jwt_string' to correctly set the API Key
 func main() {
 	cfg := config.GetConfig()
-	ConnectDb()
-	// db := database.Database.Db
+	database.ConnectDb()
 	// initials.CreateInitialData(db)
 
 	app := fiber.New()
 
 	// Set up the database middleware
-	// app.Use(database.DatabaseMiddleware)
+	app.Use(database.DatabaseMiddleware)
 
 	// CORS config
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.CORSAllowedOrigins,
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Guestuserid, Access-Control-Allow-Origin, Content-Disposition",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Access-Control-Allow-Origin, Content-Disposition",
 		AllowCredentials: true,
 		AllowMethods:     "GET, POST, PUT, PATCH, DELETE, OPTIONS",
 	}))
@@ -51,6 +51,5 @@ func main() {
 	// Register routes
 	routes.SetupRoutes(app)
 	app.Get("/*", swagger.HandlerDefault) // default
-
 	log.Fatal(app.Listen(":8000"))
 }

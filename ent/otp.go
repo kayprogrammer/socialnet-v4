@@ -18,11 +18,11 @@ import (
 type Otp struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uuid.UUID `json:"oid,omitempty"`
+	ID uuid.UUID `json:"id,omitempty" json:'-'`
 	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty" json:'-'`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty" json:'-'`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
 	// UserID holds the value of the "user_id" field.
