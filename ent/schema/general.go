@@ -3,12 +3,10 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 type SiteDetail struct {
 	ent.Schema
-	ID 			uuid.UUID 		`json:"-"`
 }
 
 // Fields of the SiteDetail.
