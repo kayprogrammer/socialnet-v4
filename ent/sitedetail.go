@@ -15,29 +15,29 @@ import (
 
 // SiteDetail is the model entity for the SiteDetail schema.
 type SiteDetail struct {
-	config `example:"-" json:"-"`
+	config `json:"-"`
 	// ID of the ent.
-	ID uuid.UUID `json:"id,omitempty" json:'-'`
+	ID uuid.UUID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty" json:'-'`
+	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty" json:'-'`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty" example:"SocialNet"`
+	Name string `json:"name,omitempty"`
 	// Email holds the value of the "email" field.
-	Email string `json:"email,omitempty" example:"kayprogrammer1@gmail.com"`
+	Email string `json:"email,omitempty"`
 	// Phone holds the value of the "phone" field.
-	Phone string `json:"phone,omitempty" example:"+2348133831036"`
+	Phone string `json:"phone,omitempty"`
 	// Address holds the value of the "address" field.
-	Address string `json:"address,omitempty" example:"234, Lagos, Nigeria"`
+	Address string `json:"address,omitempty"`
 	// Fb holds the value of the "fb" field.
-	Fb string `json:"fb,omitempty" example:"https://facebook.com"`
+	Fb string `json:"fb,omitempty"`
 	// Tw holds the value of the "tw" field.
-	Tw string `json:"tw,omitempty" example:"https://twitter.com"`
+	Tw string `json:"tw,omitempty"`
 	// Wh holds the value of the "wh" field.
-	Wh string `json:"wh,omitempty" example:"https://wa.me/2348133831036"`
+	Wh string `json:"wh,omitempty"`
 	// Ig holds the value of the "ig" field.
-	Ig           string `json:"ig,omitempty" example:"https://instagram.com"`
+	Ig           string `json:"ig,omitempty"`
 	selectValues sql.SelectValues
 }
 

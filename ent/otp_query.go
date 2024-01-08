@@ -298,7 +298,7 @@ func (oq *OtpQuery) WithUser(opts ...func(*UserQuery)) *OtpQuery {
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty" json:'-'`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -321,7 +321,7 @@ func (oq *OtpQuery) GroupBy(field string, fields ...string) *OtpGroupBy {
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty" json:'-'`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Otp.Query().

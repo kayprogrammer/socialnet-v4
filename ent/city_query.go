@@ -299,7 +299,7 @@ func (cq *CityQuery) WithUsers(opts ...func(*UserQuery)) *CityQuery {
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty" json:'-'`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -322,7 +322,7 @@ func (cq *CityQuery) GroupBy(field string, fields ...string) *CityGroupBy {
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty" json:'-'`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.City.Query().

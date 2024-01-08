@@ -50,63 +50,6 @@
         }
     },
     "definitions": {
-        "ent.SiteDetail": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "description": "Address holds the value of the \"address\" field.",
-                    "type": "string",
-                    "example": "234, Lagos, Nigeria"
-                },
-                "created_at": {
-                    "description": "CreatedAt holds the value of the \"created_at\" field.",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "Email holds the value of the \"email\" field.",
-                    "type": "string",
-                    "example": "kayprogrammer1@gmail.com"
-                },
-                "fb": {
-                    "description": "Fb holds the value of the \"fb\" field.",
-                    "type": "string",
-                    "example": "https://facebook.com"
-                },
-                "id": {
-                    "description": "ID of the ent.",
-                    "type": "string"
-                },
-                "ig": {
-                    "description": "Ig holds the value of the \"ig\" field.",
-                    "type": "string",
-                    "example": "https://instagram.com"
-                },
-                "name": {
-                    "description": "Name holds the value of the \"name\" field.",
-                    "type": "string",
-                    "example": "SocialNet"
-                },
-                "phone": {
-                    "description": "Phone holds the value of the \"phone\" field.",
-                    "type": "string",
-                    "example": "+2348133831036"
-                },
-                "tw": {
-                    "description": "Tw holds the value of the \"tw\" field.",
-                    "type": "string",
-                    "example": "https://twitter.com"
-                },
-                "updated_at": {
-                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
-                    "type": "string"
-                },
-                "wh": {
-                    "description": "Wh holds the value of the \"wh\" field.",
-                    "type": "string",
-                    "example": "https://wa.me/2348133831036"
-                }
-            }
-        },
         "routes.HealthCheckSchema": {
             "type": "object",
             "properties": {
@@ -116,11 +59,48 @@
                 }
             }
         },
+        "schemas.SiteDetail": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "234, Lagos, Nigeria"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "johndoe@email.com"
+                },
+                "fb": {
+                    "type": "string",
+                    "example": "https://facebook.com"
+                },
+                "ig": {
+                    "type": "string",
+                    "example": "https://instagram.com"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "SocialNet"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "+2348133831036"
+                },
+                "tw": {
+                    "type": "string",
+                    "example": "https://twitter.com"
+                },
+                "wh": {
+                    "type": "string",
+                    "example": "https://wa.me/2348133831036"
+                }
+            }
+        },
         "schemas.SiteDetailResponseSchema": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/ent.SiteDetail"
+                    "$ref": "#/definitions/schemas.SiteDetail"
                 },
                 "message": {
                     "type": "string",

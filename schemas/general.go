@@ -1,7 +1,5 @@
 package schemas
 
-import "github.com/kayprogrammer/socialnet-v4/ent"
-
 type SiteDetail struct {
 	Name 		string 		`json:"name" example:"SocialNet"`
 	Email 		string 		`json:"email" example:"johndoe@email.com"`
@@ -15,5 +13,15 @@ type SiteDetail struct {
 
 type SiteDetailResponseSchema struct {
 	ResponseSchema
-	Data			*ent.SiteDetail		`json:"data"`
+	Data			SiteDetail		`json:"data"`
 }
+
+// func (obj SiteDetailResponseSchema) Init() SiteDetailResponseSchema {
+// 	var originalSiteDetailStruct *ent.SiteDetail
+// 	var targetSiteDetailStruct SiteDetail
+
+// 	temporaryVariable, _ := json.Marshal(originalSiteDetailStruct)
+// 	vv := json.Unmarshal(temporaryVariable, &targetSiteDetailStruct) 
+// 	fmt.Println(vv)
+	
+// }

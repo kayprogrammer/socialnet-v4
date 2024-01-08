@@ -5,6 +5,7 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
 // @Summary Retrieve site details
@@ -19,9 +20,11 @@ func GetSiteDetails(c *fiber.Ctx) error {
 	if sitedetail == nil {
 		sitedetail, _ = managers.SiteDetailManager{}.Create(db)
 	}
+
+	data := utils.ConvertStructData(sitedetail, schemas.SiteDetail{}).(*schemas.SiteDetail)
 	responseSiteDetail := schemas.SiteDetailResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Site Details Fetched!"}.Init(),
-		Data:           sitedetail,
+		Data:           *data,
 	}
 	return c.Status(200).JSON(responseSiteDetail)
 }

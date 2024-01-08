@@ -8,8 +8,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/ent/migrate"
 	_ "github.com/lib/pq"
 )
+
 var Database *ent.Client
 
 func ConnectDb() *ent.Client {
@@ -31,7 +33,11 @@ func ConnectDb() *ent.Client {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
 	// Run the auto migration tool.
-	if err := client.Schema.Create(context.Background()); err != nil {
+	if err := client.Schema.Create(
+		context.Background(),
+		migrate.WithDropIndex(true),
+		migrate.WithDropColumn(true),
+	); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 	return client

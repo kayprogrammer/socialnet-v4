@@ -262,7 +262,7 @@ func (sdq *SiteDetailQuery) Clone() *SiteDetailQuery {
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty" json:'-'`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -285,7 +285,7 @@ func (sdq *SiteDetailQuery) GroupBy(field string, fields ...string) *SiteDetailG
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty" json:'-'`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.SiteDetail.Query().

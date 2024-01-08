@@ -2,60 +2,43 @@ basePath: /api/v4
 consumes:
 - application/json
 definitions:
-  ent.SiteDetail:
-    properties:
-      address:
-        description: Address holds the value of the "address" field.
-        example: 234, Lagos, Nigeria
-        type: string
-      created_at:
-        description: CreatedAt holds the value of the "created_at" field.
-        type: string
-      email:
-        description: Email holds the value of the "email" field.
-        example: kayprogrammer1@gmail.com
-        type: string
-      fb:
-        description: Fb holds the value of the "fb" field.
-        example: https://facebook.com
-        type: string
-      id:
-        description: ID of the ent.
-        type: string
-      ig:
-        description: Ig holds the value of the "ig" field.
-        example: https://instagram.com
-        type: string
-      name:
-        description: Name holds the value of the "name" field.
-        example: SocialNet
-        type: string
-      phone:
-        description: Phone holds the value of the "phone" field.
-        example: "+2348133831036"
-        type: string
-      tw:
-        description: Tw holds the value of the "tw" field.
-        example: https://twitter.com
-        type: string
-      updated_at:
-        description: UpdatedAt holds the value of the "updated_at" field.
-        type: string
-      wh:
-        description: Wh holds the value of the "wh" field.
-        example: https://wa.me/2348133831036
-        type: string
-    type: object
   routes.HealthCheckSchema:
     properties:
       success:
         example: pong
         type: string
     type: object
+  schemas.SiteDetail:
+    properties:
+      address:
+        example: 234, Lagos, Nigeria
+        type: string
+      email:
+        example: johndoe@email.com
+        type: string
+      fb:
+        example: https://facebook.com
+        type: string
+      ig:
+        example: https://instagram.com
+        type: string
+      name:
+        example: SocialNet
+        type: string
+      phone:
+        example: "+2348133831036"
+        type: string
+      tw:
+        example: https://twitter.com
+        type: string
+      wh:
+        example: https://wa.me/2348133831036
+        type: string
+    type: object
   schemas.SiteDetailResponseSchema:
     properties:
       data:
-        $ref: '#/definitions/ent.SiteDetail'
+        $ref: '#/definitions/schemas.SiteDetail'
       message:
         example: Data fetched/created/updated/deleted
         type: string
