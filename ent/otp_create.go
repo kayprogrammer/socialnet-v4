@@ -51,8 +51,8 @@ func (oc *OtpCreate) SetNillableUpdatedAt(t *time.Time) *OtpCreate {
 }
 
 // SetCode sets the "code" field.
-func (oc *OtpCreate) SetCode(s string) *OtpCreate {
-	oc.mutation.SetCode(s)
+func (oc *OtpCreate) SetCode(u uint32) *OtpCreate {
+	oc.mutation.SetCode(u)
 	return oc
 }
 
@@ -141,11 +141,6 @@ func (oc *OtpCreate) check() error {
 	if _, ok := oc.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "Otp.code"`)}
 	}
-	if v, ok := oc.mutation.Code(); ok {
-		if err := otp.CodeValidator(v); err != nil {
-			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Otp.code": %w`, err)}
-		}
-	}
 	if _, ok := oc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Otp.user_id"`)}
 	}
@@ -196,7 +191,7 @@ func (oc *OtpCreate) createSpec() (*Otp, *sqlgraph.CreateSpec) {
 		_node.UpdatedAt = value
 	}
 	if value, ok := oc.mutation.Code(); ok {
-		_spec.SetField(otp.FieldCode, field.TypeString, value)
+		_spec.SetField(otp.FieldCode, field.TypeUint32, value)
 		_node.Code = value
 	}
 	if nodes := oc.mutation.UserIDs(); len(nodes) > 0 {

@@ -24,7 +24,7 @@ type Otp struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Code holds the value of the "code" field.
-	Code string `json:"code,omitempty"`
+	Code uint32 `json:"code,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -61,7 +61,7 @@ func (*Otp) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case otp.FieldCode:
-			values[i] = new(sql.NullString)
+			values[i] = new(sql.NullInt64)
 		case otp.FieldCreatedAt, otp.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case otp.FieldID, otp.FieldUserID:
@@ -100,10 +100,10 @@ func (o *Otp) assignValues(columns []string, values []any) error {
 				o.UpdatedAt = value.Time
 			}
 		case otp.FieldCode:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
-				o.Code = value.String
+				o.Code = uint32(value.Int64)
 			}
 		case otp.FieldUserID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -159,7 +159,7 @@ func (o *Otp) String() string {
 	builder.WriteString(o.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("code=")
-	builder.WriteString(o.Code)
+	builder.WriteString(fmt.Sprintf("%v", o.Code))
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", o.UserID))

@@ -43,6 +43,8 @@ func (User) Fields() []ent.Field {
 			NotEmpty().Unique(),
 		field.String("email").
 			NotEmpty(),
+		field.String("password").
+			NotEmpty(),
 		field.Bool("terms_agreement").
 			Default(false),
 		field.Bool("is_email_verified").
@@ -81,8 +83,7 @@ type Otp struct {
 func (Otp) Fields() []ent.Field {
 	return append(
 		CommonFields,
-		field.String("code").
-			NotEmpty(),
+		field.Uint32("code"),
 		field.UUID("user_id", uuid.UUID{}),
 	)
 }

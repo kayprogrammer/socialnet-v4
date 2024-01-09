@@ -11,10 +11,12 @@ import (
 type SiteDetailManager struct {
 }
 
+var Ctx = context.Background()
+
 func (obj SiteDetailManager) Get(client *ent.Client) (*ent.SiteDetail, error) {
 	s, err := client.SiteDetail.
 		Query().
-		First(context.Background())
+		First(Ctx)
 	if err != nil {
 		fmt.Printf("failed querying site details: %v\n", err)
 		return nil, nil
@@ -25,7 +27,7 @@ func (obj SiteDetailManager) Get(client *ent.Client) (*ent.SiteDetail, error) {
 func (obj SiteDetailManager) Create(client *ent.Client) (*ent.SiteDetail, error) {
 	s, err := client.SiteDetail.
 		Create().
-		Save(context.Background())
+		Save(Ctx)
 	if err != nil {
 		fmt.Printf("failed creating site details: %v\n", err)
 		return nil, nil

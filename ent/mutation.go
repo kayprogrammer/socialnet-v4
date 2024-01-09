@@ -1110,7 +1110,8 @@ type OtpMutation struct {
 	id            *uuid.UUID
 	created_at    *time.Time
 	updated_at    *time.Time
-	code          *string
+	code          *uint32
+	addcode       *int32
 	clearedFields map[string]struct{}
 	user          *uuid.UUID
 	cleareduser   bool
@@ -1296,12 +1297,13 @@ func (m *OtpMutation) ResetUpdatedAt() {
 }
 
 // SetCode sets the "code" field.
-func (m *OtpMutation) SetCode(s string) {
-	m.code = &s
+func (m *OtpMutation) SetCode(u uint32) {
+	m.code = &u
+	m.addcode = nil
 }
 
 // Code returns the value of the "code" field in the mutation.
-func (m *OtpMutation) Code() (r string, exists bool) {
+func (m *OtpMutation) Code() (r uint32, exists bool) {
 	v := m.code
 	if v == nil {
 		return
@@ -1312,7 +1314,7 @@ func (m *OtpMutation) Code() (r string, exists bool) {
 // OldCode returns the old "code" field's value of the Otp entity.
 // If the Otp object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OtpMutation) OldCode(ctx context.Context) (v string, err error) {
+func (m *OtpMutation) OldCode(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCode is only allowed on UpdateOne operations")
 	}
@@ -1326,9 +1328,28 @@ func (m *OtpMutation) OldCode(ctx context.Context) (v string, err error) {
 	return oldValue.Code, nil
 }
 
+// AddCode adds u to the "code" field.
+func (m *OtpMutation) AddCode(u int32) {
+	if m.addcode != nil {
+		*m.addcode += u
+	} else {
+		m.addcode = &u
+	}
+}
+
+// AddedCode returns the value that was added to the "code" field in this mutation.
+func (m *OtpMutation) AddedCode() (r int32, exists bool) {
+	v := m.addcode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetCode resets all changes to the "code" field.
 func (m *OtpMutation) ResetCode() {
 	m.code = nil
+	m.addcode = nil
 }
 
 // SetUserID sets the "user_id" field.
@@ -1498,7 +1519,7 @@ func (m *OtpMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdatedAt(v)
 		return nil
 	case otp.FieldCode:
-		v, ok := value.(string)
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1518,13 +1539,21 @@ func (m *OtpMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *OtpMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addcode != nil {
+		fields = append(fields, otp.FieldCode)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *OtpMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case otp.FieldCode:
+		return m.AddedCode()
+	}
 	return nil, false
 }
 
@@ -1533,6 +1562,13 @@ func (m *OtpMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *OtpMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case otp.FieldCode:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCode(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Otp numeric field %s", name)
 }
@@ -2480,6 +2516,7 @@ type UserMutation struct {
 	last_name         *string
 	username          *string
 	email             *string
+	password          *string
 	terms_agreement   *bool
 	is_email_verified *bool
 	is_staff          *bool
@@ -2818,6 +2855,42 @@ func (m *UserMutation) OldEmail(ctx context.Context) (v string, err error) {
 // ResetEmail resets all changes to the "email" field.
 func (m *UserMutation) ResetEmail() {
 	m.email = nil
+}
+
+// SetPassword sets the "password" field.
+func (m *UserMutation) SetPassword(s string) {
+	m.password = &s
+}
+
+// Password returns the value of the "password" field in the mutation.
+func (m *UserMutation) Password() (r string, exists bool) {
+	v := m.password
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPassword returns the old "password" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPassword is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPassword requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPassword: %w", err)
+	}
+	return oldValue.Password, nil
+}
+
+// ResetPassword resets all changes to the "password" field.
+func (m *UserMutation) ResetPassword() {
+	m.password = nil
 }
 
 // SetTermsAgreement sets the "terms_agreement" field.
@@ -3385,7 +3458,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -3403,6 +3476,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
+	}
+	if m.password != nil {
+		fields = append(fields, user.FieldPassword)
 	}
 	if m.terms_agreement != nil {
 		fields = append(fields, user.FieldTermsAgreement)
@@ -3454,6 +3530,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Username()
 	case user.FieldEmail:
 		return m.Email()
+	case user.FieldPassword:
+		return m.Password()
 	case user.FieldTermsAgreement:
 		return m.TermsAgreement()
 	case user.FieldIsEmailVerified:
@@ -3495,6 +3573,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUsername(ctx)
 	case user.FieldEmail:
 		return m.OldEmail(ctx)
+	case user.FieldPassword:
+		return m.OldPassword(ctx)
 	case user.FieldTermsAgreement:
 		return m.OldTermsAgreement(ctx)
 	case user.FieldIsEmailVerified:
@@ -3565,6 +3645,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEmail(v)
+		return nil
+	case user.FieldPassword:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPassword(v)
 		return nil
 	case user.FieldTermsAgreement:
 		v, ok := value.(bool)
@@ -3741,6 +3828,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldEmail:
 		m.ResetEmail()
+		return nil
+	case user.FieldPassword:
+		m.ResetPassword()
 		return nil
 	case user.FieldTermsAgreement:
 		m.ResetTermsAgreement()

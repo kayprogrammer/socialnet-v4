@@ -70,10 +70,6 @@ func init() {
 	otp.DefaultUpdatedAt = otpDescUpdatedAt.Default.(func() time.Time)
 	// otp.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	otp.UpdateDefaultUpdatedAt = otpDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// otpDescCode is the schema descriptor for code field.
-	otpDescCode := otpFields[3].Descriptor()
-	// otp.CodeValidator is a validator for the "code" field. It is called by the builders before save.
-	otp.CodeValidator = otpDescCode.Validators[0].(func(string) error)
 	// otpDescID is the schema descriptor for id field.
 	otpDescID := otpFields[0].Descriptor()
 	// otp.DefaultID holds the default value on creation for the id field.
@@ -154,20 +150,24 @@ func init() {
 	userDescEmail := userFields[6].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	// userDescPassword is the schema descriptor for password field.
+	userDescPassword := userFields[7].Descriptor()
+	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
+	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
 	// userDescTermsAgreement is the schema descriptor for terms_agreement field.
-	userDescTermsAgreement := userFields[7].Descriptor()
+	userDescTermsAgreement := userFields[8].Descriptor()
 	// user.DefaultTermsAgreement holds the default value on creation for the terms_agreement field.
 	user.DefaultTermsAgreement = userDescTermsAgreement.Default.(bool)
 	// userDescIsEmailVerified is the schema descriptor for is_email_verified field.
-	userDescIsEmailVerified := userFields[8].Descriptor()
+	userDescIsEmailVerified := userFields[9].Descriptor()
 	// user.DefaultIsEmailVerified holds the default value on creation for the is_email_verified field.
 	user.DefaultIsEmailVerified = userDescIsEmailVerified.Default.(bool)
 	// userDescIsStaff is the schema descriptor for is_staff field.
-	userDescIsStaff := userFields[9].Descriptor()
+	userDescIsStaff := userFields[10].Descriptor()
 	// user.DefaultIsStaff holds the default value on creation for the is_staff field.
 	user.DefaultIsStaff = userDescIsStaff.Default.(bool)
 	// userDescIsActive is the schema descriptor for is_active field.
-	userDescIsActive := userFields[10].Descriptor()
+	userDescIsActive := userFields[11].Descriptor()
 	// user.DefaultIsActive holds the default value on creation for the is_active field.
 	user.DefaultIsActive = userDescIsActive.Default.(bool)
 	// userDescID is the schema descriptor for id field.

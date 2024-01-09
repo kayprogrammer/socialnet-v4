@@ -16,8 +16,8 @@ func SetupRoutes(app *fiber.App) {
 	generalRouter.Get("/site-detail", GetSiteDetails)
 
 	// Auth Routes
-	// authRouter := api.Group("/auth")
-	// authRouter.Post("/register", Register)
+	authRouter := api.Group("/auth")
+	authRouter.Post("/register", Register)
 	// authRouter.Post("/verify-email", VerifyEmail)
 	// authRouter.Post("/resend-verification-email", ResendVerificationEmail)
 	// authRouter.Post("/send-password-reset-otp", SendPasswordResetOtp)

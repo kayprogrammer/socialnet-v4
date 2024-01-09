@@ -27,6 +27,8 @@ const (
 	FieldUsername = "username"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldPassword holds the string denoting the password field in the database.
+	FieldPassword = "password"
 	// FieldTermsAgreement holds the string denoting the terms_agreement field in the database.
 	FieldTermsAgreement = "terms_agreement"
 	// FieldIsEmailVerified holds the string denoting the is_email_verified field in the database.
@@ -87,6 +89,7 @@ var Columns = []string{
 	FieldLastName,
 	FieldUsername,
 	FieldEmail,
+	FieldPassword,
 	FieldTermsAgreement,
 	FieldIsEmailVerified,
 	FieldIsStaff,
@@ -124,6 +127,8 @@ var (
 	UsernameValidator func(string) error
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
+	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
+	PasswordValidator func(string) error
 	// DefaultTermsAgreement holds the default value on creation for the "terms_agreement" field.
 	DefaultTermsAgreement bool
 	// DefaultIsEmailVerified holds the default value on creation for the "is_email_verified" field.
@@ -172,6 +177,11 @@ func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 // ByEmail orders the results by the email field.
 func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByPassword orders the results by the password field.
+func ByPassword(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPassword, opts...).ToFunc()
 }
 
 // ByTermsAgreement orders the results by the terms_agreement field.

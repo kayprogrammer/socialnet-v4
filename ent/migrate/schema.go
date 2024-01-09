@@ -39,7 +39,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "code", Type: field.TypeString},
+		{Name: "code", Type: field.TypeUint32},
 		{Name: "user_id", Type: field.TypeUUID, Unique: true},
 	}
 	// OtpsTable holds the schema information for the "otps" table.
@@ -85,6 +85,7 @@ var (
 		{Name: "last_name", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString, Unique: true},
 		{Name: "email", Type: field.TypeString},
+		{Name: "password", Type: field.TypeString},
 		{Name: "terms_agreement", Type: field.TypeBool, Default: false},
 		{Name: "is_email_verified", Type: field.TypeBool, Default: false},
 		{Name: "is_staff", Type: field.TypeBool, Default: false},
@@ -104,13 +105,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_cities_users",
-				Columns:    []*schema.Column{UsersColumns[15]},
+				Columns:    []*schema.Column{UsersColumns[16]},
 				RefColumns: []*schema.Column{CitiesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "users_files_users",
-				Columns:    []*schema.Column{UsersColumns[16]},
+				Columns:    []*schema.Column{UsersColumns[17]},
 				RefColumns: []*schema.Column{FilesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

@@ -51,16 +51,23 @@ func (ou *OtpUpdate) SetUpdatedAt(t time.Time) *OtpUpdate {
 }
 
 // SetCode sets the "code" field.
-func (ou *OtpUpdate) SetCode(s string) *OtpUpdate {
-	ou.mutation.SetCode(s)
+func (ou *OtpUpdate) SetCode(u uint32) *OtpUpdate {
+	ou.mutation.ResetCode()
+	ou.mutation.SetCode(u)
 	return ou
 }
 
 // SetNillableCode sets the "code" field if the given value is not nil.
-func (ou *OtpUpdate) SetNillableCode(s *string) *OtpUpdate {
-	if s != nil {
-		ou.SetCode(*s)
+func (ou *OtpUpdate) SetNillableCode(u *uint32) *OtpUpdate {
+	if u != nil {
+		ou.SetCode(*u)
 	}
+	return ou
+}
+
+// AddCode adds u to the "code" field.
+func (ou *OtpUpdate) AddCode(u int32) *OtpUpdate {
+	ou.mutation.AddCode(u)
 	return ou
 }
 
@@ -132,11 +139,6 @@ func (ou *OtpUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ou *OtpUpdate) check() error {
-	if v, ok := ou.mutation.Code(); ok {
-		if err := otp.CodeValidator(v); err != nil {
-			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Otp.code": %w`, err)}
-		}
-	}
 	if _, ok := ou.mutation.UserID(); ou.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Otp.user"`)
 	}
@@ -162,7 +164,10 @@ func (ou *OtpUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(otp.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := ou.mutation.Code(); ok {
-		_spec.SetField(otp.FieldCode, field.TypeString, value)
+		_spec.SetField(otp.FieldCode, field.TypeUint32, value)
+	}
+	if value, ok := ou.mutation.AddedCode(); ok {
+		_spec.AddField(otp.FieldCode, field.TypeUint32, value)
 	}
 	if ou.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -234,16 +239,23 @@ func (ouo *OtpUpdateOne) SetUpdatedAt(t time.Time) *OtpUpdateOne {
 }
 
 // SetCode sets the "code" field.
-func (ouo *OtpUpdateOne) SetCode(s string) *OtpUpdateOne {
-	ouo.mutation.SetCode(s)
+func (ouo *OtpUpdateOne) SetCode(u uint32) *OtpUpdateOne {
+	ouo.mutation.ResetCode()
+	ouo.mutation.SetCode(u)
 	return ouo
 }
 
 // SetNillableCode sets the "code" field if the given value is not nil.
-func (ouo *OtpUpdateOne) SetNillableCode(s *string) *OtpUpdateOne {
-	if s != nil {
-		ouo.SetCode(*s)
+func (ouo *OtpUpdateOne) SetNillableCode(u *uint32) *OtpUpdateOne {
+	if u != nil {
+		ouo.SetCode(*u)
 	}
+	return ouo
+}
+
+// AddCode adds u to the "code" field.
+func (ouo *OtpUpdateOne) AddCode(u int32) *OtpUpdateOne {
+	ouo.mutation.AddCode(u)
 	return ouo
 }
 
@@ -328,11 +340,6 @@ func (ouo *OtpUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ouo *OtpUpdateOne) check() error {
-	if v, ok := ouo.mutation.Code(); ok {
-		if err := otp.CodeValidator(v); err != nil {
-			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Otp.code": %w`, err)}
-		}
-	}
 	if _, ok := ouo.mutation.UserID(); ouo.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "Otp.user"`)
 	}
@@ -375,7 +382,10 @@ func (ouo *OtpUpdateOne) sqlSave(ctx context.Context) (_node *Otp, err error) {
 		_spec.SetField(otp.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := ouo.mutation.Code(); ok {
-		_spec.SetField(otp.FieldCode, field.TypeString, value)
+		_spec.SetField(otp.FieldCode, field.TypeUint32, value)
+	}
+	if value, ok := ouo.mutation.AddedCode(); ok {
+		_spec.AddField(otp.FieldCode, field.TypeUint32, value)
 	}
 	if ouo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

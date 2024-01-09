@@ -8,6 +8,53 @@ definitions:
         example: pong
         type: string
     type: object
+  schemas.EmailRequestSchema:
+    properties:
+      email:
+        example: johndoe@email.com
+        minLength: 5
+        type: string
+    required:
+    - email
+    type: object
+  schemas.RegisterResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.EmailRequestSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  schemas.RegisterUser:
+    properties:
+      email:
+        example: johndoe@email.com
+        minLength: 5
+        type: string
+      first_name:
+        example: John
+        maxLength: 50
+        type: string
+      last_name:
+        example: Doe
+        maxLength: 50
+        type: string
+      password:
+        example: strongpassword
+        maxLength: 50
+        minLength: 8
+        type: string
+      terms_agreement:
+        type: boolean
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
   schemas.SiteDetail:
     properties:
       address:
@@ -46,12 +93,47 @@ definitions:
         example: success
         type: string
     type: object
+  utils.ErrorResponse:
+    properties:
+      code:
+        type: string
+      data:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+      status:
+        type: string
+    type: object
 info:
   contact: {}
   description: A simple bidding API built with Fiber
   title: SOCIALNET API
   version: "4.0"
 paths:
+  /auth/register:
+    post:
+      description: This endpoint registers new users into our application.
+      parameters:
+      - description: User object
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.RegisterUser'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.RegisterResponseSchema'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Auth
   /general/site-detail:
     get:
       description: This endpoint retrieves few details of the site/application.
