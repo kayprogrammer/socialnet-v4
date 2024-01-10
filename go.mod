@@ -12,6 +12,7 @@ require (
 	github.com/gofiber/swagger v0.1.14
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/google/uuid v1.4.0
+	github.com/gosimple/slug v1.13.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/swaggo/swag v1.16.2
@@ -35,6 +36,7 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
+	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect

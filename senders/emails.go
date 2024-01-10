@@ -11,11 +11,10 @@ import (
 
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
-	"github.com/kayprogrammer/socialnet-v4/managers"
 	"gopkg.in/gomail.v2"
 )
 
-func sortEmail(db *ent.Client, user ent.User, emailType string) map[string]interface{} {
+func sortEmail(user *ent.User, emailType string, code *uint32) map[string]interface{} {
 	templateFile := "templates/welcome.html"
     subject := "Account verified"
 	data := make(map[string]interface{})
@@ -26,18 +25,16 @@ func sortEmail(db *ent.Client, user ent.User, emailType string) map[string]inter
 	if emailType == "activate" {
         templateFile = "templates/email-activation.html"
         subject = "Activate your account"
-		otp := managers.OtpManager{}.GetOrCreate(db, user.ID)
         data["template_file"] = templateFile 
 		data["subject"] = subject 
-		data["otp"] = otp.Code
+		data["otp"] = code
 
 	} else if emailType == "reset"{
 		templateFile = "templates/password-reset.html"
         subject = "Reset your password"
-		otp := managers.OtpManager{}.GetOrCreate(db, user.ID)
 		data["template_file"] = templateFile 
 		data["subject"] = subject 
-		data["otp"] = otp.Code
+		data["otp"] = code
 
     } else if emailType == "reset-success" {
 		templateFile = "templates/password-reset-success.html"
@@ -50,15 +47,15 @@ func sortEmail(db *ent.Client, user ent.User, emailType string) map[string]inter
 
 type EmailContext struct {
 	Name			string
-	Otp				*int
+	Otp				*uint32
 }
 
-func SendEmail(env interface{}, db *ent.Client, user ent.User, emailType string) {
+func SendEmail(env interface{}, user *ent.User, emailType string, code *uint32) {
 	env = env.(string)
 	if env == "normal" {
 		cfg := config.GetConfig()
 
-		emailData := sortEmail(db, user, emailType)
+		emailData := sortEmail(user, emailType, code)
 		templateFile := emailData["template_file"]
 		subject := emailData["subject"]
 
@@ -67,7 +64,7 @@ func SendEmail(env interface{}, db *ent.Client, user ent.User, emailType string)
 			Name: user.FirstName,
 		}
 		if otp, ok := emailData["otp"]; ok {
-			code := otp.(*int)
+			code := otp.(*uint32)
 			data.Otp = code
 		}
 
@@ -83,7 +80,7 @@ func SendEmail(env interface{}, db *ent.Client, user ent.User, emailType string)
 		if err != nil {
 			log.Fatal("Error reading HTML file:", err)
 		}
-
+		
 		// Create a new template from the HTML file content
 		tmpl, err := template.New("email_template").Parse(string(htmlContent))
 		if err != nil {

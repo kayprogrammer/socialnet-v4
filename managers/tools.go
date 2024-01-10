@@ -3,30 +3,38 @@ package managers
 import (
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/gosimple/slug"
-	"github.com/kayprogrammer/socialnet-v4/managers"
+	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/ent/user"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
-func UsernameGenerator(firstName string, lastName string, userName *string) {
+func UsernameGenerator(db *ent.Client, firstName string, lastName string, userId *uuid.UUID, userName *string) string {
+	var uniqueUsername string
 	name := firstName + " " + lastName
-	if name && (!username || !strings.HasPrefix(username, slug.Make(name))) {
+	if userName == nil || !(strings.HasPrefix(*userName, slug.Make(name))) {
 		// The if statement above implies that username will only be created or altered
-		// if name exists and
 		// if username is none OR name has changed (checking if the current username tallies with the name)
-
 		uniqueUsername = slug.Make(name)
-		obj := managers.UserManager{}.GetByIDAndUsername(db, id, uniqueUsername)
-		obj = (
-			await User.objects()
-			.where(User.username == unique_username, User.id != self.id)
-			.first()
-		)
-		if obj:
-			unique_username = (
-				f"{unique_username}-{generate_random_alphanumeric_string()}"
-			)
-			return await self.generate_username(unique_username)
-		return unique_username
+		if userName != nil {
+			uniqueUsername = *userName
+		}
+
+		// Exclude the current user id during the query if it exists
+		obj, _ := db.User.Query().Where(user.Username(uniqueUsername)).Only(Ctx)
+		if userId != nil {
+			obj, _ = db.User.Query().Where(user.Not(user.ID(*userId))).Only(Ctx)
+		}
+
+		if obj != nil {
+			// If there's another row with the slug, attach a random string to it 
+			// to ensure its uniqueness and repeat the function
+			randomStr := utils.GetRandomString(6)
+			uniqueUsername = uniqueUsername + "-" + randomStr
+			return UsernameGenerator(db, firstName, lastName, userId, &uniqueUsername)
+		}
+		return uniqueUsername
 	}
-	return username 
+	return *userName
 }

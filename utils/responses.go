@@ -14,42 +14,21 @@ func (obj ErrorResponse) Init() ErrorResponse {
 	return obj
 }
 
-type ErrorCodeStruct struct {
-	UNAUTHORIZED_USER		string
-	NETWORK_FAILURE			string
-	SERVER_ERROR			string
-	INVALID_ENTRY			string
-	INCORRECT_EMAIL			string
-	INCORRECT_OTP			string
-	EXPIRED_OTP				string
-	INVALID_AUTH			string
-	INVALID_TOKEN			string
-	INVALID_CREDENTIALS		string
-	UNVERIFIED_USER			string
-	NON_EXISTENT			string
-	INVALID_OWNER			string
-	INVALID_PAGE			string
-	INVALID_VALUE			string
-	NOT_ALLOWED				string
-	INVALID_DATA_TYPE		string
-}
-
-var ErrorCode = ErrorCodeStruct{
-	UNAUTHORIZED_USER:	"unauthorized_user",
-	NETWORK_FAILURE:	"network_failure",
-	SERVER_ERROR:	"server_error",
-	INVALID_ENTRY:	"invalid_entry",
-	INCORRECT_EMAIL:	"incorrect_email",
-	INCORRECT_OTP:	"incorrect_otp",
-	EXPIRED_OTP:	"expired_otp",
-	INVALID_AUTH:	"invalid_auth",
-	INVALID_TOKEN:	"invalid_token",
-	INVALID_CREDENTIALS:	"invalid_credentials",
-	UNVERIFIED_USER:	"unverified_user",
-	NON_EXISTENT:	"non_existent",
-	INVALID_OWNER:	"invalid_owner",
-	INVALID_PAGE:	"invalid_page",
-	INVALID_VALUE:	"invalid_value",
-	NOT_ALLOWED:	"not_allowed",
-	INVALID_DATA_TYPE:	"invalid_data_type",
-}
+// Error codes
+var ERR_UNAUTHORIZED_USER =	"unauthorized_user"
+var ERR_NETWORK_FAILURE =	"network_failure"
+var ERR_SERVER_ERROR =	"server_error"
+var ERR_INVALID_ENTRY =	"invalid_entry"
+var ERR_INCORRECT_EMAIL =	"incorrect_email"
+var ERR_INCORRECT_OTP =	"incorrect_otp"
+var ERR_EXPIRED_OTP =	"expired_otp"
+var ERR_INVALID_AUTH =	"invalid_auth"
+var ERR_INVALID_TOKEN =	"invalid_token"
+var ERR_INVALID_CREDENTIALS =	"invalid_credentials"
+var ERR_UNVERIFIED_USER =	"unverified_user"
+var ERR_NON_EXISTENT =	"non_existent"
+var ERR_INVALID_OWNER =	"invalid_owner"
+var ERR_INVALID_PAGE =	"invalid_page"
+var ERR_INVALID_VALUE =	"invalid_value"
+var ERR_NOT_ALLOWED =	"not_allowed"
+var ERR_INVALID_DATA_TYPE =	"invalid_data_type"

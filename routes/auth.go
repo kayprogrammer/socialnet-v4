@@ -38,14 +38,15 @@ func Register(c *fiber.Ctx) error {
 		data := map[string]string{
 			"email": "Email already registered!",
 		}
-		return c.Status(422).JSON(utils.ErrorResponse{Message: "Invalid Entry", Data: &data}.Init())
+		return c.Status(422).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_ENTRY, Message: "Invalid Entry", Data: &data}.Init())
 	}
 
 	// Create User
 	newUser, _ := userManager.Create(db, user)
 
 	// Send Email
-	go senders.SendEmail(c.Locals("env"), db, *newUser, "activate")
+	otp := managers.OtpManager{}.GetOrCreate(db, newUser.ID)
+	go senders.SendEmail(c.Locals("env"), newUser, "activate", &otp.Code)
 
 	response := schemas.RegisterResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Registration successful"}.Init(),
@@ -53,4 +54,3 @@ func Register(c *fiber.Ctx) error {
 	}
 	return c.Status(201).JSON(response)
 }
-
