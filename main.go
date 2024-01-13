@@ -15,7 +15,7 @@ import (
 
 // @title SOCIALNET API
 // @version 4.0
-// @description A simple bidding API built with Fiber
+// @description A Realtime Social Networking API built with Fiber
 // @Accept json
 // @Produce json
 // @BasePath  /api/v4

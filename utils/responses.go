@@ -18,6 +18,7 @@ func (obj ErrorResponse) Init() ErrorResponse {
 var ERR_UNAUTHORIZED_USER =	"unauthorized_user"
 var ERR_NETWORK_FAILURE =	"network_failure"
 var ERR_SERVER_ERROR =	"server_error"
+var ERR_INVALID_REQUEST =	"invalid_request"
 var ERR_INVALID_ENTRY =	"invalid_entry"
 var ERR_INCORRECT_EMAIL =	"incorrect_email"
 var ERR_INCORRECT_OTP =	"incorrect_otp"

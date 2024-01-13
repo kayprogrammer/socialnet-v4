@@ -2,8 +2,10 @@ package managers
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
@@ -40,13 +42,15 @@ func (obj UserManager) GetByEmail(client *ent.Client, email string) (*ent.User, 
 
 func (obj UserManager) Create(client *ent.Client, userData schemas.RegisterUser) (*ent.User, error) {
 	username := UsernameGenerator(client, userData.FirstName, userData.LastName, nil, nil)
+	password := utils.HashPassword(userData.Password)
+
 	u, err := client.User.
 		Create().
 		SetFirstName(userData.FirstName). 
 		SetLastName(userData.LastName).
 		SetEmail(userData.Email). 
 		SetUsername(username). 
-		SetPassword(userData.Password).
+		SetPassword(password).
 		SetTermsAgreement(userData.TermsAgreement). 
 		Save(Ctx)
 	if err != nil {
@@ -61,10 +65,7 @@ type OtpManager struct {
 
 func (obj OtpManager) GetOrCreate(client *ent.Client, userId uuid.UUID) *ent.Otp {
 	code := utils.GetRandomInt(6)
-	o, _ := client.Otp.
-		Query().
-		Where(otp.UserID(userId)).
-		Only(Ctx)
+	o, _ := obj.GetByUserID(client, userId)
 	
 	// Create Otp
 	if o == nil {
@@ -75,7 +76,26 @@ func (obj OtpManager) GetOrCreate(client *ent.Client, userId uuid.UUID) *ent.Otp
 			Save(Ctx)
 	} else {
 		// Update the otp code
-		o.Update().SetCode(code).Save(Ctx)
+		o, _ = o.Update().SetCode(code).Save(Ctx)
 	}
 	return o
+}
+
+func (obj OtpManager) GetByUserID(client *ent.Client, userId uuid.UUID) (*ent.Otp, error) {
+	o, err := client.Otp.
+		Query().
+		Where(otp.UserID(userId)).
+		Only(Ctx)
+	if err != nil {
+		fmt.Printf("failed querying otp by user id: %v\n", err)
+		return nil, nil
+	}
+	return o, nil
+}
+
+func (obj OtpManager) CheckExpiration(otpObj *ent.Otp) bool {
+	currentTime := time.Now().UTC()
+	diff := int64(currentTime.Sub(otpObj.UpdatedAt).Seconds())
+	emailExpirySecondsTimeout := config.GetConfig().EmailOTPExpireSeconds
+	return diff > emailExpirySecondsTimeout
 }

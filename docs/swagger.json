@@ -7,7 +7,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "A simple bidding API built with Fiber",
+        "description": "A Realtime Social Networking API built with Fiber",
         "title": "SOCIALNET API",
         "contact": {},
         "version": "4.0"
@@ -37,6 +37,74 @@
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/schemas.RegisterResponseSchema"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/resend-verification-email": {
+            "post": {
+                "description": "This endpoint resends new otp to the user's email.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Resend Verification Email",
+                "parameters": [
+                    {
+                        "description": "Email object",
+                        "name": "email",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.EmailRequestSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify-email": {
+            "post": {
+                "description": "This endpoint verifies a user's email.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Verify a user's email",
+                "parameters": [
+                    {
+                        "description": "Verify Email object",
+                        "name": "verify_email",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.VerifyEmailRequestSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
                         }
                     },
                     "422": {
@@ -157,6 +225,19 @@
                 }
             }
         },
+        "schemas.ResponseSchema": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
         "schemas.SiteDetail": {
             "type": "object",
             "properties": {
@@ -207,6 +288,24 @@
                 "status": {
                     "type": "string",
                     "example": "success"
+                }
+            }
+        },
+        "schemas.VerifyEmailRequestSchema": {
+            "type": "object",
+            "required": [
+                "email",
+                "otp"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "johndoe@example.com"
+                },
+                "otp": {
+                    "type": "integer",
+                    "example": 123456
                 }
             }
         },

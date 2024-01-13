@@ -2,9 +2,12 @@ package utils
 
 import (
 	"encoding/json"
+	"log"
 	"math/rand"
 	"reflect"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func ConvertStructData(object interface{}, targetStruct interface{}) interface{} {
@@ -52,4 +55,10 @@ func intPow(base, exponent int) int {
 		result *= base
 	}
 	return result
+}
+
+func HashPassword(password string) string {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), 8)
+	log.Println(err)
+    return string(bytes)
 }

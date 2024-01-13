@@ -56,6 +56,74 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/resend-verification-email": {
+            "post": {
+                "description": "This endpoint resends new otp to the user's email.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Resend Verification Email",
+                "parameters": [
+                    {
+                        "description": "Email object",
+                        "name": "email",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.EmailRequestSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify-email": {
+            "post": {
+                "description": "This endpoint verifies a user's email.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Verify a user's email",
+                "parameters": [
+                    {
+                        "description": "Verify Email object",
+                        "name": "verify_email",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.VerifyEmailRequestSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/general/site-detail": {
             "get": {
                 "description": "This endpoint retrieves few details of the site/application.",
@@ -165,6 +233,19 @@ const docTemplate = `{
                 }
             }
         },
+        "schemas.ResponseSchema": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
         "schemas.SiteDetail": {
             "type": "object",
             "properties": {
@@ -218,6 +299,24 @@ const docTemplate = `{
                 }
             }
         },
+        "schemas.VerifyEmailRequestSchema": {
+            "type": "object",
+            "required": [
+                "email",
+                "otp"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "minLength": 5,
+                    "example": "johndoe@example.com"
+                },
+                "otp": {
+                    "type": "integer",
+                    "example": 123456
+                }
+            }
+        },
         "utils.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -256,7 +355,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v4",
 	Schemes:          []string{},
 	Title:            "SOCIALNET API",
-	Description:      "A simple bidding API built with Fiber",
+	Description:      "A Realtime Social Networking API built with Fiber",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
