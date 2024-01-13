@@ -18,6 +18,10 @@ type VerifyEmailRequestSchema struct {
 	Otp					uint32				`json:"otp" validate:"required" example:"123456"`
 }
 
+type SetNewPasswordSchema struct {
+	VerifyEmailRequestSchema
+	Password			string				`json:"password" validate:"required,min=8,max=50" example:"newstrongpassword"`
+}
 // RESPONSE BODY SCHEMAS
 type RegisterResponseSchema struct {
 	ResponseSchema

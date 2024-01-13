@@ -143,3 +143,84 @@ func ResendVerificationEmail(c *fiber.Ctx) error {
 	response := schemas.ResponseSchema{Message: "Verification email sent"}.Init()
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Send Password Reset Otp
+// @Description This endpoint sends new password reset otp to the user's email.
+// @Tags Auth
+// @Param email body schemas.EmailRequestSchema true "Email object"
+// @Success 200 {object} schemas.ResponseSchema
+// @Failure 422 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Router /auth/send-password-reset-otp [post]
+func SendPasswordResetOtp(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	validator := utils.Validator()
+
+	emailSchema := schemas.EmailRequestSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &emailSchema); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(emailSchema); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	user, _ := userManager.GetByEmail(db, emailSchema.Email)
+	if user == nil {
+		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_EMAIL, Message: "Incorrect Email"}.Init())
+	}
+
+	// Send Email
+	otp := otpManager.GetOrCreate(db, user.ID)
+	go senders.SendEmail(c.Locals("env"), user, "reset", &otp.Code)
+
+	response := schemas.ResponseSchema{Message: "Password otp sent"}.Init()
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Set New Password
+// @Description This endpoint verifies the password reset otp.
+// @Tags Auth
+// @Param email body schemas.SetNewPasswordSchema true "Password reset object"
+// @Success 200 {object} schemas.ResponseSchema
+// @Failure 422 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Router /auth/set-new-password [post]
+func SetNewPassword(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	validator := utils.Validator()
+
+	passwordResetSchema := schemas.SetNewPasswordSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &passwordResetSchema); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(passwordResetSchema); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	user, _ := userManager.GetByEmail(db, passwordResetSchema.Email)
+	if user == nil {
+		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_EMAIL, Message: "Incorrect Email"}.Init())
+	}
+
+	otp, _ := otpManager.GetByUserID(db, user.ID)
+	if otp == nil || otp.Code != passwordResetSchema.Otp {
+		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_OTP, Message: "Incorrect Otp"}.Init())
+	}
+
+	if otpManager.CheckExpiration(otp) {
+		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_EXPIRED_OTP, Message: "Expired Otp"}.Init())
+	}
+
+	// Set Password
+	user.Update().SetPassword(utils.HashPassword(passwordResetSchema.Password)).Save(managers.Ctx)
+
+	// Send Email
+	go senders.SendEmail(c.Locals("env"), user, "reset-success", nil)
+
+	response := schemas.ResponseSchema{Message: "Password reset successful"}.Init()
+	return c.Status(200).JSON(response)
+}
