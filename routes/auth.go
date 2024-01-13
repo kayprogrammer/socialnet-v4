@@ -3,7 +3,7 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 
-	// auth "github.com/kayprogrammer/socialnet-v4/authentication"
+	auth "github.com/kayprogrammer/socialnet-v4/authentication"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
@@ -222,5 +222,107 @@ func SetNewPassword(c *fiber.Ctx) error {
 	go senders.SendEmail(c.Locals("env"), user, "reset-success", nil)
 
 	response := schemas.ResponseSchema{Message: "Password reset successful"}.Init()
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Login a user
+// @Description This endpoint generates new access and refresh tokens for authentication
+// @Tags Auth
+// @Param user body schemas.LoginSchema true "User login"
+// @Success 201 {object} schemas.ResponseSchema
+// @Failure 422 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Security GuestUserAuth
+// @Router /auth/login [post]
+func Login(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	validator := utils.Validator()
+
+	userLoginSchema := schemas.LoginSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &userLoginSchema); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(userLoginSchema); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	user, _ := userManager.GetByEmail(db, userLoginSchema.Email)
+	if user == nil {
+		return c.Status(401).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_CREDENTIALS, Message: "Invalid Credentials"}.Init())
+	}
+	if !utils.CheckPasswordHash(userLoginSchema.Password, user.Password) {
+		return c.Status(401).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_CREDENTIALS, Message: "Invalid Credentials"}.Init())
+	}
+
+	if !user.IsEmailVerified {
+		return c.Status(401).JSON(utils.ErrorResponse{Code: utils.ERR_UNVERIFIED_USER, Message: "Verify your email first"}.Init())
+	}
+
+	// Create Auth Tokens
+	access := auth.GenerateAccessToken(user.ID, user.Username)
+	refresh := auth.GenerateRefreshToken()
+	userManager.UpdateTokens(user, access, refresh)
+
+	response := schemas.LoginResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Login successful"}.Init(),
+		Data:           schemas.TokensResponseSchema{Access: access, Refresh: refresh},
+	}
+	return c.Status(201).JSON(response)
+}
+
+// @Summary Refresh tokens
+// @Description This endpoint refresh tokens by generating new access and refresh tokens for a user
+// @Tags Auth
+// @Param refresh body schemas.RefreshTokenSchema true "Refresh token"
+// @Success 201 {object} schemas.ResponseSchema
+// @Failure 422 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Router /auth/refresh [post]
+func Refresh(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	validator := utils.Validator()
+
+	refreshTokenSchema := schemas.RefreshTokenSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &refreshTokenSchema); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(refreshTokenSchema); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	token := refreshTokenSchema.Refresh
+	user, _ := userManager.GetByRefreshToken(db, token)
+	if user == nil || !auth.DecodeRefreshToken(token) {
+		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_TOKEN, Message: "Refresh token is invalid or expired"}.Init())
+	}
+
+	// Create and Update Auth Tokens
+	access := auth.GenerateAccessToken(user.ID, user.Username)
+	refresh := auth.GenerateRefreshToken()
+	userManager.UpdateTokens(user, access, refresh)
+
+	response := schemas.LoginResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Tokens refresh successful"}.Init(),
+		Data:           schemas.TokensResponseSchema{Access: access, Refresh: refresh},
+	}
+	return c.Status(201).JSON(response)
+}
+
+// @Summary Logout a user
+// @Description This endpoint logs a user out from our application
+// @Tags Auth
+// @Success 200 {object} schemas.ResponseSchema
+// @Failure 401 {object} utils.ErrorResponse
+// @Router /auth/logout [get]
+// @Security BearerAuth
+func Logout(c *fiber.Ctx) error {
+	user := c.Locals("user").(*ent.User)
+	user.Update().ClearAccess().ClearRefresh().Save(managers.Ctx) // Set tokens to null
+	response := schemas.ResponseSchema{Message: "Logout successful"}.Init()
 	return c.Status(200).JSON(response)
 }

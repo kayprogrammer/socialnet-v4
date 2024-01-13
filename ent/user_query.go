@@ -492,7 +492,10 @@ func (uq *UserQuery) loadCity(ctx context.Context, query *CityQuery, nodes []*Us
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*User)
 	for i := range nodes {
-		fk := nodes[i].CityID
+		if nodes[i].CityID == nil {
+			continue
+		}
+		fk := *nodes[i].CityID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -521,7 +524,10 @@ func (uq *UserQuery) loadAvatar(ctx context.Context, query *FileQuery, nodes []*
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*User)
 	for i := range nodes {
-		fk := nodes[i].AvatarID
+		if nodes[i].AvatarID == nil {
+			continue
+		}
+		fk := *nodes[i].AvatarID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}

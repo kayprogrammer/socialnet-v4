@@ -54,15 +54,15 @@ func (User) Fields() []ent.Field {
 		field.Bool("is_active").
 			Default(true),
 		field.String("bio").
-			Optional(),
+			Optional().Nillable(),
 		field.Time("dob").
-			Optional(),
+			Optional().Nillable(),
 		field.String("access").
-			Optional(),
+			Optional().Nillable(),
 		field.String("refresh").
-			Optional(),
-		field.UUID("city_id", uuid.UUID{}).Optional(),
-		field.UUID("avatar_id", uuid.UUID{}).Optional(),
+			Optional().Nillable(),
+		field.UUID("city_id", uuid.UUID{}).Optional().Nillable(),
+		field.UUID("avatar_id", uuid.UUID{}).Optional().Nillable(),
 	)
 }
 

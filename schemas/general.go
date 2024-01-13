@@ -15,13 +15,3 @@ type SiteDetailResponseSchema struct {
 	ResponseSchema
 	Data			SiteDetail		`json:"data"`
 }
-
-// func (obj SiteDetailResponseSchema) Init() SiteDetailResponseSchema {
-// 	var originalSiteDetailStruct *ent.SiteDetail
-// 	var targetSiteDetailStruct SiteDetail
-
-// 	temporaryVariable, _ := json.Marshal(originalSiteDetailStruct)
-// 	vv := json.Unmarshal(temporaryVariable, &targetSiteDetailStruct) 
-// 	fmt.Println(vv)
-	
-// }

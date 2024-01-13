@@ -471,19 +471,19 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.Bio(); ok {
 		_spec.SetField(user.FieldBio, field.TypeString, value)
-		_node.Bio = value
+		_node.Bio = &value
 	}
 	if value, ok := uc.mutation.Dob(); ok {
 		_spec.SetField(user.FieldDob, field.TypeTime, value)
-		_node.Dob = value
+		_node.Dob = &value
 	}
 	if value, ok := uc.mutation.Access(); ok {
 		_spec.SetField(user.FieldAccess, field.TypeString, value)
-		_node.Access = value
+		_node.Access = &value
 	}
 	if value, ok := uc.mutation.Refresh(); ok {
 		_spec.SetField(user.FieldRefresh, field.TypeString, value)
-		_node.Refresh = value
+		_node.Refresh = &value
 	}
 	if nodes := uc.mutation.CityIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -499,7 +499,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.CityID = nodes[0]
+		_node.CityID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.AvatarIDs(); len(nodes) > 0 {
@@ -516,7 +516,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.AvatarID = nodes[0]
+		_node.AvatarID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.OtpIDs(); len(nodes) > 0 {

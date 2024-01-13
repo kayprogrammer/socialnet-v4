@@ -425,9 +425,12 @@ func (cq *CityQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*C
 	}
 	for _, n := range neighbors {
 		fk := n.CityID
-		node, ok := nodeids[fk]
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "city_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "city_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "city_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

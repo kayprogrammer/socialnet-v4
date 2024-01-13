@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/ent/user"
 	"github.com/kayprogrammer/socialnet-v4/managers"
 
 	"github.com/kayprogrammer/socialnet-v4/utils"
@@ -17,20 +18,21 @@ var cfg = config.GetConfig()
 var SECRETKEY = []byte(cfg.SecretKey)
 
 type AccessTokenPayload struct {
-	UserId			uuid.UUID			`json:"user_id"`
-	Username		string				`json:"username"`
+	UserId   uuid.UUID `json:"user_id"`
+	Username string    `json:"username"`
 	jwt.RegisteredClaims
 }
 
 type RefreshTokenPayload struct {
-	Data			string			`json:"data"`
+	Data string `json:"data"`
 	jwt.RegisteredClaims
 }
 
-func GenerateAccessToken(userId uuid.UUID) string {
+func GenerateAccessToken(userId uuid.UUID, userName string) string {
 	expirationTime := time.Now().Add(time.Duration(cfg.AccessTokenExpireMinutes) * time.Minute)
 	payload := AccessTokenPayload{
-		UserId: userId,
+		UserId:   userId,
+		Username: userName,
 		RegisteredClaims: jwt.RegisteredClaims{
 			// In JWT, the expiry time is expressed as unix milliseconds
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
@@ -90,8 +92,9 @@ func DecodeAccessToken(token string, db *ent.Client) (*ent.User, *string) {
 
 	// Fetch User model object
 	userId := claims.UserId
-	user, _ := managers.UserManager{}.GetById(db, userId)
-	if user == nil || user.Access != token {
+	user, _ := db.User.Query().Where(user.ID(userId), user.Access(token)).Only(managers.Ctx)
+
+	if user == nil {
 		return nil, &tokenErr
 	}
 	return user, nil

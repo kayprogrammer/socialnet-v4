@@ -13,6 +13,9 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
+// ----------------------------------
+// OTP MANAGEMENT
+// --------------------------------
 type UserManager struct {
 }
 
@@ -23,6 +26,18 @@ func (obj UserManager) GetById(client *ent.Client, id uuid.UUID) (*ent.User, err
 		Only(Ctx)
 	if err != nil {
 		fmt.Printf("failed querying user by id: %v\n", err)
+		return nil, nil
+	}
+	return u, nil
+}
+
+func (obj UserManager) GetByRefreshToken(client *ent.Client, token string) (*ent.User, error) {
+	u, err := client.User.
+		Query().
+		Where(user.Refresh(token)).
+		Only(Ctx)
+	if err != nil {
+		fmt.Printf("failed querying user by refresh token: %v\n", err)
 		return nil, nil
 	}
 	return u, nil
@@ -60,6 +75,13 @@ func (obj UserManager) Create(client *ent.Client, userData schemas.RegisterUser)
 	return u, nil
 }
 
+func (obj UserManager) UpdateTokens(user *ent.User, access string, refresh string) (*ent.User, error) {
+	u, _ := user.Update().SetAccess(access).SetRefresh(refresh).Save(Ctx)
+	return u, nil
+}
+// ----------------------------------
+// OTP MANAGEMENT
+// --------------------------------
 type OtpManager struct {
 }
 

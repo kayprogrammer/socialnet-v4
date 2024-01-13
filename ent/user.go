@@ -44,17 +44,17 @@ type User struct {
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// Bio holds the value of the "bio" field.
-	Bio string `json:"bio,omitempty"`
+	Bio *string `json:"bio,omitempty"`
 	// Dob holds the value of the "dob" field.
-	Dob time.Time `json:"dob,omitempty"`
+	Dob *time.Time `json:"dob,omitempty"`
 	// Access holds the value of the "access" field.
-	Access string `json:"access,omitempty"`
+	Access *string `json:"access,omitempty"`
 	// Refresh holds the value of the "refresh" field.
-	Refresh string `json:"refresh,omitempty"`
+	Refresh *string `json:"refresh,omitempty"`
 	// CityID holds the value of the "city_id" field.
-	CityID uuid.UUID `json:"city_id,omitempty"`
+	CityID *uuid.UUID `json:"city_id,omitempty"`
 	// AvatarID holds the value of the "avatar_id" field.
-	AvatarID uuid.UUID `json:"avatar_id,omitempty"`
+	AvatarID *uuid.UUID `json:"avatar_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -118,13 +118,15 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldCityID, user.FieldAvatarID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case user.FieldTermsAgreement, user.FieldIsEmailVerified, user.FieldIsStaff, user.FieldIsActive:
 			values[i] = new(sql.NullBool)
 		case user.FieldFirstName, user.FieldLastName, user.FieldUsername, user.FieldEmail, user.FieldPassword, user.FieldBio, user.FieldAccess, user.FieldRefresh:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDob:
 			values[i] = new(sql.NullTime)
-		case user.FieldID, user.FieldCityID, user.FieldAvatarID:
+		case user.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -217,37 +219,43 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field bio", values[i])
 			} else if value.Valid {
-				u.Bio = value.String
+				u.Bio = new(string)
+				*u.Bio = value.String
 			}
 		case user.FieldDob:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field dob", values[i])
 			} else if value.Valid {
-				u.Dob = value.Time
+				u.Dob = new(time.Time)
+				*u.Dob = value.Time
 			}
 		case user.FieldAccess:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field access", values[i])
 			} else if value.Valid {
-				u.Access = value.String
+				u.Access = new(string)
+				*u.Access = value.String
 			}
 		case user.FieldRefresh:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field refresh", values[i])
 			} else if value.Valid {
-				u.Refresh = value.String
+				u.Refresh = new(string)
+				*u.Refresh = value.String
 			}
 		case user.FieldCityID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field city_id", values[i])
-			} else if value != nil {
-				u.CityID = *value
+			} else if value.Valid {
+				u.CityID = new(uuid.UUID)
+				*u.CityID = *value.S.(*uuid.UUID)
 			}
 		case user.FieldAvatarID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field avatar_id", values[i])
-			} else if value != nil {
-				u.AvatarID = *value
+			} else if value.Valid {
+				u.AvatarID = new(uuid.UUID)
+				*u.AvatarID = *value.S.(*uuid.UUID)
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -333,23 +341,35 @@ func (u *User) String() string {
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", u.IsActive))
 	builder.WriteString(", ")
-	builder.WriteString("bio=")
-	builder.WriteString(u.Bio)
+	if v := u.Bio; v != nil {
+		builder.WriteString("bio=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("dob=")
-	builder.WriteString(u.Dob.Format(time.ANSIC))
+	if v := u.Dob; v != nil {
+		builder.WriteString("dob=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("access=")
-	builder.WriteString(u.Access)
+	if v := u.Access; v != nil {
+		builder.WriteString("access=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("refresh=")
-	builder.WriteString(u.Refresh)
+	if v := u.Refresh; v != nil {
+		builder.WriteString("refresh=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("city_id=")
-	builder.WriteString(fmt.Sprintf("%v", u.CityID))
+	if v := u.CityID; v != nil {
+		builder.WriteString("city_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("avatar_id=")
-	builder.WriteString(fmt.Sprintf("%v", u.AvatarID))
+	if v := u.AvatarID; v != nil {
+		builder.WriteString("avatar_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

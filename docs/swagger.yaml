@@ -17,6 +17,26 @@ definitions:
     required:
     - email
     type: object
+  schemas.LoginSchema:
+    properties:
+      email:
+        example: johndoe@email.com
+        type: string
+      password:
+        example: password
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  schemas.RefreshTokenSchema:
+    properties:
+      refresh:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InNpbXBsZWlkIiwiZXhwIjoxMjU3ODk0MzAwfQ.Ys_jP70xdxch32hFECfJQuvpvU5_IiTIN2pJJv68EqQ
+        type: string
+    required:
+    - refresh
+    type: object
   schemas.RegisterResponseSchema:
     properties:
       data:
@@ -153,6 +173,82 @@ info:
   title: SOCIALNET API
   version: "4.0"
 paths:
+  /auth/login:
+    post:
+      description: This endpoint generates new access and refresh tokens for authentication
+      parameters:
+      - description: User login
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.LoginSchema'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - GuestUserAuth: []
+      summary: Login a user
+      tags:
+      - Auth
+  /auth/logout:
+    get:
+      description: This endpoint logs a user out from our application
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout a user
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      description: This endpoint refresh tokens by generating new access and refresh
+        tokens for a user
+      parameters:
+      - description: Refresh token
+        in: body
+        name: refresh
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.RefreshTokenSchema'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Refresh tokens
+      tags:
+      - Auth
   /auth/register:
     post:
       description: This endpoint registers new users into our application.
