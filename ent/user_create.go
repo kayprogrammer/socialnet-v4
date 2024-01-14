@@ -12,8 +12,12 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
+	"github.com/kayprogrammer/socialnet-v4/ent/post"
+	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
+	"github.com/kayprogrammer/socialnet-v4/ent/reply"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
@@ -263,6 +267,66 @@ func (uc *UserCreate) SetNillableOtpID(id *uuid.UUID) *UserCreate {
 // SetOtp sets the "otp" edge to the Otp entity.
 func (uc *UserCreate) SetOtp(o *Otp) *UserCreate {
 	return uc.SetOtpID(o.ID)
+}
+
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (uc *UserCreate) AddPostIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddPostIDs(ids...)
+	return uc
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (uc *UserCreate) AddPosts(p ...*Post) *UserCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uc.AddPostIDs(ids...)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (uc *UserCreate) AddReactionIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddReactionIDs(ids...)
+	return uc
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (uc *UserCreate) AddReactions(r ...*Reaction) *UserCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uc.AddReactionIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (uc *UserCreate) AddCommentIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddCommentIDs(ids...)
+	return uc
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (uc *UserCreate) AddComments(c ...*Comment) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddCommentIDs(ids...)
+}
+
+// AddReplyIDs adds the "replies" edge to the Reply entity by IDs.
+func (uc *UserCreate) AddReplyIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddReplyIDs(ids...)
+	return uc
+}
+
+// AddReplies adds the "replies" edges to the Reply entity.
+func (uc *UserCreate) AddReplies(r ...*Reply) *UserCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uc.AddReplyIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -528,6 +592,70 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(otp.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.RepliesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepliesTable,
+			Columns: []string{user.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

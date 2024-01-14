@@ -72,6 +72,10 @@ func (User) Edges() []ent.Edge {
 		edge.From("city", City.Type).Ref("users").Field("city_id").Unique(),
 		edge.From("avatar", File.Type).Ref("users").Field("avatar_id").Unique(),
 		edge.To("otp", Otp.Type).Unique(),
+        edge.To("posts", Post.Type),
+        edge.To("reactions", Reaction.Type),
+        edge.To("comments", Comment.Type),
+        edge.To("replies", Reply.Type),
 	}
 }
 

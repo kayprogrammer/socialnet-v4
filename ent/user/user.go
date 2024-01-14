@@ -55,6 +55,14 @@ const (
 	EdgeAvatar = "avatar"
 	// EdgeOtp holds the string denoting the otp edge name in mutations.
 	EdgeOtp = "otp"
+	// EdgePosts holds the string denoting the posts edge name in mutations.
+	EdgePosts = "posts"
+	// EdgeReactions holds the string denoting the reactions edge name in mutations.
+	EdgeReactions = "reactions"
+	// EdgeComments holds the string denoting the comments edge name in mutations.
+	EdgeComments = "comments"
+	// EdgeReplies holds the string denoting the replies edge name in mutations.
+	EdgeReplies = "replies"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// CityTable is the table that holds the city relation/edge.
@@ -78,6 +86,34 @@ const (
 	OtpInverseTable = "otps"
 	// OtpColumn is the table column denoting the otp relation/edge.
 	OtpColumn = "user_id"
+	// PostsTable is the table that holds the posts relation/edge.
+	PostsTable = "posts"
+	// PostsInverseTable is the table name for the Post entity.
+	// It exists in this package in order to avoid circular dependency with the "post" package.
+	PostsInverseTable = "posts"
+	// PostsColumn is the table column denoting the posts relation/edge.
+	PostsColumn = "author_id"
+	// ReactionsTable is the table that holds the reactions relation/edge.
+	ReactionsTable = "reactions"
+	// ReactionsInverseTable is the table name for the Reaction entity.
+	// It exists in this package in order to avoid circular dependency with the "reaction" package.
+	ReactionsInverseTable = "reactions"
+	// ReactionsColumn is the table column denoting the reactions relation/edge.
+	ReactionsColumn = "user_id"
+	// CommentsTable is the table that holds the comments relation/edge.
+	CommentsTable = "comments"
+	// CommentsInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	CommentsInverseTable = "comments"
+	// CommentsColumn is the table column denoting the comments relation/edge.
+	CommentsColumn = "author_id"
+	// RepliesTable is the table that holds the replies relation/edge.
+	RepliesTable = "replies"
+	// RepliesInverseTable is the table name for the Reply entity.
+	// It exists in this package in order to avoid circular dependency with the "reply" package.
+	RepliesInverseTable = "replies"
+	// RepliesColumn is the table column denoting the replies relation/edge.
+	RepliesColumn = "author_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -254,6 +290,62 @@ func ByOtpField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOtpStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByPostsCount orders the results by posts count.
+func ByPostsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPostsStep(), opts...)
+	}
+}
+
+// ByPosts orders the results by posts terms.
+func ByPosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPostsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByReactionsCount orders the results by reactions count.
+func ByReactionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReactionsStep(), opts...)
+	}
+}
+
+// ByReactions orders the results by reactions terms.
+func ByReactions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReactionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCommentsCount orders the results by comments count.
+func ByCommentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommentsStep(), opts...)
+	}
+}
+
+// ByComments orders the results by comments terms.
+func ByComments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRepliesCount orders the results by replies count.
+func ByRepliesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRepliesStep(), opts...)
+	}
+}
+
+// ByReplies orders the results by replies terms.
+func ByReplies(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRepliesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCityStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -273,5 +365,33 @@ func newOtpStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OtpInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, OtpTable, OtpColumn),
+	)
+}
+func newPostsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PostsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PostsTable, PostsColumn),
+	)
+}
+func newReactionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReactionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReactionsTable, ReactionsColumn),
+	)
+}
+func newCommentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CommentsTable, CommentsColumn),
+	)
+}
+func newRepliesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RepliesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RepliesTable, RepliesColumn),
 	)
 }

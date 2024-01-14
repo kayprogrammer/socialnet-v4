@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
@@ -83,6 +84,21 @@ func (fc *FileCreate) AddUsers(u ...*User) *FileCreate {
 		ids[i] = u[i].ID
 	}
 	return fc.AddUserIDs(ids...)
+}
+
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (fc *FileCreate) AddPostIDs(ids ...uuid.UUID) *FileCreate {
+	fc.mutation.AddPostIDs(ids...)
+	return fc
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (fc *FileCreate) AddPosts(p ...*Post) *FileCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fc.AddPostIDs(ids...)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -206,6 +222,22 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.PostsTable,
+			Columns: []string{file.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

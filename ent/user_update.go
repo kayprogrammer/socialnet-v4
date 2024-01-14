@@ -13,9 +13,13 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
+	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
+	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
+	"github.com/kayprogrammer/socialnet-v4/ent/reply"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
@@ -327,6 +331,66 @@ func (uu *UserUpdate) SetOtp(o *Otp) *UserUpdate {
 	return uu.SetOtpID(o.ID)
 }
 
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (uu *UserUpdate) AddPostIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddPostIDs(ids...)
+	return uu
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (uu *UserUpdate) AddPosts(p ...*Post) *UserUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.AddPostIDs(ids...)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (uu *UserUpdate) AddReactionIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddReactionIDs(ids...)
+	return uu
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (uu *UserUpdate) AddReactions(r ...*Reaction) *UserUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uu.AddReactionIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (uu *UserUpdate) AddCommentIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddCommentIDs(ids...)
+	return uu
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (uu *UserUpdate) AddComments(c ...*Comment) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.AddCommentIDs(ids...)
+}
+
+// AddReplyIDs adds the "replies" edge to the Reply entity by IDs.
+func (uu *UserUpdate) AddReplyIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddReplyIDs(ids...)
+	return uu
+}
+
+// AddReplies adds the "replies" edges to the Reply entity.
+func (uu *UserUpdate) AddReplies(r ...*Reply) *UserUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uu.AddReplyIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -348,6 +412,90 @@ func (uu *UserUpdate) ClearAvatar() *UserUpdate {
 func (uu *UserUpdate) ClearOtp() *UserUpdate {
 	uu.mutation.ClearOtp()
 	return uu
+}
+
+// ClearPosts clears all "posts" edges to the Post entity.
+func (uu *UserUpdate) ClearPosts() *UserUpdate {
+	uu.mutation.ClearPosts()
+	return uu
+}
+
+// RemovePostIDs removes the "posts" edge to Post entities by IDs.
+func (uu *UserUpdate) RemovePostIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemovePostIDs(ids...)
+	return uu
+}
+
+// RemovePosts removes "posts" edges to Post entities.
+func (uu *UserUpdate) RemovePosts(p ...*Post) *UserUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.RemovePostIDs(ids...)
+}
+
+// ClearReactions clears all "reactions" edges to the Reaction entity.
+func (uu *UserUpdate) ClearReactions() *UserUpdate {
+	uu.mutation.ClearReactions()
+	return uu
+}
+
+// RemoveReactionIDs removes the "reactions" edge to Reaction entities by IDs.
+func (uu *UserUpdate) RemoveReactionIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveReactionIDs(ids...)
+	return uu
+}
+
+// RemoveReactions removes "reactions" edges to Reaction entities.
+func (uu *UserUpdate) RemoveReactions(r ...*Reaction) *UserUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uu.RemoveReactionIDs(ids...)
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (uu *UserUpdate) ClearComments() *UserUpdate {
+	uu.mutation.ClearComments()
+	return uu
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (uu *UserUpdate) RemoveCommentIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveCommentIDs(ids...)
+	return uu
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (uu *UserUpdate) RemoveComments(c ...*Comment) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveCommentIDs(ids...)
+}
+
+// ClearReplies clears all "replies" edges to the Reply entity.
+func (uu *UserUpdate) ClearReplies() *UserUpdate {
+	uu.mutation.ClearReplies()
+	return uu
+}
+
+// RemoveReplyIDs removes the "replies" edge to Reply entities by IDs.
+func (uu *UserUpdate) RemoveReplyIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveReplyIDs(ids...)
+	return uu
+}
+
+// RemoveReplies removes "replies" edges to Reply entities.
+func (uu *UserUpdate) RemoveReplies(r ...*Reply) *UserUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uu.RemoveReplyIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -565,6 +713,186 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(otp.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedPostsIDs(); len(nodes) > 0 && !uu.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedReactionsIDs(); len(nodes) > 0 && !uu.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !uu.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.RepliesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepliesTable,
+			Columns: []string{user.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedRepliesIDs(); len(nodes) > 0 && !uu.mutation.RepliesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepliesTable,
+			Columns: []string{user.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RepliesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepliesTable,
+			Columns: []string{user.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -887,6 +1215,66 @@ func (uuo *UserUpdateOne) SetOtp(o *Otp) *UserUpdateOne {
 	return uuo.SetOtpID(o.ID)
 }
 
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (uuo *UserUpdateOne) AddPostIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddPostIDs(ids...)
+	return uuo
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (uuo *UserUpdateOne) AddPosts(p ...*Post) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.AddPostIDs(ids...)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (uuo *UserUpdateOne) AddReactionIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddReactionIDs(ids...)
+	return uuo
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (uuo *UserUpdateOne) AddReactions(r ...*Reaction) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uuo.AddReactionIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (uuo *UserUpdateOne) AddCommentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddCommentIDs(ids...)
+	return uuo
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (uuo *UserUpdateOne) AddComments(c ...*Comment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.AddCommentIDs(ids...)
+}
+
+// AddReplyIDs adds the "replies" edge to the Reply entity by IDs.
+func (uuo *UserUpdateOne) AddReplyIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddReplyIDs(ids...)
+	return uuo
+}
+
+// AddReplies adds the "replies" edges to the Reply entity.
+func (uuo *UserUpdateOne) AddReplies(r ...*Reply) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uuo.AddReplyIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -908,6 +1296,90 @@ func (uuo *UserUpdateOne) ClearAvatar() *UserUpdateOne {
 func (uuo *UserUpdateOne) ClearOtp() *UserUpdateOne {
 	uuo.mutation.ClearOtp()
 	return uuo
+}
+
+// ClearPosts clears all "posts" edges to the Post entity.
+func (uuo *UserUpdateOne) ClearPosts() *UserUpdateOne {
+	uuo.mutation.ClearPosts()
+	return uuo
+}
+
+// RemovePostIDs removes the "posts" edge to Post entities by IDs.
+func (uuo *UserUpdateOne) RemovePostIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemovePostIDs(ids...)
+	return uuo
+}
+
+// RemovePosts removes "posts" edges to Post entities.
+func (uuo *UserUpdateOne) RemovePosts(p ...*Post) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.RemovePostIDs(ids...)
+}
+
+// ClearReactions clears all "reactions" edges to the Reaction entity.
+func (uuo *UserUpdateOne) ClearReactions() *UserUpdateOne {
+	uuo.mutation.ClearReactions()
+	return uuo
+}
+
+// RemoveReactionIDs removes the "reactions" edge to Reaction entities by IDs.
+func (uuo *UserUpdateOne) RemoveReactionIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveReactionIDs(ids...)
+	return uuo
+}
+
+// RemoveReactions removes "reactions" edges to Reaction entities.
+func (uuo *UserUpdateOne) RemoveReactions(r ...*Reaction) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uuo.RemoveReactionIDs(ids...)
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (uuo *UserUpdateOne) ClearComments() *UserUpdateOne {
+	uuo.mutation.ClearComments()
+	return uuo
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (uuo *UserUpdateOne) RemoveCommentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveCommentIDs(ids...)
+	return uuo
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (uuo *UserUpdateOne) RemoveComments(c ...*Comment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveCommentIDs(ids...)
+}
+
+// ClearReplies clears all "replies" edges to the Reply entity.
+func (uuo *UserUpdateOne) ClearReplies() *UserUpdateOne {
+	uuo.mutation.ClearReplies()
+	return uuo
+}
+
+// RemoveReplyIDs removes the "replies" edge to Reply entities by IDs.
+func (uuo *UserUpdateOne) RemoveReplyIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveReplyIDs(ids...)
+	return uuo
+}
+
+// RemoveReplies removes "replies" edges to Reply entities.
+func (uuo *UserUpdateOne) RemoveReplies(r ...*Reply) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uuo.RemoveReplyIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1155,6 +1627,186 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(otp.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedPostsIDs(); len(nodes) > 0 && !uuo.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedReactionsIDs(); len(nodes) > 0 && !uuo.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !uuo.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.RepliesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepliesTable,
+			Columns: []string{user.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedRepliesIDs(); len(nodes) > 0 && !uuo.mutation.RepliesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepliesTable,
+			Columns: []string{user.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RepliesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepliesTable,
+			Columns: []string{user.RepliesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

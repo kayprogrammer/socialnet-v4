@@ -35,5 +35,6 @@ func (File) Fields() []ent.Field {
 func (File) Edges() []ent.Edge {
     return []ent.Edge{
         edge.To("users", User.Type),
+        edge.To("posts", Post.Type),
     }
 }

@@ -34,9 +34,11 @@ type File struct {
 type FileEdges struct {
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
+	// Posts holds the value of the posts edge.
+	Posts []*Post `json:"posts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -46,6 +48,15 @@ func (e FileEdges) UsersOrErr() ([]*User, error) {
 		return e.Users, nil
 	}
 	return nil, &NotLoadedError{edge: "users"}
+}
+
+// PostsOrErr returns the Posts value or an error if the edge
+// was not loaded in eager-loading.
+func (e FileEdges) PostsOrErr() ([]*Post, error) {
+	if e.loadedTypes[1] {
+		return e.Posts, nil
+	}
+	return nil, &NotLoadedError{edge: "posts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -114,6 +125,11 @@ func (f *File) Value(name string) (ent.Value, error) {
 // QueryUsers queries the "users" edge of the File entity.
 func (f *File) QueryUsers() *UserQuery {
 	return NewFileClient(f.config).QueryUsers(f)
+}
+
+// QueryPosts queries the "posts" edge of the File entity.
+func (f *File) QueryPosts() *PostQuery {
+	return NewFileClient(f.config).QueryPosts(f)
 }
 
 // Update returns a builder for updating this File.

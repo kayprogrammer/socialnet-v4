@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
@@ -79,6 +80,21 @@ func (fu *FileUpdate) AddUsers(u ...*User) *FileUpdate {
 	return fu.AddUserIDs(ids...)
 }
 
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (fu *FileUpdate) AddPostIDs(ids ...uuid.UUID) *FileUpdate {
+	fu.mutation.AddPostIDs(ids...)
+	return fu
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (fu *FileUpdate) AddPosts(p ...*Post) *FileUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fu.AddPostIDs(ids...)
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fu *FileUpdate) Mutation() *FileMutation {
 	return fu.mutation
@@ -103,6 +119,27 @@ func (fu *FileUpdate) RemoveUsers(u ...*User) *FileUpdate {
 		ids[i] = u[i].ID
 	}
 	return fu.RemoveUserIDs(ids...)
+}
+
+// ClearPosts clears all "posts" edges to the Post entity.
+func (fu *FileUpdate) ClearPosts() *FileUpdate {
+	fu.mutation.ClearPosts()
+	return fu
+}
+
+// RemovePostIDs removes the "posts" edge to Post entities by IDs.
+func (fu *FileUpdate) RemovePostIDs(ids ...uuid.UUID) *FileUpdate {
+	fu.mutation.RemovePostIDs(ids...)
+	return fu
+}
+
+// RemovePosts removes "posts" edges to Post entities.
+func (fu *FileUpdate) RemovePosts(p ...*Post) *FileUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fu.RemovePostIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -217,6 +254,51 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if fu.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.PostsTable,
+			Columns: []string{file.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.RemovedPostsIDs(); len(nodes) > 0 && !fu.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.PostsTable,
+			Columns: []string{file.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.PostsTable,
+			Columns: []string{file.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{file.Label}
@@ -286,6 +368,21 @@ func (fuo *FileUpdateOne) AddUsers(u ...*User) *FileUpdateOne {
 	return fuo.AddUserIDs(ids...)
 }
 
+// AddPostIDs adds the "posts" edge to the Post entity by IDs.
+func (fuo *FileUpdateOne) AddPostIDs(ids ...uuid.UUID) *FileUpdateOne {
+	fuo.mutation.AddPostIDs(ids...)
+	return fuo
+}
+
+// AddPosts adds the "posts" edges to the Post entity.
+func (fuo *FileUpdateOne) AddPosts(p ...*Post) *FileUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fuo.AddPostIDs(ids...)
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fuo *FileUpdateOne) Mutation() *FileMutation {
 	return fuo.mutation
@@ -310,6 +407,27 @@ func (fuo *FileUpdateOne) RemoveUsers(u ...*User) *FileUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return fuo.RemoveUserIDs(ids...)
+}
+
+// ClearPosts clears all "posts" edges to the Post entity.
+func (fuo *FileUpdateOne) ClearPosts() *FileUpdateOne {
+	fuo.mutation.ClearPosts()
+	return fuo
+}
+
+// RemovePostIDs removes the "posts" edge to Post entities by IDs.
+func (fuo *FileUpdateOne) RemovePostIDs(ids ...uuid.UUID) *FileUpdateOne {
+	fuo.mutation.RemovePostIDs(ids...)
+	return fuo
+}
+
+// RemovePosts removes "posts" edges to Post entities.
+func (fuo *FileUpdateOne) RemovePosts(p ...*Post) *FileUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fuo.RemovePostIDs(ids...)
 }
 
 // Where appends a list predicates to the FileUpdate builder.
@@ -447,6 +565,51 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.PostsTable,
+			Columns: []string{file.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.RemovedPostsIDs(); len(nodes) > 0 && !fuo.mutation.PostsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.PostsTable,
+			Columns: []string{file.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.PostsTable,
+			Columns: []string{file.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

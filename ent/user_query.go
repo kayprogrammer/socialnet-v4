@@ -13,22 +13,30 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
+	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
+	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
+	"github.com/kayprogrammer/socialnet-v4/ent/reply"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx        *QueryContext
-	order      []user.OrderOption
-	inters     []Interceptor
-	predicates []predicate.User
-	withCity   *CityQuery
-	withAvatar *FileQuery
-	withOtp    *OtpQuery
+	ctx           *QueryContext
+	order         []user.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.User
+	withCity      *CityQuery
+	withAvatar    *FileQuery
+	withOtp       *OtpQuery
+	withPosts     *PostQuery
+	withReactions *ReactionQuery
+	withComments  *CommentQuery
+	withReplies   *ReplyQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +132,94 @@ func (uq *UserQuery) QueryOtp() *OtpQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(otp.Table, otp.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, user.OtpTable, user.OtpColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPosts chains the current query on the "posts" edge.
+func (uq *UserQuery) QueryPosts() *PostQuery {
+	query := (&PostClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(post.Table, post.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PostsTable, user.PostsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReactions chains the current query on the "reactions" edge.
+func (uq *UserQuery) QueryReactions() *ReactionQuery {
+	query := (&ReactionClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(reaction.Table, reaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReactionsTable, user.ReactionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryComments chains the current query on the "comments" edge.
+func (uq *UserQuery) QueryComments() *CommentQuery {
+	query := (&CommentClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(comment.Table, comment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CommentsTable, user.CommentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReplies chains the current query on the "replies" edge.
+func (uq *UserQuery) QueryReplies() *ReplyQuery {
+	query := (&ReplyClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(reply.Table, reply.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RepliesTable, user.RepliesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -318,14 +414,18 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     uq.config,
-		ctx:        uq.ctx.Clone(),
-		order:      append([]user.OrderOption{}, uq.order...),
-		inters:     append([]Interceptor{}, uq.inters...),
-		predicates: append([]predicate.User{}, uq.predicates...),
-		withCity:   uq.withCity.Clone(),
-		withAvatar: uq.withAvatar.Clone(),
-		withOtp:    uq.withOtp.Clone(),
+		config:        uq.config,
+		ctx:           uq.ctx.Clone(),
+		order:         append([]user.OrderOption{}, uq.order...),
+		inters:        append([]Interceptor{}, uq.inters...),
+		predicates:    append([]predicate.User{}, uq.predicates...),
+		withCity:      uq.withCity.Clone(),
+		withAvatar:    uq.withAvatar.Clone(),
+		withOtp:       uq.withOtp.Clone(),
+		withPosts:     uq.withPosts.Clone(),
+		withReactions: uq.withReactions.Clone(),
+		withComments:  uq.withComments.Clone(),
+		withReplies:   uq.withReplies.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -362,6 +462,50 @@ func (uq *UserQuery) WithOtp(opts ...func(*OtpQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withOtp = query
+	return uq
+}
+
+// WithPosts tells the query-builder to eager-load the nodes that are connected to
+// the "posts" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithPosts(opts ...func(*PostQuery)) *UserQuery {
+	query := (&PostClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withPosts = query
+	return uq
+}
+
+// WithReactions tells the query-builder to eager-load the nodes that are connected to
+// the "reactions" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithReactions(opts ...func(*ReactionQuery)) *UserQuery {
+	query := (&ReactionClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withReactions = query
+	return uq
+}
+
+// WithComments tells the query-builder to eager-load the nodes that are connected to
+// the "comments" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithComments(opts ...func(*CommentQuery)) *UserQuery {
+	query := (&CommentClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withComments = query
+	return uq
+}
+
+// WithReplies tells the query-builder to eager-load the nodes that are connected to
+// the "replies" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithReplies(opts ...func(*ReplyQuery)) *UserQuery {
+	query := (&ReplyClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withReplies = query
 	return uq
 }
 
@@ -443,10 +587,14 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [7]bool{
 			uq.withCity != nil,
 			uq.withAvatar != nil,
 			uq.withOtp != nil,
+			uq.withPosts != nil,
+			uq.withReactions != nil,
+			uq.withComments != nil,
+			uq.withReplies != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -482,6 +630,34 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if query := uq.withOtp; query != nil {
 		if err := uq.loadOtp(ctx, query, nodes, nil,
 			func(n *User, e *Otp) { n.Edges.Otp = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withPosts; query != nil {
+		if err := uq.loadPosts(ctx, query, nodes,
+			func(n *User) { n.Edges.Posts = []*Post{} },
+			func(n *User, e *Post) { n.Edges.Posts = append(n.Edges.Posts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withReactions; query != nil {
+		if err := uq.loadReactions(ctx, query, nodes,
+			func(n *User) { n.Edges.Reactions = []*Reaction{} },
+			func(n *User, e *Reaction) { n.Edges.Reactions = append(n.Edges.Reactions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withComments; query != nil {
+		if err := uq.loadComments(ctx, query, nodes,
+			func(n *User) { n.Edges.Comments = []*Comment{} },
+			func(n *User, e *Comment) { n.Edges.Comments = append(n.Edges.Comments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withReplies; query != nil {
+		if err := uq.loadReplies(ctx, query, nodes,
+			func(n *User) { n.Edges.Replies = []*Reply{} },
+			func(n *User, e *Reply) { n.Edges.Replies = append(n.Edges.Replies, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -574,6 +750,126 @@ func (uq *UserQuery) loadOtp(ctx context.Context, query *OtpQuery, nodes []*User
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadPosts(ctx context.Context, query *PostQuery, nodes []*User, init func(*User), assign func(*User, *Post)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(post.FieldAuthorID)
+	}
+	query.Where(predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.PostsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AuthorID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "author_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadReactions(ctx context.Context, query *ReactionQuery, nodes []*User, init func(*User), assign func(*User, *Reaction)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(reaction.FieldUserID)
+	}
+	query.Where(predicate.Reaction(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ReactionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadComments(ctx context.Context, query *CommentQuery, nodes []*User, init func(*User), assign func(*User, *Comment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(comment.FieldAuthorID)
+	}
+	query.Where(predicate.Comment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CommentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AuthorID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "author_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadReplies(ctx context.Context, query *ReplyQuery, nodes []*User, init func(*User), assign func(*User, *Reply)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(reply.FieldAuthorID)
+	}
+	query.Where(predicate.Reply(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RepliesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AuthorID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "author_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

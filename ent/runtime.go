@@ -7,8 +7,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
+	"github.com/kayprogrammer/socialnet-v4/ent/post"
+	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
+	"github.com/kayprogrammer/socialnet-v4/ent/reply"
 	"github.com/kayprogrammer/socialnet-v4/ent/schema"
 	"github.com/kayprogrammer/socialnet-v4/ent/sitedetail"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
@@ -38,6 +42,30 @@ func init() {
 	cityDescID := cityFields[0].Descriptor()
 	// city.DefaultID holds the default value on creation for the id field.
 	city.DefaultID = cityDescID.Default.(func() uuid.UUID)
+	commentFields := schema.Comment{}.Fields()
+	_ = commentFields
+	// commentDescCreatedAt is the schema descriptor for created_at field.
+	commentDescCreatedAt := commentFields[1].Descriptor()
+	// comment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	comment.DefaultCreatedAt = commentDescCreatedAt.Default.(func() time.Time)
+	// commentDescUpdatedAt is the schema descriptor for updated_at field.
+	commentDescUpdatedAt := commentFields[2].Descriptor()
+	// comment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	comment.DefaultUpdatedAt = commentDescUpdatedAt.Default.(func() time.Time)
+	// comment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	comment.UpdateDefaultUpdatedAt = commentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// commentDescText is the schema descriptor for text field.
+	commentDescText := commentFields[3].Descriptor()
+	// comment.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	comment.TextValidator = commentDescText.Validators[0].(func(string) error)
+	// commentDescSlug is the schema descriptor for slug field.
+	commentDescSlug := commentFields[4].Descriptor()
+	// comment.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	comment.SlugValidator = commentDescSlug.Validators[0].(func(string) error)
+	// commentDescID is the schema descriptor for id field.
+	commentDescID := commentFields[0].Descriptor()
+	// comment.DefaultID holds the default value on creation for the id field.
+	comment.DefaultID = commentDescID.Default.(func() uuid.UUID)
 	fileFields := schema.File{}.Fields()
 	_ = fileFields
 	// fileDescCreatedAt is the schema descriptor for created_at field.
@@ -74,6 +102,74 @@ func init() {
 	otpDescID := otpFields[0].Descriptor()
 	// otp.DefaultID holds the default value on creation for the id field.
 	otp.DefaultID = otpDescID.Default.(func() uuid.UUID)
+	postFields := schema.Post{}.Fields()
+	_ = postFields
+	// postDescCreatedAt is the schema descriptor for created_at field.
+	postDescCreatedAt := postFields[1].Descriptor()
+	// post.DefaultCreatedAt holds the default value on creation for the created_at field.
+	post.DefaultCreatedAt = postDescCreatedAt.Default.(func() time.Time)
+	// postDescUpdatedAt is the schema descriptor for updated_at field.
+	postDescUpdatedAt := postFields[2].Descriptor()
+	// post.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	post.DefaultUpdatedAt = postDescUpdatedAt.Default.(func() time.Time)
+	// post.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	post.UpdateDefaultUpdatedAt = postDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// postDescText is the schema descriptor for text field.
+	postDescText := postFields[3].Descriptor()
+	// post.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	post.TextValidator = postDescText.Validators[0].(func(string) error)
+	// postDescSlug is the schema descriptor for slug field.
+	postDescSlug := postFields[4].Descriptor()
+	// post.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	post.SlugValidator = postDescSlug.Validators[0].(func(string) error)
+	// postDescID is the schema descriptor for id field.
+	postDescID := postFields[0].Descriptor()
+	// post.DefaultID holds the default value on creation for the id field.
+	post.DefaultID = postDescID.Default.(func() uuid.UUID)
+	reactionFields := schema.Reaction{}.Fields()
+	_ = reactionFields
+	// reactionDescCreatedAt is the schema descriptor for created_at field.
+	reactionDescCreatedAt := reactionFields[1].Descriptor()
+	// reaction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	reaction.DefaultCreatedAt = reactionDescCreatedAt.Default.(func() time.Time)
+	// reactionDescUpdatedAt is the schema descriptor for updated_at field.
+	reactionDescUpdatedAt := reactionFields[2].Descriptor()
+	// reaction.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	reaction.DefaultUpdatedAt = reactionDescUpdatedAt.Default.(func() time.Time)
+	// reaction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	reaction.UpdateDefaultUpdatedAt = reactionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// reactionDescRtype is the schema descriptor for rtype field.
+	reactionDescRtype := reactionFields[4].Descriptor()
+	// reaction.RtypeValidator is a validator for the "rtype" field. It is called by the builders before save.
+	reaction.RtypeValidator = reactionDescRtype.Validators[0].(func(string) error)
+	// reactionDescID is the schema descriptor for id field.
+	reactionDescID := reactionFields[0].Descriptor()
+	// reaction.DefaultID holds the default value on creation for the id field.
+	reaction.DefaultID = reactionDescID.Default.(func() uuid.UUID)
+	replyFields := schema.Reply{}.Fields()
+	_ = replyFields
+	// replyDescCreatedAt is the schema descriptor for created_at field.
+	replyDescCreatedAt := replyFields[1].Descriptor()
+	// reply.DefaultCreatedAt holds the default value on creation for the created_at field.
+	reply.DefaultCreatedAt = replyDescCreatedAt.Default.(func() time.Time)
+	// replyDescUpdatedAt is the schema descriptor for updated_at field.
+	replyDescUpdatedAt := replyFields[2].Descriptor()
+	// reply.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	reply.DefaultUpdatedAt = replyDescUpdatedAt.Default.(func() time.Time)
+	// reply.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	reply.UpdateDefaultUpdatedAt = replyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// replyDescText is the schema descriptor for text field.
+	replyDescText := replyFields[3].Descriptor()
+	// reply.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	reply.TextValidator = replyDescText.Validators[0].(func(string) error)
+	// replyDescSlug is the schema descriptor for slug field.
+	replyDescSlug := replyFields[4].Descriptor()
+	// reply.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	reply.SlugValidator = replyDescSlug.Validators[0].(func(string) error)
+	// replyDescID is the schema descriptor for id field.
+	replyDescID := replyFields[0].Descriptor()
+	// reply.DefaultID holds the default value on creation for the id field.
+	reply.DefaultID = replyDescID.Default.(func() uuid.UUID)
 	sitedetailFields := schema.SiteDetail{}.Fields()
 	_ = sitedetailFields
 	// sitedetailDescCreatedAt is the schema descriptor for created_at field.

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
@@ -25,6 +26,7 @@ type FileQuery struct {
 	inters     []Interceptor
 	predicates []predicate.File
 	withUsers  *UserQuery
+	withPosts  *PostQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (fq *FileQuery) QueryUsers() *UserQuery {
 			sqlgraph.From(file.Table, file.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, file.UsersTable, file.UsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPosts chains the current query on the "posts" edge.
+func (fq *FileQuery) QueryPosts() *PostQuery {
+	query := (&PostClient{config: fq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, selector),
+			sqlgraph.To(post.Table, post.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, file.PostsTable, file.PostsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +300,7 @@ func (fq *FileQuery) Clone() *FileQuery {
 		inters:     append([]Interceptor{}, fq.inters...),
 		predicates: append([]predicate.File{}, fq.predicates...),
 		withUsers:  fq.withUsers.Clone(),
+		withPosts:  fq.withPosts.Clone(),
 		// clone intermediate query.
 		sql:  fq.sql.Clone(),
 		path: fq.path,
@@ -290,6 +315,17 @@ func (fq *FileQuery) WithUsers(opts ...func(*UserQuery)) *FileQuery {
 		opt(query)
 	}
 	fq.withUsers = query
+	return fq
+}
+
+// WithPosts tells the query-builder to eager-load the nodes that are connected to
+// the "posts" edge. The optional arguments are used to configure the query builder of the edge.
+func (fq *FileQuery) WithPosts(opts ...func(*PostQuery)) *FileQuery {
+	query := (&PostClient{config: fq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withPosts = query
 	return fq
 }
 
@@ -371,8 +407,9 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 	var (
 		nodes       = []*File{}
 		_spec       = fq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			fq.withUsers != nil,
+			fq.withPosts != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +434,13 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 		if err := fq.loadUsers(ctx, query, nodes,
 			func(n *File) { n.Edges.Users = []*User{} },
 			func(n *File, e *User) { n.Edges.Users = append(n.Edges.Users, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := fq.withPosts; query != nil {
+		if err := fq.loadPosts(ctx, query, nodes,
+			func(n *File) { n.Edges.Posts = []*Post{} },
+			func(n *File, e *Post) { n.Edges.Posts = append(n.Edges.Posts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -431,6 +475,39 @@ func (fq *FileQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*F
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "avatar_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (fq *FileQuery) loadPosts(ctx context.Context, query *PostQuery, nodes []*File, init func(*File), assign func(*File, *Post)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*File)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(post.FieldImageID)
+	}
+	query.Where(predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(file.PostsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ImageID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "image_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "image_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

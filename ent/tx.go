@@ -14,10 +14,18 @@ type Tx struct {
 	config
 	// City is the client for interacting with the City builders.
 	City *CityClient
+	// Comment is the client for interacting with the Comment builders.
+	Comment *CommentClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
 	// Otp is the client for interacting with the Otp builders.
 	Otp *OtpClient
+	// Post is the client for interacting with the Post builders.
+	Post *PostClient
+	// Reaction is the client for interacting with the Reaction builders.
+	Reaction *ReactionClient
+	// Reply is the client for interacting with the Reply builders.
+	Reply *ReplyClient
 	// SiteDetail is the client for interacting with the SiteDetail builders.
 	SiteDetail *SiteDetailClient
 	// User is the client for interacting with the User builders.
@@ -154,8 +162,12 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.City = NewCityClient(tx.config)
+	tx.Comment = NewCommentClient(tx.config)
 	tx.File = NewFileClient(tx.config)
 	tx.Otp = NewOtpClient(tx.config)
+	tx.Post = NewPostClient(tx.config)
+	tx.Reaction = NewReactionClient(tx.config)
+	tx.Reply = NewReplyClient(tx.config)
 	tx.SiteDetail = NewSiteDetailClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

@@ -9,11 +9,23 @@ import (
 // City is the predicate function for city builders.
 type City func(*sql.Selector)
 
+// Comment is the predicate function for comment builders.
+type Comment func(*sql.Selector)
+
 // File is the predicate function for file builders.
 type File func(*sql.Selector)
 
 // Otp is the predicate function for otp builders.
 type Otp func(*sql.Selector)
+
+// Post is the predicate function for post builders.
+type Post func(*sql.Selector)
+
+// Reaction is the predicate function for reaction builders.
+type Reaction func(*sql.Selector)
+
+// Reply is the predicate function for reply builders.
+type Reply func(*sql.Selector)
 
 // SiteDetail is the predicate function for sitedetail builders.
 type SiteDetail func(*sql.Selector)

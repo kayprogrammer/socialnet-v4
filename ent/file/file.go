@@ -23,6 +23,8 @@ const (
 	FieldResourceType = "resource_type"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
+	// EdgePosts holds the string denoting the posts edge name in mutations.
+	EdgePosts = "posts"
 	// Table holds the table name of the file in the database.
 	Table = "files"
 	// UsersTable is the table that holds the users relation/edge.
@@ -32,6 +34,13 @@ const (
 	UsersInverseTable = "users"
 	// UsersColumn is the table column denoting the users relation/edge.
 	UsersColumn = "avatar_id"
+	// PostsTable is the table that holds the posts relation/edge.
+	PostsTable = "posts"
+	// PostsInverseTable is the table name for the Post entity.
+	// It exists in this package in order to avoid circular dependency with the "post" package.
+	PostsInverseTable = "posts"
+	// PostsColumn is the table column denoting the posts relation/edge.
+	PostsColumn = "image_id"
 )
 
 // Columns holds all SQL columns for file fields.
@@ -101,10 +110,31 @@ func ByUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPostsCount orders the results by posts count.
+func ByPostsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPostsStep(), opts...)
+	}
+}
+
+// ByPosts orders the results by posts terms.
+func ByPosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPostsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUsersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UsersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UsersTable, UsersColumn),
+	)
+}
+func newPostsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PostsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PostsTable, PostsColumn),
 	)
 }

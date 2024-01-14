@@ -69,9 +69,17 @@ type UserEdges struct {
 	Avatar *File `json:"avatar,omitempty"`
 	// Otp holds the value of the otp edge.
 	Otp *Otp `json:"otp,omitempty"`
+	// Posts holds the value of the posts edge.
+	Posts []*Post `json:"posts,omitempty"`
+	// Reactions holds the value of the reactions edge.
+	Reactions []*Reaction `json:"reactions,omitempty"`
+	// Comments holds the value of the comments edge.
+	Comments []*Comment `json:"comments,omitempty"`
+	// Replies holds the value of the replies edge.
+	Replies []*Reply `json:"replies,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [7]bool
 }
 
 // CityOrErr returns the City value or an error if the edge
@@ -111,6 +119,42 @@ func (e UserEdges) OtpOrErr() (*Otp, error) {
 		return e.Otp, nil
 	}
 	return nil, &NotLoadedError{edge: "otp"}
+}
+
+// PostsOrErr returns the Posts value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PostsOrErr() ([]*Post, error) {
+	if e.loadedTypes[3] {
+		return e.Posts, nil
+	}
+	return nil, &NotLoadedError{edge: "posts"}
+}
+
+// ReactionsOrErr returns the Reactions value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ReactionsOrErr() ([]*Reaction, error) {
+	if e.loadedTypes[4] {
+		return e.Reactions, nil
+	}
+	return nil, &NotLoadedError{edge: "reactions"}
+}
+
+// CommentsOrErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[5] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
+}
+
+// RepliesOrErr returns the Replies value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RepliesOrErr() ([]*Reply, error) {
+	if e.loadedTypes[6] {
+		return e.Replies, nil
+	}
+	return nil, &NotLoadedError{edge: "replies"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -283,6 +327,26 @@ func (u *User) QueryAvatar() *FileQuery {
 // QueryOtp queries the "otp" edge of the User entity.
 func (u *User) QueryOtp() *OtpQuery {
 	return NewUserClient(u.config).QueryOtp(u)
+}
+
+// QueryPosts queries the "posts" edge of the User entity.
+func (u *User) QueryPosts() *PostQuery {
+	return NewUserClient(u.config).QueryPosts(u)
+}
+
+// QueryReactions queries the "reactions" edge of the User entity.
+func (u *User) QueryReactions() *ReactionQuery {
+	return NewUserClient(u.config).QueryReactions(u)
+}
+
+// QueryComments queries the "comments" edge of the User entity.
+func (u *User) QueryComments() *CommentQuery {
+	return NewUserClient(u.config).QueryComments(u)
+}
+
+// QueryReplies queries the "replies" edge of the User entity.
+func (u *User) QueryReplies() *ReplyQuery {
+	return NewUserClient(u.config).QueryReplies(u)
 }
 
 // Update returns a builder for updating this User.
