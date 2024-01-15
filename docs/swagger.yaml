@@ -77,6 +77,17 @@ definitions:
         example: God is good
         type: string
     type: object
+  schemas.PostResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.PostSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.PostSchema:
     properties:
       author:
@@ -526,6 +537,23 @@ paths:
       security:
       - BearerAuth: []
       summary: Create Post
+      tags:
+      - Feed
+  /feed/posts/{slug}:
+    get:
+      description: This endpoint retrieves a single post
+      parameters:
+      - description: Post slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.PostResponseSchema'
+      summary: Retrieve Single Post
       tags:
       - Feed
   /general/site-detail:

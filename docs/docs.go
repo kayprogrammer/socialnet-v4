@@ -380,6 +380,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/feed/posts/{slug}": {
+            "get": {
+                "description": "This endpoint retrieves a single post",
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Retrieve Single Post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Post slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.PostResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/general/site-detail": {
             "get": {
                 "description": "This endpoint retrieves few details of the site/application.",
@@ -520,6 +546,22 @@ const docTemplate = `{
                 "text": {
                     "type": "string",
                     "example": "God is good"
+                }
+            }
+        },
+        "schemas.PostResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.PostSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
                 }
             }
         },

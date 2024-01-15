@@ -69,3 +69,27 @@ func CreatePost(c *fiber.Ctx) error {
 	}
 	return c.Status(201).JSON(response)
 }
+
+// @Summary Retrieve Single Post
+// @Description This endpoint retrieves a single post
+// @Tags Feed
+// @Param slug path string true "Post slug"
+// @Success 200 {object} schemas.PostResponseSchema
+// @Router /feed/posts/{slug} [get]
+func RetrievePost(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+
+	post := postManager.GetBySlug(db, slug)
+
+	// Convert type and return Post
+	if post == nil {
+		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
+	}
+	convertedPost := utils.ConvertStructData(post, schemas.PostSchema{}).(*schemas.PostSchema)
+	response := schemas.PostResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Post Detail fetched"}.Init(),
+		Data: convertedPost.Init(),
+	}
+	return c.Status(200).JSON(response)
+}

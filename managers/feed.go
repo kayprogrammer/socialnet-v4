@@ -14,12 +14,11 @@ import (
 // POST MANAGEMENT
 // --------------------------------
 type PostManager struct {
-
 }
 
 func (obj PostManager) All(client *ent.Client) []*ent.Post {
 	posts, _ := client.Post.Query().
-		WithAuthor(func(uq *ent.UserQuery) {uq.WithAvatar()}).
+		WithAuthor(func(uq *ent.UserQuery) { uq.WithAvatar() }).
 		WithImage().
 		WithReactions().
 		WithComments().
@@ -28,7 +27,7 @@ func (obj PostManager) All(client *ent.Client) []*ent.Post {
 	return posts
 }
 
-func (obj PostManager) Create(client *ent.Client, author * ent.User, postData schemas.PostInputSchema) (*ent.Post, error) {
+func (obj PostManager) Create(client *ent.Client, author *ent.User, postData schemas.PostInputSchema) (*ent.Post, error) {
 	id := uuid.New()
 	slug := slug.Make(author.FirstName + "-" + author.LastName + "-" + id.String())
 
@@ -42,11 +41,11 @@ func (obj PostManager) Create(client *ent.Client, author * ent.User, postData sc
 		Create().
 		SetID(id).
 		SetAuthor(author).
-		SetSlug(slug). 
-		SetText(postData.Text). 
+		SetSlug(slug).
+		SetText(postData.Text).
 		SetNillableImageID(imageId).
 		Save(Ctx)
-	
+
 	// Set related values
 	p.Edges.Author = author
 	if imageId != nil {
@@ -58,4 +57,15 @@ func (obj PostManager) Create(client *ent.Client, author * ent.User, postData sc
 		return nil, nil
 	}
 	return p, nil
+}
+
+func (obj PostManager) GetBySlug(client *ent.Client, slug string) *ent.Post {
+	p, _ := client.Post.Query().
+		Where(post.Slug(slug)).
+		WithAuthor(func(uq *ent.UserQuery) { uq.WithAvatar() }).
+		WithImage().
+		WithReactions().
+		WithComments().
+		Only(Ctx)
+	return p
 }
