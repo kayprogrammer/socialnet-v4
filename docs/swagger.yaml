@@ -29,6 +29,54 @@ definitions:
     - email
     - password
     type: object
+  schemas.PostInputResponseDataSchema:
+    properties:
+      author:
+        $ref: '#/definitions/schemas.UserDataSchema'
+      comments_count:
+        example: 35
+        type: integer
+      created_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+      file_upload_data:
+        $ref: '#/definitions/utils.SignatureFormat'
+      image:
+        example: https://img.url
+        type: string
+      reactions_count:
+        example: 200
+        type: integer
+      slug:
+        example: john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      text:
+        example: God Is Good
+        type: string
+      updated_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+    type: object
+  schemas.PostInputResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.PostInputResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  schemas.PostInputSchema:
+    properties:
+      file_type:
+        example: image/jpeg
+        type: string
+      text:
+        example: God is good
+        type: string
+    type: object
   schemas.PostSchema:
     properties:
       author:
@@ -231,6 +279,18 @@ definitions:
         type: string
       status:
         type: string
+    type: object
+  utils.SignatureFormat:
+    properties:
+      public_id:
+        example: images/f47ac10b-58cc-4372-a567-0e02b2c3d479
+        type: string
+      signature:
+        example: e1ba4683fbbf90b75ca22e9f8e545b18c6b24eae
+        type: string
+      timestamp:
+        example: 1678828200
+        type: integer
     type: object
 info:
   contact: {}
@@ -447,6 +507,25 @@ paths:
           schema:
             $ref: '#/definitions/schemas.PostsResponseSchema'
       summary: Retrieve Latest Posts
+      tags:
+      - Feed
+    post:
+      description: This endpoint creates a new post
+      parameters:
+      - description: Post object
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.PostInputSchema'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.PostInputResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Create Post
       tags:
       - Feed
   /general/site-detail:

@@ -339,6 +339,37 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint creates a new post",
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Create Post",
+                "parameters": [
+                    {
+                        "description": "Post object",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.PostInputSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.PostInputResponseSchema"
+                        }
+                    }
+                }
             }
         },
         "/general/site-detail": {
@@ -413,6 +444,74 @@
                 "password": {
                     "type": "string",
                     "example": "password"
+                }
+            }
+        },
+        "schemas.PostInputResponseDataSchema": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/schemas.UserDataSchema"
+                },
+                "comments_count": {
+                    "type": "integer",
+                    "example": 35
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-14T19:00:02.613124+01:00"
+                },
+                "file_upload_data": {
+                    "$ref": "#/definitions/utils.SignatureFormat"
+                },
+                "image": {
+                    "type": "string",
+                    "example": "https://img.url"
+                },
+                "reactions_count": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "God Is Good"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-14T19:00:02.613124+01:00"
+                }
+            }
+        },
+        "schemas.PostInputResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.PostInputResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "schemas.PostInputSchema": {
+            "type": "object",
+            "properties": {
+                "file_type": {
+                    "type": "string",
+                    "example": "image/jpeg"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "God is good"
                 }
             }
         },
@@ -697,6 +796,23 @@
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "utils.SignatureFormat": {
+            "type": "object",
+            "properties": {
+                "public_id": {
+                    "type": "string",
+                    "example": "images/f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                },
+                "signature": {
+                    "type": "string",
+                    "example": "e1ba4683fbbf90b75ca22e9f8e545b18c6b24eae"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "example": 1678828200
                 }
             }
         }

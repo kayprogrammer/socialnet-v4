@@ -33,21 +33,29 @@ func (obj PostManager) Create(client *ent.Client, author * ent.User, postData sc
 	slug := slug.Make(author.FirstName + "-" + author.LastName + "-" + id.String())
 
 	var imageId *uuid.UUID
+	var image *ent.File
 	if postData.FileType != nil {
-		image, _ := FileManager{}.Create(client, postData.FileType)
+		image, _ = FileManager{}.Create(client, postData.FileType)
 		imageId = &image.ID
 	}
-	u, err := client.Post.
+	p, err := client.Post.
 		Create().
 		SetID(id).
-		SetAuthorID(author.ID).
+		SetAuthor(author).
 		SetSlug(slug). 
 		SetText(postData.Text). 
 		SetNillableImageID(imageId).
 		Save(Ctx)
+	
+	// Set related values
+	p.Edges.Author = author
+	if imageId != nil {
+		p.Edges.Image = image
+	}
+
 	if err != nil {
 		fmt.Printf("failed creating post: %v\n", err)
 		return nil, nil
 	}
-	return u, nil
+	return p, nil
 }

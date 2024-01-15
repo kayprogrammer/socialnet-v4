@@ -40,13 +40,18 @@ func (post PostSchema) Init () PostSchema {
 
 type PostInputSchema struct {
 	Text				string		`json:"text" example:"God is good"`
-	FileType			*string		`json:"file_type" example:"image/jpeg"`
+	FileType			*string		`json:"file_type" example:"image/jpeg" validate:"omitempty,file_type_validator"`
 }
 
 // RESPONSE SCHEMAS
 type PostsResponseDataSchema struct {
 	PaginatedResponseDataSchema
 	Items			[]PostSchema		`json:"posts"`
+}
+
+type PostResponseSchema struct {
+	ResponseSchema
+	Data			PostSchema		`json:"data"`
 }
 
 func (data PostsResponseDataSchema) Init () PostsResponseDataSchema {
@@ -62,4 +67,24 @@ func (data PostsResponseDataSchema) Init () PostsResponseDataSchema {
 type PostsResponseSchema struct {
 	ResponseSchema
 	Data			PostsResponseDataSchema		`json:"data"`
+}
+
+type PostInputResponseDataSchema struct {
+	PostSchema
+	FileUploadData *utils.SignatureFormat `json:"file_upload_data"`
+}
+
+func (postData PostInputResponseDataSchema) Init() PostInputResponseDataSchema {
+	image := postData.PostSchema.Edges.Image
+	if image != nil {
+		fuData := utils.GenerateFileSignature(image.ID.String(), "posts")
+		postData.FileUploadData = &fuData
+	}
+	postData.PostSchema = postData.PostSchema.Init()
+	return postData	
+}
+
+type PostInputResponseSchema struct {
+	ResponseSchema
+	Data PostInputResponseDataSchema `json:"data"`
 }

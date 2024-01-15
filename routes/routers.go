@@ -29,4 +29,5 @@ func SetupRoutes(app *fiber.App) {
 	// Feed Routes
 	feedRouter := api.Group("/feed")
 	feedRouter.Get("/posts", RetrievePosts)
+	feedRouter.Post("/posts", midw.AuthMiddleware, CreatePost)
 }

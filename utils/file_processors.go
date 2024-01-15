@@ -46,6 +46,7 @@ var ImageExtensions = map[string]string{
 	"image/bmp":  "bmp",
 	"image/webp": "webp",
 	"image/tiff": "tiff",
+	"image/svg+xml": "svg",
 }
 
 func GenerateFileSignature(key string, folder string) SignatureFormat {
