@@ -25,4 +25,8 @@ func SetupRoutes(app *fiber.App) {
 	authRouter.Post("/login", Login)
 	authRouter.Post("/refresh", Refresh)
 	authRouter.Get("/logout", midw.AuthMiddleware, Logout)
+
+	// Feed Routes
+	feedRouter := api.Group("/feed")
+	feedRouter.Get("/posts", RetrievePosts)
 }

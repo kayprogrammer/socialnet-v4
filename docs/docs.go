@@ -323,6 +323,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/feed/posts": {
+            "get": {
+                "description": "This endpoint retrieves paginated responses of latest posts",
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Retrieve Latest Posts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Current Page",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.PostsResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/general/site-detail": {
             "get": {
                 "description": "This endpoint retrieves few details of the site/application.",
@@ -395,6 +421,81 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "password"
+                }
+            }
+        },
+        "schemas.PostSchema": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/schemas.UserDataSchema"
+                },
+                "comments_count": {
+                    "type": "integer",
+                    "example": 35
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-14T19:00:02.613124+01:00"
+                },
+                "image": {
+                    "type": "string",
+                    "example": "https://img.url"
+                },
+                "reactions_count": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "God Is Good"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-14T19:00:02.613124+01:00"
+                }
+            }
+        },
+        "schemas.PostsResponseDataSchema": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "last_page": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "per_page": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "posts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.PostSchema"
+                    }
+                }
+            }
+        },
+        "schemas.PostsResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.PostsResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
                 }
             }
         },
@@ -549,6 +650,23 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "success"
+                }
+            }
+        },
+        "schemas.UserDataSchema": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "https://img.url"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john-doe"
                 }
             }
         },

@@ -79,6 +79,7 @@ func (obj UserManager) UpdateTokens(user *ent.User, access string, refresh strin
 	u, _ := user.Update().SetAccess(access).SetRefresh(refresh).Save(Ctx)
 	return u, nil
 }
+
 // ----------------------------------
 // OTP MANAGEMENT
 // --------------------------------

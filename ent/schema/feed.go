@@ -11,7 +11,7 @@ import (
 var CommonFeedFields = append(
 	CommonFields,
 	field.String("text").NotEmpty(),
-	field.String("slug").NotEmpty(),
+	field.String("slug").NotEmpty().Unique(),
 	field.UUID("author_id", uuid.UUID{}),
 )
 

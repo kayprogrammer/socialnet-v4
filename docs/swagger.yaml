@@ -29,6 +29,59 @@ definitions:
     - email
     - password
     type: object
+  schemas.PostSchema:
+    properties:
+      author:
+        $ref: '#/definitions/schemas.UserDataSchema'
+      comments_count:
+        example: 35
+        type: integer
+      created_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+      image:
+        example: https://img.url
+        type: string
+      reactions_count:
+        example: 200
+        type: integer
+      slug:
+        example: john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      text:
+        example: God Is Good
+        type: string
+      updated_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+    type: object
+  schemas.PostsResponseDataSchema:
+    properties:
+      current_page:
+        example: 1
+        type: integer
+      last_page:
+        example: 100
+        type: integer
+      per_page:
+        example: 100
+        type: integer
+      posts:
+        items:
+          $ref: '#/definitions/schemas.PostSchema'
+        type: array
+    type: object
+  schemas.PostsResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.PostsResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.RefreshTokenSchema:
     properties:
       refresh:
@@ -139,6 +192,18 @@ definitions:
         type: string
       status:
         example: success
+        type: string
+    type: object
+  schemas.UserDataSchema:
+    properties:
+      avatar:
+        example: https://img.url
+        type: string
+      name:
+        example: John Doe
+        type: string
+      username:
+        example: john-doe
         type: string
     type: object
   schemas.VerifyEmailRequestSchema:
@@ -367,6 +432,23 @@ paths:
       summary: Verify a user's email
       tags:
       - Auth
+  /feed/posts:
+    get:
+      description: This endpoint retrieves paginated responses of latest posts
+      parameters:
+      - default: 1
+        description: Current Page
+        in: query
+        name: page
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.PostsResponseSchema'
+      summary: Retrieve Latest Posts
+      tags:
+      - Feed
   /general/site-detail:
     get:
       description: This endpoint retrieves few details of the site/application.

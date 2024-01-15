@@ -27,7 +27,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "text", Type: field.TypeString},
-		{Name: "slug", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString, Unique: true},
 		{Name: "post_id", Type: field.TypeUUID},
 		{Name: "author_id", Type: field.TypeUUID},
 	}
@@ -92,7 +92,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "text", Type: field.TypeString},
-		{Name: "slug", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString, Unique: true},
 		{Name: "image_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "author_id", Type: field.TypeUUID},
 	}
@@ -182,7 +182,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "text", Type: field.TypeString},
-		{Name: "slug", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString, Unique: true},
 		{Name: "comment_id", Type: field.TypeUUID},
 		{Name: "author_id", Type: field.TypeUUID},
 	}
