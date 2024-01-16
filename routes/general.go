@@ -15,12 +15,7 @@ import (
 // @Router /general/site-detail [get]
 func GetSiteDetails(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-
-	sitedetail, _ := managers.SiteDetailManager{}.Get(db)
-	if sitedetail == nil {
-		sitedetail, _ = managers.SiteDetailManager{}.Create(db)
-	}
-
+	sitedetail := managers.SiteDetailManager{}.GetOrCreate(db)
 	data := utils.ConvertStructData(sitedetail, schemas.SiteDetail{}).(*schemas.SiteDetail)
 	responseSiteDetail := schemas.SiteDetailResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Site Details Fetched!"}.Init(),

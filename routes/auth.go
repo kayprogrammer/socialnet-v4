@@ -40,7 +40,7 @@ func Register(c *fiber.Ctx) error {
 		data := map[string]string{
 			"email": "Email already registered!",
 		}
-		return c.Status(422).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_ENTRY, Message: "Invalid Entry", Data: &data}.Init())
+		return c.Status(422).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid Entry", data))
 	}
 
 	// Create User
@@ -80,7 +80,7 @@ func VerifyEmail(c *fiber.Ctx) error {
 
 	user, _ := userManager.GetByEmail(db, verifyEmail.Email)
 	if user == nil {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_EMAIL, Message: "Incorrect Email"}.Init())
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
 
 	if user.IsEmailVerified {
@@ -89,11 +89,11 @@ func VerifyEmail(c *fiber.Ctx) error {
 
 	otp, _ := otpManager.GetByUserID(db, user.ID)
 	if otp == nil || otp.Code != verifyEmail.Otp {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_OTP, Message: "Incorrect Otp"}.Init())
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_OTP, "Incorrect Otp"))
 	}
 
 	if otpManager.CheckExpiration(otp) {
-		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_EXPIRED_OTP, Message: "Expired Otp"}.Init())
+		return c.Status(400).JSON(utils.RequestErr(utils.ERR_EXPIRED_OTP, "Expired Otp"))
 	}
 
 	// Update User
@@ -129,7 +129,7 @@ func ResendVerificationEmail(c *fiber.Ctx) error {
 
 	user, _ := userManager.GetByEmail(db, emailSchema.Email)
 	if user == nil {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_EMAIL, Message: "Incorrect Email"}.Init())
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
 
 	if user.IsEmailVerified {
@@ -168,7 +168,7 @@ func SendPasswordResetOtp(c *fiber.Ctx) error {
 
 	user, _ := userManager.GetByEmail(db, emailSchema.Email)
 	if user == nil {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_EMAIL, Message: "Incorrect Email"}.Init())
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
 
 	// Send Email
@@ -203,16 +203,16 @@ func SetNewPassword(c *fiber.Ctx) error {
 
 	user, _ := userManager.GetByEmail(db, passwordResetSchema.Email)
 	if user == nil {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_EMAIL, Message: "Incorrect Email"}.Init())
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
 
 	otp, _ := otpManager.GetByUserID(db, user.ID)
 	if otp == nil || otp.Code != passwordResetSchema.Otp {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INCORRECT_OTP, Message: "Incorrect Otp"}.Init())
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_OTP, "Incorrect Otp"))
 	}
 
 	if otpManager.CheckExpiration(otp) {
-		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_EXPIRED_OTP, Message: "Expired Otp"}.Init())
+		return c.Status(400).JSON(utils.RequestErr(utils.ERR_EXPIRED_OTP, "Expired Otp"))
 	}
 
 	// Set Password
@@ -250,14 +250,14 @@ func Login(c *fiber.Ctx) error {
 
 	user, _ := userManager.GetByEmail(db, userLoginSchema.Email)
 	if user == nil {
-		return c.Status(401).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_CREDENTIALS, Message: "Invalid Credentials"}.Init())
+		return c.Status(401).JSON(utils.RequestErr(utils.ERR_INVALID_CREDENTIALS, "Invalid Credentials"))
 	}
 	if !utils.CheckPasswordHash(userLoginSchema.Password, user.Password) {
-		return c.Status(401).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_CREDENTIALS, Message: "Invalid Credentials"}.Init())
+		return c.Status(401).JSON(utils.RequestErr(utils.ERR_INVALID_CREDENTIALS, "Invalid Credentials"))
 	}
 
 	if !user.IsEmailVerified {
-		return c.Status(401).JSON(utils.ErrorResponse{Code: utils.ERR_UNVERIFIED_USER, Message: "Verify your email first"}.Init())
+		return c.Status(401).JSON(utils.RequestErr(utils.ERR_UNVERIFIED_USER, "Verify your email first"))
 	}
 
 	// Create Auth Tokens
@@ -298,7 +298,7 @@ func Refresh(c *fiber.Ctx) error {
 	token := refreshTokenSchema.Refresh
 	user, _ := userManager.GetByRefreshToken(db, token)
 	if user == nil || !auth.DecodeRefreshToken(token) {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_TOKEN, Message: "Refresh token is invalid or expired"}.Init())
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INVALID_TOKEN, "Refresh token is invalid or expired"))
 	}
 
 	// Create and Update Auth Tokens

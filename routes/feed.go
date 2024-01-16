@@ -23,13 +23,13 @@ func RetrievePosts(c *fiber.Ctx) error {
 	// Paginate, Convert type and return Posts
 	paginatedData, paginatedPosts, err := PaginateQueryset(posts, c)
 	if err != nil {
-		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_PAGE, Message: *err}.Init())
+		return c.Status(400).JSON(err)
 	}
 	convertedPosts := utils.ConvertStructData(paginatedPosts, []schemas.PostSchema{}).(*[]schemas.PostSchema)
 	response := schemas.PostsResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Posts fetched"}.Init(),
 		Data: schemas.PostsResponseDataSchema{
-			PaginatedResponseDataSchema: paginatedData,
+			PaginatedResponseDataSchema: *paginatedData,
 			Items:                       *convertedPosts,
 		}.Init(),
 	}
@@ -80,11 +80,10 @@ func RetrievePost(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
 	slug := c.Params("slug")
 
-	post := postManager.GetBySlug(db, slug)
-
-	// Convert type and return Post
-	if post == nil {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
+	// Retrieve, Convert type and return Post
+	post, errCode, errData := GetPostObject(db, slug, true)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
 	}
 	convertedPost := utils.ConvertStructData(post, schemas.PostSchema{}).(*schemas.PostSchema)
 	response := schemas.PostResponseSchema{
@@ -118,18 +117,20 @@ func UpdatePost(c *fiber.Ctx) error {
 	if err := validator.Validate(postData); err != nil {
 		return c.Status(422).JSON(err)
 	}
-	post := postManager.GetBySlug(db, slug)
 
-	// Validate Post existence and ownership
-	if post == nil {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
+	// Retrieve & Validate Post Existence
+	post, errCode, errData := GetPostObject(db, slug, true)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
 	}
+
+	// Validate Post ownership
 	if post.AuthorID != user.ID {
-		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_OWNER, Message: "This Post isn't yours"}.Init())
+		return c.Status(400).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "This Post isn't yours"))
 	}
 
+	// Update, Convert type and return Post
 	post = postManager.Update(db, post, postData)
-	// Convert type and return Post
 	convertedPost := utils.ConvertStructData(post, schemas.PostInputResponseDataSchema{}).(*schemas.PostInputResponseDataSchema)
 	response := schemas.PostInputResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Post updated"}.Init(),
@@ -150,17 +151,45 @@ func DeletePost(c *fiber.Ctx) error {
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
 
-	post := postManager.GetBySlug(db, slug)
-
-	// Validate post existence and ownership
-	if post == nil {
-		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
+	// Retrieve & Validate Post Existence
+	post, errCode, errData := GetPostObject(db, slug, true)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
 	}
+
+	// Validate Post ownership
 	if post.AuthorID != user.ID {
-		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_OWNER, Message: "This Post isn't yours"}.Init())
+		return c.Status(400).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "This Post isn't yours"))
 	}
 
+	// Delete and return response
 	db.Post.DeleteOne(post).Exec(managers.Ctx)
 	response := schemas.ResponseSchema{Message: "Post Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }
+
+// // @Summary Retrieve Reactions
+// // @Description This endpoint retrieves paginated responses of latest posts
+// // @Tags Feed
+// // @Param page query int false "Current Page" default(1)
+// // @Success 200 {object} schemas.PostsResponseSchema
+// // @Router /feed/posts [get]
+// func RetrieveReactions(c *fiber.Ctx) error {
+// 	db := c.Locals("db").(*ent.Client)
+// 	posts := postManager.All(db)
+
+// 	// Paginate, Convert type and return Posts
+// 	paginatedData, paginatedPosts, err := PaginateQueryset(posts, c)
+// 	if err != nil {
+// 		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_PAGE, Message: *err}.Init())
+// 	}
+// 	convertedPosts := utils.ConvertStructData(paginatedPosts, []schemas.PostSchema{}).(*[]schemas.PostSchema)
+// 	response := schemas.PostsResponseSchema{
+// 		ResponseSchema: schemas.ResponseSchema{Message: "Posts fetched"}.Init(),
+// 		Data: schemas.PostsResponseDataSchema{
+// 			PaginatedResponseDataSchema: paginatedData,
+// 			Items:                       *convertedPosts,
+// 		}.Init(),
+// 	}
+// 	return c.Status(200).JSON(response)
+// }

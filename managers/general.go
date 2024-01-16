@@ -34,3 +34,11 @@ func (obj SiteDetailManager) Create(client *ent.Client) (*ent.SiteDetail, error)
 	}
 	return s, nil
 }
+
+func (obj SiteDetailManager) GetOrCreate (client *ent.Client) *ent.SiteDetail {
+	sitedetail, _ := obj.Get(client)
+	if sitedetail == nil {
+		sitedetail, _ = obj.Create(client)
+	}
+	return sitedetail
+}

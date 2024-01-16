@@ -18,7 +18,7 @@ func DecodeJSONBody(c *fiber.Ctx, dst interface{}) (int, *utils.ErrorResponse) {
 	var errData *utils.ErrorResponse
 	code := 200
 	if c.Get("Content-Type") != "application/json" {
-		errD := utils.ErrorResponse{Code: utils.ERR_INVALID_REQUEST, Message: "Content-Type header is not application/json"}.Init()
+		errD := utils.RequestErr(utils.ERR_INVALID_REQUEST, "Content-Type header is not application/json")
 		errData = &errD
 		return code, errData
 	}
@@ -64,7 +64,7 @@ func DecodeJSONBody(c *fiber.Ctx, dst interface{}) (int, *utils.ErrorResponse) {
 				status_code = 400
 				msg = "Invalid request"
 		}
-		errData := utils.ErrorResponse{Code: utils.ERR_INVALID_REQUEST, Message: msg}.Init()
+		errData := utils.RequestErr(utils.ERR_INVALID_REQUEST, msg)
 		if len(fieldErrors) > 0 {
 			errData.Data = &fieldErrors
 		}
@@ -74,7 +74,7 @@ func DecodeJSONBody(c *fiber.Ctx, dst interface{}) (int, *utils.ErrorResponse) {
 
 	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
-		errData := utils.ErrorResponse{Code: utils.ERR_INVALID_REQUEST, Message: "Request body must only contain a single JSON object"}.Init()
+		errData := utils.RequestErr(utils.ERR_INVALID_REQUEST, "Request body must only contain a single JSON object")
 		return 400, &errData
 	}
 	return code, nil

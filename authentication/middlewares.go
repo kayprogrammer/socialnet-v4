@@ -27,11 +27,11 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
 
 	if len(token) < 1 {
-		return c.Status(401).JSON(utils.ErrorResponse{Code: utils.ERR_UNAUTHORIZED_USER, Message: "Unauthorized User!"}.Init())
+		return c.Status(401).JSON(utils.RequestErr(utils.ERR_UNAUTHORIZED_USER, "Unauthorized User!"))
 	}
 	user, err := getUser(c, token, db)
 	if err != nil {
-		return c.Status(401).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_TOKEN, Message: *err}.Init())
+		return c.Status(401).JSON(utils.RequestErr(utils.ERR_INVALID_TOKEN, *err))
 	}
 	c.Locals("user", user)
 	return c.Next()

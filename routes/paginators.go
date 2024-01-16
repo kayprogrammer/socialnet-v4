@@ -6,16 +6,16 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
-func PaginateQueryset(queryset interface{}, c *fiber.Ctx, opts ...int) (schemas.PaginatedResponseDataSchema, interface{}, *string) {
+func PaginateQueryset(queryset interface{}, c *fiber.Ctx, opts ...int) (*schemas.PaginatedResponseDataSchema, *interface{}, *utils.ErrorResponse) {
 	currentPage := c.QueryInt("page", 1)
 	var perPage int
-	var err *string = nil
 
 	if currentPage < 1 {
-		e := "Invalid Page"
-		err = &e
+		errData := utils.RequestErr(utils.ERR_INVALID_PAGE, "Invalid Page")
+		return nil, nil, &errData
 	}
 
 	// Check if page size is provided as an argument
@@ -30,6 +30,10 @@ func PaginateQueryset(queryset interface{}, c *fiber.Ctx, opts ...int) (schemas.
 	lastPage := math.Ceil(float64(itemsCount) / float64(perPage))
 	if lastPage == 0 {
 		lastPage = 1
+	}
+	if currentPage > int(lastPage) {
+		errData := utils.RequestErr(utils.ERR_INVALID_PAGE, "Page number is out of range")
+		return nil, nil, &errData
 	}
 
 	startIndex := (currentPage - 1) * perPage
@@ -51,10 +55,5 @@ func PaginateQueryset(queryset interface{}, c *fiber.Ctx, opts ...int) (schemas.
 		LastPage:    uint(lastPage),
 	}
 	paginatedItems := querysetValue.Slice(startIndex, endIndex).Interface()
-	
-	if currentPage > int(lastPage) {
-		e := "Page number is out of range"
-		err = &e
-	}
-	return paginatorData, paginatedItems, err
+	return &paginatorData, &paginatedItems, nil
 }

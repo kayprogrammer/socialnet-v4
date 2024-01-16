@@ -33,3 +33,13 @@ var ERR_INVALID_PAGE =	"invalid_page"
 var ERR_INVALID_VALUE =	"invalid_value"
 var ERR_NOT_ALLOWED =	"not_allowed"
 var ERR_INVALID_DATA_TYPE =	"invalid_data_type"
+
+func RequestErr(code string, message string, opts ...map[string]string) ErrorResponse {
+	var data *map[string]string
+	// Check if data is provided as an argument
+	if len(opts) > 0 {
+		data = &opts[0]
+	}
+	resp := ErrorResponse{Code: code, Message: message, Data: data}.Init()
+	return resp
+}
