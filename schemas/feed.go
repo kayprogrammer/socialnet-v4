@@ -33,7 +33,6 @@ func (post PostSchema) Init () PostSchema {
 	// Set Reactions & Comments Count
 	post.ReactionsCount = uint(len(post.Edges.Reactions))
 	post.CommentsCount = uint(len(post.Edges.Comments))
-	
 	post.Edges = nil // Omit edges
 	return post
 }
@@ -71,12 +70,13 @@ type PostsResponseSchema struct {
 
 type PostInputResponseDataSchema struct {
 	PostSchema
+	Image 				*string				`json:"image,omitempty" example:"https://img.url"` // Remove image during create & update 
 	FileUploadData *utils.SignatureFormat `json:"file_upload_data"`
 }
 
-func (postData PostInputResponseDataSchema) Init() PostInputResponseDataSchema {
+func (postData PostInputResponseDataSchema) Init(fileType *string) PostInputResponseDataSchema {
 	image := postData.PostSchema.Edges.Image
-	if image != nil {
+	if fileType != nil && image != nil { // Generate data when file is being uploaded
 		fuData := utils.GenerateFileSignature(image.ID.String(), "posts")
 		postData.FileUploadData = &fuData
 	}

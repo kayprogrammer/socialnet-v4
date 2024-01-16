@@ -92,7 +92,7 @@ func DecodeAccessToken(token string, db *ent.Client) (*ent.User, *string) {
 
 	// Fetch User model object
 	userId := claims.UserId
-	user, _ := db.User.Query().Where(user.ID(userId), user.Access(token)).Only(managers.Ctx)
+	user, _ := db.User.Query().Where(user.ID(userId), user.Access(token)).WithAvatar().Only(managers.Ctx)
 
 	if user == nil {
 		return nil, &tokenErr

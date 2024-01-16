@@ -64,8 +64,8 @@ func CreatePost(c *fiber.Ctx) error {
 	// Convert type and return Post
 	convertedPost := utils.ConvertStructData(post, schemas.PostInputResponseDataSchema{}).(*schemas.PostInputResponseDataSchema)
 	response := schemas.PostInputResponseSchema{
-		ResponseSchema: schemas.ResponseSchema{Message: "Posts fetched"}.Init(),
-		Data: convertedPost.Init(),
+		ResponseSchema: schemas.ResponseSchema{Message: "Post created"}.Init(),
+		Data: convertedPost.Init(postData.FileType),
 	}
 	return c.Status(201).JSON(response)
 }
@@ -84,12 +84,56 @@ func RetrievePost(c *fiber.Ctx) error {
 
 	// Convert type and return Post
 	if post == nil {
-		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
+		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
 	}
 	convertedPost := utils.ConvertStructData(post, schemas.PostSchema{}).(*schemas.PostSchema)
 	response := schemas.PostResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Post Detail fetched"}.Init(),
 		Data: convertedPost.Init(),
+	}
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Update Post
+// @Description This endpoint updates a post
+// @Tags Feed
+// @Param slug path string true "Post slug"
+// @Param post body schemas.PostInputSchema true "Post object"
+// @Success 200 {object} schemas.PostInputResponseSchema
+// @Router /feed/posts/{slug} [put]
+// @Security BearerAuth
+func UpdatePost(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+	slug := c.Params("slug")
+
+	validator := utils.Validator()
+
+	postData := schemas.PostInputSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &postData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(postData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+	post := postManager.GetBySlug(db, slug)
+
+	// Validate Post existence and ownership 
+	if post == nil {
+		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
+	}
+	if post.AuthorID != user.ID {
+		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_OWNER, Message: "This Post isn't yours"}.Init())
+	}
+
+	post = postManager.Update(db, post, postData)
+	// Convert type and return Post
+	convertedPost := utils.ConvertStructData(post, schemas.PostInputResponseDataSchema{}).(*schemas.PostInputResponseDataSchema)
+	response := schemas.PostInputResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Post updated"}.Init(),
+		Data: convertedPost.Init(postData.FileType),
 	}
 	return c.Status(200).JSON(response)
 }
