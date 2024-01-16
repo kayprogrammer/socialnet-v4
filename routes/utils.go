@@ -1,24 +1,19 @@
 package routes
 
-import (
-	"github.com/kayprogrammer/socialnet-v4/ent"
-	"github.com/kayprogrammer/socialnet-v4/managers"
-	"github.com/kayprogrammer/socialnet-v4/utils"
-)
+import "github.com/kayprogrammer/socialnet-v4/utils"
 
-func GetPostObject(client *ent.Client, slug string, detailed bool) (*ent.Post, *int, *utils.ErrorResponse) {
-	q := client.Post.Query().Where()
-	if detailed {
-		q = q.WithAuthor(func(uq *ent.UserQuery) { uq.WithAvatar() }).
-			WithImage().
-			WithReactions().
-			WithComments()
+func ValidateReactionFocus(focus string) *utils.ErrorResponse {
+	expectedFocuses := []string{"POST", "COMMENT", "REPLY"}
+	found := false
+	for _, str := range expectedFocuses {
+		if str == focus {
+			found = true
+			break
+		}
 	}
-	post, _ := q.Only(managers.Ctx)
-	if post == nil {
-		status_code := 404
-		errData := utils.RequestErr(utils.ERR_NON_EXISTENT, "Post does not exist")
-		return nil, &status_code, &errData
+	if !found {
+		err := utils.RequestErr(utils.ERR_INVALID_VALUE, "Invalid 'focus' value")
+		return &err 
 	}
-	return post, nil, nil
+	return nil
 }

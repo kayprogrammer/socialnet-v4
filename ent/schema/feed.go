@@ -105,7 +105,7 @@ func (Reaction) Fields() []ent.Field {
 	return append(
 		CommonFields,
 		field.UUID("user_id", uuid.UUID{}),
-		field.String("rtype").NotEmpty(),
+		field.Enum("rtype").Values("LIKE", "LOVE", "HAHA", "WOW", "SAD", "ANGRY").Default("LIKE"),
 		field.UUID("post_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("comment_id", uuid.UUID{}).Optional().Nillable(),
 		field.UUID("reply_id", uuid.UUID{}).Optional().Nillable(),

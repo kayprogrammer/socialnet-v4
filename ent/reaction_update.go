@@ -68,15 +68,15 @@ func (ru *ReactionUpdate) SetNillableUserID(u *uuid.UUID) *ReactionUpdate {
 }
 
 // SetRtype sets the "rtype" field.
-func (ru *ReactionUpdate) SetRtype(s string) *ReactionUpdate {
-	ru.mutation.SetRtype(s)
+func (ru *ReactionUpdate) SetRtype(r reaction.Rtype) *ReactionUpdate {
+	ru.mutation.SetRtype(r)
 	return ru
 }
 
 // SetNillableRtype sets the "rtype" field if the given value is not nil.
-func (ru *ReactionUpdate) SetNillableRtype(s *string) *ReactionUpdate {
-	if s != nil {
-		ru.SetRtype(*s)
+func (ru *ReactionUpdate) SetNillableRtype(r *reaction.Rtype) *ReactionUpdate {
+	if r != nil {
+		ru.SetRtype(*r)
 	}
 	return ru
 }
@@ -258,7 +258,7 @@ func (ru *ReactionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(reaction.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := ru.mutation.Rtype(); ok {
-		_spec.SetField(reaction.FieldRtype, field.TypeString, value)
+		_spec.SetField(reaction.FieldRtype, field.TypeEnum, value)
 	}
 	if ru.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -431,15 +431,15 @@ func (ruo *ReactionUpdateOne) SetNillableUserID(u *uuid.UUID) *ReactionUpdateOne
 }
 
 // SetRtype sets the "rtype" field.
-func (ruo *ReactionUpdateOne) SetRtype(s string) *ReactionUpdateOne {
-	ruo.mutation.SetRtype(s)
+func (ruo *ReactionUpdateOne) SetRtype(r reaction.Rtype) *ReactionUpdateOne {
+	ruo.mutation.SetRtype(r)
 	return ruo
 }
 
 // SetNillableRtype sets the "rtype" field if the given value is not nil.
-func (ruo *ReactionUpdateOne) SetNillableRtype(s *string) *ReactionUpdateOne {
-	if s != nil {
-		ruo.SetRtype(*s)
+func (ruo *ReactionUpdateOne) SetNillableRtype(r *reaction.Rtype) *ReactionUpdateOne {
+	if r != nil {
+		ruo.SetRtype(*r)
 	}
 	return ruo
 }
@@ -651,7 +651,7 @@ func (ruo *ReactionUpdateOne) sqlSave(ctx context.Context) (_node *Reaction, err
 		_spec.SetField(reaction.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := ruo.mutation.Rtype(); ok {
-		_spec.SetField(reaction.FieldRtype, field.TypeString, value)
+		_spec.SetField(reaction.FieldRtype, field.TypeEnum, value)
 	}
 	if ruo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

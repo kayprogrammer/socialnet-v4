@@ -121,7 +121,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "rtype", Type: field.TypeString},
+		{Name: "rtype", Type: field.TypeEnum, Enums: []string{"LIKE", "LOVE", "HAHA", "WOW", "SAD", "ANGRY"}, Default: "LIKE"},
 		{Name: "comment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "post_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "reply_id", Type: field.TypeUUID, Nullable: true},

@@ -29,7 +29,7 @@ type Reaction struct {
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// Rtype holds the value of the "rtype" field.
-	Rtype string `json:"rtype,omitempty"`
+	Rtype reaction.Rtype `json:"rtype,omitempty"`
 	// PostID holds the value of the "post_id" field.
 	PostID *uuid.UUID `json:"post_id,omitempty"`
 	// CommentID holds the value of the "comment_id" field.
@@ -165,7 +165,7 @@ func (r *Reaction) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field rtype", values[i])
 			} else if value.Valid {
-				r.Rtype = value.String
+				r.Rtype = reaction.Rtype(value.String)
 			}
 		case reaction.FieldPostID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -254,7 +254,7 @@ func (r *Reaction) String() string {
 	builder.WriteString(fmt.Sprintf("%v", r.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("rtype=")
-	builder.WriteString(r.Rtype)
+	builder.WriteString(fmt.Sprintf("%v", r.Rtype))
 	builder.WriteString(", ")
 	if v := r.PostID; v != nil {
 		builder.WriteString("post_id=")

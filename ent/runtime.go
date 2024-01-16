@@ -138,10 +138,6 @@ func init() {
 	reaction.DefaultUpdatedAt = reactionDescUpdatedAt.Default.(func() time.Time)
 	// reaction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	reaction.UpdateDefaultUpdatedAt = reactionDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// reactionDescRtype is the schema descriptor for rtype field.
-	reactionDescRtype := reactionFields[4].Descriptor()
-	// reaction.RtypeValidator is a validator for the "rtype" field. It is called by the builders before save.
-	reaction.RtypeValidator = reactionDescRtype.Validators[0].(func(string) error)
 	// reactionDescID is the schema descriptor for id field.
 	reactionDescID := reactionFields[0].Descriptor()
 	// reaction.DefaultID holds the default value on creation for the id field.

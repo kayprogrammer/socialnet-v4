@@ -9,8 +9,8 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
-func PaginateQueryset(queryset interface{}, c *fiber.Ctx, opts ...int) (*schemas.PaginatedResponseDataSchema, *interface{}, *utils.ErrorResponse) {
-	currentPage := c.QueryInt("page", 1)
+func PaginateQueryset(queryset interface{}, fiberCtx *fiber.Ctx, opts ...int) (*schemas.PaginatedResponseDataSchema, *interface{}, *utils.ErrorResponse) {
+	currentPage := fiberCtx.QueryInt("page", 1)
 	var perPage int
 
 	if currentPage < 1 {

@@ -60,8 +60,16 @@ func (rc *ReactionCreate) SetUserID(u uuid.UUID) *ReactionCreate {
 }
 
 // SetRtype sets the "rtype" field.
-func (rc *ReactionCreate) SetRtype(s string) *ReactionCreate {
-	rc.mutation.SetRtype(s)
+func (rc *ReactionCreate) SetRtype(r reaction.Rtype) *ReactionCreate {
+	rc.mutation.SetRtype(r)
+	return rc
+}
+
+// SetNillableRtype sets the "rtype" field if the given value is not nil.
+func (rc *ReactionCreate) SetNillableRtype(r *reaction.Rtype) *ReactionCreate {
+	if r != nil {
+		rc.SetRtype(*r)
+	}
 	return rc
 }
 
@@ -184,6 +192,10 @@ func (rc *ReactionCreate) defaults() {
 		v := reaction.DefaultUpdatedAt()
 		rc.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := rc.mutation.Rtype(); !ok {
+		v := reaction.DefaultRtype
+		rc.mutation.SetRtype(v)
+	}
 	if _, ok := rc.mutation.ID(); !ok {
 		v := reaction.DefaultID()
 		rc.mutation.SetID(v)
@@ -256,7 +268,7 @@ func (rc *ReactionCreate) createSpec() (*Reaction, *sqlgraph.CreateSpec) {
 		_node.UpdatedAt = value
 	}
 	if value, ok := rc.mutation.Rtype(); ok {
-		_spec.SetField(reaction.FieldRtype, field.TypeString, value)
+		_spec.SetField(reaction.FieldRtype, field.TypeEnum, value)
 		_node.Rtype = value
 	}
 	if nodes := rc.mutation.UserIDs(); len(nodes) > 0 {

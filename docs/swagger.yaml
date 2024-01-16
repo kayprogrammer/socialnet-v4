@@ -141,6 +141,44 @@ definitions:
         example: success
         type: string
     type: object
+  schemas.ReactionSchema:
+    properties:
+      id:
+        example: d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      rtype:
+        example: LIKE
+        type: string
+      user:
+        $ref: '#/definitions/schemas.UserDataSchema'
+    type: object
+  schemas.ReactionsResponseDataSchema:
+    properties:
+      current_page:
+        example: 1
+        type: integer
+      last_page:
+        example: 100
+        type: integer
+      per_page:
+        example: 100
+        type: integer
+      reactions:
+        items:
+          $ref: '#/definitions/schemas.ReactionSchema'
+        type: array
+    type: object
+  schemas.ReactionsResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.ReactionsResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.RefreshTokenSchema:
     properties:
       refresh:
@@ -596,6 +634,39 @@ paths:
       security:
       - BearerAuth: []
       summary: Update Post
+      tags:
+      - Feed
+  /feed/reactions/{focus}/{slug}:
+    get:
+      description: This endpoint retrieves paginated responses of reactions of post,
+        comment, reply
+      parameters:
+      - description: 'Specify the usage. Use any of the three: POST, COMMENT, REPLY'
+        in: path
+        name: focus
+        required: true
+        type: string
+      - description: Enter the slug of the post or comment or reply
+        in: path
+        name: slug
+        required: true
+        type: string
+      - default: 1
+        description: Current Page
+        in: query
+        name: page
+        type: integer
+      - description: 'Reaction Type. Must be any of these: LIKE, LOVE, HAHA, WOW,
+          SAD, ANGRY'
+        in: query
+        name: reaction_type
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ReactionsResponseSchema'
+      summary: Retrieve Latest Reactions of a Post, Comment, or Reply
       tags:
       - Feed
   /general/site-detail:

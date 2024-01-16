@@ -81,7 +81,7 @@ func RetrievePost(c *fiber.Ctx) error {
 	slug := c.Params("slug")
 
 	// Retrieve, Convert type and return Post
-	post, errCode, errData := GetPostObject(db, slug, true)
+	post, errCode, errData := postManager.GetBySlug(db, slug, true)
 	if errCode != nil {
 		return c.Status(*errCode).JSON(errData)
 	}
@@ -119,7 +119,7 @@ func UpdatePost(c *fiber.Ctx) error {
 	}
 
 	// Retrieve & Validate Post Existence
-	post, errCode, errData := GetPostObject(db, slug, true)
+	post, errCode, errData := postManager.GetBySlug(db, slug, true)
 	if errCode != nil {
 		return c.Status(*errCode).JSON(errData)
 	}
@@ -152,7 +152,7 @@ func DeletePost(c *fiber.Ctx) error {
 	user := c.Locals("user").(*ent.User)
 
 	// Retrieve & Validate Post Existence
-	post, errCode, errData := GetPostObject(db, slug, true)
+	post, errCode, errData := postManager.GetBySlug(db, slug)
 	if errCode != nil {
 		return c.Status(*errCode).JSON(errData)
 	}
@@ -168,28 +168,46 @@ func DeletePost(c *fiber.Ctx) error {
 	return c.Status(200).JSON(response)
 }
 
-// // @Summary Retrieve Reactions
-// // @Description This endpoint retrieves paginated responses of latest posts
-// // @Tags Feed
-// // @Param page query int false "Current Page" default(1)
-// // @Success 200 {object} schemas.PostsResponseSchema
-// // @Router /feed/posts [get]
-// func RetrieveReactions(c *fiber.Ctx) error {
-// 	db := c.Locals("db").(*ent.Client)
-// 	posts := postManager.All(db)
+var reactionManager = managers.ReactionManager{}
 
-// 	// Paginate, Convert type and return Posts
-// 	paginatedData, paginatedPosts, err := PaginateQueryset(posts, c)
-// 	if err != nil {
-// 		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_PAGE, Message: *err}.Init())
-// 	}
-// 	convertedPosts := utils.ConvertStructData(paginatedPosts, []schemas.PostSchema{}).(*[]schemas.PostSchema)
-// 	response := schemas.PostsResponseSchema{
-// 		ResponseSchema: schemas.ResponseSchema{Message: "Posts fetched"}.Init(),
-// 		Data: schemas.PostsResponseDataSchema{
-// 			PaginatedResponseDataSchema: paginatedData,
-// 			Items:                       *convertedPosts,
-// 		}.Init(),
-// 	}
-// 	return c.Status(200).JSON(response)
-// }
+// @Summary Retrieve Latest Reactions of a Post, Comment, or Reply
+// @Description This endpoint retrieves paginated responses of reactions of post, comment, reply
+// @Tags Feed
+// @Param focus path string true "Specify the usage. Use any of the three: POST, COMMENT, REPLY"
+// @Param slug path string true "Enter the slug of the post or comment or reply"
+// @Param page query int false "Current Page" default(1)
+// @Param reaction_type query string false "Reaction Type. Must be any of these: LIKE, LOVE, HAHA, WOW, SAD, ANGRY"
+// @Success 200 {object} schemas.ReactionsResponseSchema
+// @Router /feed/reactions/{focus}/{slug} [get]
+func RetrieveReactions(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	focus := c.Params("focus")
+	slug := c.Params("slug")
+
+	// Validate Focus
+	err := ValidateReactionFocus(focus)
+	if err != nil {
+		return c.Status(404).JSON(err)
+	}
+
+	// Paginate, Convert type and return Posts
+	reactions, errCode, errData := reactionManager.GetReactionsQueryset(db, c, focus, slug)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+	// Paginate, Convert type and return Reactions
+	paginatedData, paginatedReactions, err := PaginateQueryset(reactions, c)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+
+	convertedReactions := utils.ConvertStructData(paginatedReactions, []schemas.ReactionSchema{}).(*[]schemas.ReactionSchema)
+	response := schemas.ReactionsResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Reactions fetched"}.Init(),
+		Data: schemas.ReactionsResponseDataSchema{
+			PaginatedResponseDataSchema: *paginatedData,
+			Items:                       *convertedReactions,
+		}.Init(),
+	}
+	return c.Status(200).JSON(response)
+}

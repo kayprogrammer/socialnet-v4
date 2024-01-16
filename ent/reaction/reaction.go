@@ -3,6 +3,7 @@
 package reaction
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -98,11 +99,39 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// RtypeValidator is a validator for the "rtype" field. It is called by the builders before save.
-	RtypeValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// Rtype defines the type for the "rtype" enum field.
+type Rtype string
+
+// RtypeLIKE is the default value of the Rtype enum.
+const DefaultRtype = RtypeLIKE
+
+// Rtype values.
+const (
+	RtypeLIKE  Rtype = "LIKE"
+	RtypeLOVE  Rtype = "LOVE"
+	RtypeHAHA  Rtype = "HAHA"
+	RtypeWOW   Rtype = "WOW"
+	RtypeSAD   Rtype = "SAD"
+	RtypeANGRY Rtype = "ANGRY"
+)
+
+func (r Rtype) String() string {
+	return string(r)
+}
+
+// RtypeValidator is a validator for the "rtype" field enum values. It is called by the builders before save.
+func RtypeValidator(r Rtype) error {
+	switch r {
+	case RtypeLIKE, RtypeLOVE, RtypeHAHA, RtypeWOW, RtypeSAD, RtypeANGRY:
+		return nil
+	default:
+		return fmt.Errorf("reaction: invalid enum value for rtype field: %q", r)
+	}
+}
 
 // OrderOption defines the ordering options for the Reaction queries.
 type OrderOption func(*sql.Selector)

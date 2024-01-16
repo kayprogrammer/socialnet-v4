@@ -3547,7 +3547,7 @@ type ReactionMutation struct {
 	id             *uuid.UUID
 	created_at     *time.Time
 	updated_at     *time.Time
-	rtype          *string
+	rtype          *reaction.Rtype
 	clearedFields  map[string]struct{}
 	user           *uuid.UUID
 	cleareduser    bool
@@ -3775,12 +3775,12 @@ func (m *ReactionMutation) ResetUserID() {
 }
 
 // SetRtype sets the "rtype" field.
-func (m *ReactionMutation) SetRtype(s string) {
-	m.rtype = &s
+func (m *ReactionMutation) SetRtype(r reaction.Rtype) {
+	m.rtype = &r
 }
 
 // Rtype returns the value of the "rtype" field in the mutation.
-func (m *ReactionMutation) Rtype() (r string, exists bool) {
+func (m *ReactionMutation) Rtype() (r reaction.Rtype, exists bool) {
 	v := m.rtype
 	if v == nil {
 		return
@@ -3791,7 +3791,7 @@ func (m *ReactionMutation) Rtype() (r string, exists bool) {
 // OldRtype returns the old "rtype" field's value of the Reaction entity.
 // If the Reaction object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ReactionMutation) OldRtype(ctx context.Context) (v string, err error) {
+func (m *ReactionMutation) OldRtype(ctx context.Context) (v reaction.Rtype, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRtype is only allowed on UpdateOne operations")
 	}
@@ -4197,7 +4197,7 @@ func (m *ReactionMutation) SetField(name string, value ent.Value) error {
 		m.SetUserID(v)
 		return nil
 	case reaction.FieldRtype:
-		v, ok := value.(string)
+		v, ok := value.(reaction.Rtype)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

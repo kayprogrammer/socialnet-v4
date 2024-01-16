@@ -71,11 +71,6 @@ func UserID(v uuid.UUID) predicate.Reaction {
 	return predicate.Reaction(sql.FieldEQ(FieldUserID, v))
 }
 
-// Rtype applies equality check predicate on the "rtype" field. It's identical to RtypeEQ.
-func Rtype(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldEQ(FieldRtype, v))
-}
-
 // PostID applies equality check predicate on the "post_id" field. It's identical to PostIDEQ.
 func PostID(v uuid.UUID) predicate.Reaction {
 	return predicate.Reaction(sql.FieldEQ(FieldPostID, v))
@@ -192,68 +187,23 @@ func UserIDNotIn(vs ...uuid.UUID) predicate.Reaction {
 }
 
 // RtypeEQ applies the EQ predicate on the "rtype" field.
-func RtypeEQ(v string) predicate.Reaction {
+func RtypeEQ(v Rtype) predicate.Reaction {
 	return predicate.Reaction(sql.FieldEQ(FieldRtype, v))
 }
 
 // RtypeNEQ applies the NEQ predicate on the "rtype" field.
-func RtypeNEQ(v string) predicate.Reaction {
+func RtypeNEQ(v Rtype) predicate.Reaction {
 	return predicate.Reaction(sql.FieldNEQ(FieldRtype, v))
 }
 
 // RtypeIn applies the In predicate on the "rtype" field.
-func RtypeIn(vs ...string) predicate.Reaction {
+func RtypeIn(vs ...Rtype) predicate.Reaction {
 	return predicate.Reaction(sql.FieldIn(FieldRtype, vs...))
 }
 
 // RtypeNotIn applies the NotIn predicate on the "rtype" field.
-func RtypeNotIn(vs ...string) predicate.Reaction {
+func RtypeNotIn(vs ...Rtype) predicate.Reaction {
 	return predicate.Reaction(sql.FieldNotIn(FieldRtype, vs...))
-}
-
-// RtypeGT applies the GT predicate on the "rtype" field.
-func RtypeGT(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldGT(FieldRtype, v))
-}
-
-// RtypeGTE applies the GTE predicate on the "rtype" field.
-func RtypeGTE(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldGTE(FieldRtype, v))
-}
-
-// RtypeLT applies the LT predicate on the "rtype" field.
-func RtypeLT(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldLT(FieldRtype, v))
-}
-
-// RtypeLTE applies the LTE predicate on the "rtype" field.
-func RtypeLTE(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldLTE(FieldRtype, v))
-}
-
-// RtypeContains applies the Contains predicate on the "rtype" field.
-func RtypeContains(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldContains(FieldRtype, v))
-}
-
-// RtypeHasPrefix applies the HasPrefix predicate on the "rtype" field.
-func RtypeHasPrefix(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldHasPrefix(FieldRtype, v))
-}
-
-// RtypeHasSuffix applies the HasSuffix predicate on the "rtype" field.
-func RtypeHasSuffix(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldHasSuffix(FieldRtype, v))
-}
-
-// RtypeEqualFold applies the EqualFold predicate on the "rtype" field.
-func RtypeEqualFold(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldEqualFold(FieldRtype, v))
-}
-
-// RtypeContainsFold applies the ContainsFold predicate on the "rtype" field.
-func RtypeContainsFold(v string) predicate.Reaction {
-	return predicate.Reaction(sql.FieldContainsFold(FieldRtype, v))
 }
 
 // PostIDEQ applies the EQ predicate on the "post_id" field.
