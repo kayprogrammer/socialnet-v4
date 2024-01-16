@@ -30,7 +30,7 @@ func RetrievePosts(c *fiber.Ctx) error {
 		ResponseSchema: schemas.ResponseSchema{Message: "Posts fetched"}.Init(),
 		Data: schemas.PostsResponseDataSchema{
 			PaginatedResponseDataSchema: paginatedData,
-			Items: *convertedPosts,
+			Items:                       *convertedPosts,
 		}.Init(),
 	}
 	return c.Status(200).JSON(response)
@@ -65,7 +65,7 @@ func CreatePost(c *fiber.Ctx) error {
 	convertedPost := utils.ConvertStructData(post, schemas.PostInputResponseDataSchema{}).(*schemas.PostInputResponseDataSchema)
 	response := schemas.PostInputResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Post created"}.Init(),
-		Data: convertedPost.Init(postData.FileType),
+		Data:           convertedPost.Init(postData.FileType),
 	}
 	return c.Status(201).JSON(response)
 }
@@ -89,7 +89,7 @@ func RetrievePost(c *fiber.Ctx) error {
 	convertedPost := utils.ConvertStructData(post, schemas.PostSchema{}).(*schemas.PostSchema)
 	response := schemas.PostResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Post Detail fetched"}.Init(),
-		Data: convertedPost.Init(),
+		Data:           convertedPost.Init(),
 	}
 	return c.Status(200).JSON(response)
 }
@@ -120,7 +120,7 @@ func UpdatePost(c *fiber.Ctx) error {
 	}
 	post := postManager.GetBySlug(db, slug)
 
-	// Validate Post existence and ownership 
+	// Validate Post existence and ownership
 	if post == nil {
 		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
 	}
@@ -133,7 +133,34 @@ func UpdatePost(c *fiber.Ctx) error {
 	convertedPost := utils.ConvertStructData(post, schemas.PostInputResponseDataSchema{}).(*schemas.PostInputResponseDataSchema)
 	response := schemas.PostInputResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Post updated"}.Init(),
-		Data: convertedPost.Init(postData.FileType),
+		Data:           convertedPost.Init(postData.FileType),
 	}
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Delete a Post
+// @Description This endpoint deletes a post
+// @Tags Feed
+// @Param slug path string true "Post slug"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /feed/posts/{slug} [delete]
+// @Security BearerAuth
+func DeletePost(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+	user := c.Locals("user").(*ent.User)
+
+	post := postManager.GetBySlug(db, slug)
+
+	// Validate post existence and ownership
+	if post == nil {
+		return c.Status(404).JSON(utils.ErrorResponse{Code: utils.ERR_NON_EXISTENT, Message: "Post does not exist"}.Init())
+	}
+	if post.AuthorID != user.ID {
+		return c.Status(400).JSON(utils.ErrorResponse{Code: utils.ERR_INVALID_OWNER, Message: "This Post isn't yours"}.Init())
+	}
+
+	db.Post.DeleteOne(post).Exec(managers.Ctx)
+	response := schemas.ResponseSchema{Message: "Post Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }

@@ -70,8 +70,8 @@ type PostsResponseSchema struct {
 
 type PostInputResponseDataSchema struct {
 	PostSchema
-	Image 				*string				`json:"image,omitempty" example:"https://img.url"` // Remove image during create & update 
-	FileUploadData *utils.SignatureFormat `json:"file_upload_data"`
+	Image 				*string					`json:"image,omitempty" swaggerignore:"true"` // Remove image during create & update 
+	FileUploadData 		*utils.SignatureFormat 	`json:"file_upload_data"`
 }
 
 func (postData PostInputResponseDataSchema) Init(fileType *string) PostInputResponseDataSchema {
