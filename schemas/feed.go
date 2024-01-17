@@ -72,6 +72,13 @@ type ReplySchema struct {
 	Text			string					`json:"text" example:"Jesus Is King"`
 }
 
+func (reply ReplySchema) Init() ReplySchema {
+	// Set Related Data.
+	reply.Author = reply.Author.Init(reply.Edges.Author)
+	reply.Edges = nil // Omit edges
+	return reply
+}
+
 type CommentSchema struct {
 	ReplySchema
 	Edges        			*ent.CommentEdges 		`json:"edges,omitempty" swaggerignore:"true"`
@@ -165,7 +172,18 @@ type ReactionResponseSchema struct {
 
 // COMMENTS & REPLIES
 type CommentWithRepliesResponseDataSchema struct {
+	PaginatedResponseDataSchema
 	Items			[]ReplySchema		`json:"items"`
+}
+
+func (data CommentWithRepliesResponseDataSchema) Init () CommentWithRepliesResponseDataSchema {
+	// Set Initial Data
+	items := data.Items
+	for i := range items {
+		items[i] = items[i].Init()
+	}
+	data.Items = items
+	return data
 }
 
 type CommentWithRepliesSchema struct {

@@ -362,11 +362,50 @@ func CreateComment(c *fiber.Ctx) error {
 	// Create Comment
 	comment := commentManager.Create(db, user, post.ID, commentData.Text)
 
+	// Send Notifications here later
+
 	// Convert type and return comment
 	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
 	response := schemas.CommentResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Comment created"}.Init(),
 		Data: convertedComment.Init(),
+	}
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Retrieve Comment with replies
+// @Description This endpoint retrieves a comment with replies
+// @Tags Feed
+// @Param slug path string true "Comment Slug"
+// @Param page query int false "Current Page" default(1)
+// @Success 200 {object} schemas.CommentWithRepliesResponseSchema
+// @Router /feed/comments/{slug} [get]
+func RetrieveCommentWithReplies(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+
+	// Get Comment
+	comment, errCode, errData := commentManager.GetBySlug(db, slug, true)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+
+	// Paginate, Convert type and return replies
+	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
+	paginatedData, paginatedReplies, err := PaginateQueryset(convertedComment.Edges.Replies, c)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	convertedReplies := utils.ConvertStructData(paginatedReplies, []schemas.ReplySchema{}).(*[]schemas.ReplySchema)
+	response := schemas.CommentWithRepliesResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Comment with replies fetched"}.Init(),
+		Data: schemas.CommentWithRepliesSchema{
+			Comment: convertedComment.Init(),
+			Replies: schemas.CommentWithRepliesResponseDataSchema{
+				PaginatedResponseDataSchema: *paginatedData,
+				Items:                       *convertedReplies,
+			}.Init(),
+		},
 	}
 	return c.Status(200).JSON(response)
 }

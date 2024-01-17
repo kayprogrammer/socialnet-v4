@@ -56,6 +56,40 @@ definitions:
         example: Jesus Is King
         type: string
     type: object
+  schemas.CommentWithRepliesResponseDataSchema:
+    properties:
+      current_page:
+        example: 1
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/schemas.ReplySchema'
+        type: array
+      last_page:
+        example: 100
+        type: integer
+      per_page:
+        example: 100
+        type: integer
+    type: object
+  schemas.CommentWithRepliesResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.CommentWithRepliesSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  schemas.CommentWithRepliesSchema:
+    properties:
+      comment:
+        $ref: '#/definitions/schemas.CommentSchema'
+      replies:
+        $ref: '#/definitions/schemas.CommentWithRepliesResponseDataSchema'
+    type: object
   schemas.CommentsResponseDataSchema:
     properties:
       comments:
@@ -321,6 +355,17 @@ definitions:
     - first_name
     - last_name
     - password
+    type: object
+  schemas.ReplySchema:
+    properties:
+      author:
+        $ref: '#/definitions/schemas.UserDataSchema'
+      slug:
+        example: john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      text:
+        example: Jesus Is King
+        type: string
     type: object
   schemas.ResponseSchema:
     properties:
@@ -638,6 +683,28 @@ paths:
       summary: Verify a user's email
       tags:
       - Auth
+  /feed/comments/{slug}:
+    get:
+      description: This endpoint retrieves a comment with replies
+      parameters:
+      - description: Comment Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - default: 1
+        description: Current Page
+        in: query
+        name: page
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.CommentWithRepliesResponseSchema'
+      summary: Retrieve Comment with replies
+      tags:
+      - Feed
   /feed/posts:
     get:
       description: This endpoint retrieves paginated responses of latest posts

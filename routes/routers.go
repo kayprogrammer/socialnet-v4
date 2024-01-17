@@ -38,4 +38,5 @@ func SetupRoutes(app *fiber.App) {
 	feedRouter.Delete("/reactions/:id", midw.AuthMiddleware, DeleteReaction)
 	feedRouter.Get("/posts/:slug/comments", RetrieveComments)
 	feedRouter.Post("/posts/:slug/comments", midw.AuthMiddleware, CreateComment)
+	feedRouter.Get("/comments/:slug", RetrieveCommentWithReplies)
 }

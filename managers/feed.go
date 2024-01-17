@@ -121,7 +121,7 @@ func (obj CommentManager) GetBySlug(client *ent.Client, slug string, opts ...boo
 	if len(opts) > 0 { // Detailed param provided.
 		q = q.WithAuthor(func(uq *ent.UserQuery) { uq.WithAvatar() }).
 			WithReactions().
-			WithReplies()
+			WithReplies(func(rq *ent.ReplyQuery) { rq.WithAuthor(func(uq *ent.UserQuery) { uq.WithAvatar() }) })
 	}
 	comment, _ := q.Only(Ctx)
 	if comment == nil {
