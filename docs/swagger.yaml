@@ -26,6 +26,47 @@ definitions:
         example: pong
         type: string
     type: object
+  schemas.CommentSchema:
+    properties:
+      author:
+        $ref: '#/definitions/schemas.UserDataSchema'
+      replies_count:
+        example: 50
+        type: integer
+      slug:
+        example: john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      text:
+        example: Jesus Is King
+        type: string
+    type: object
+  schemas.CommentsResponseDataSchema:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/schemas.CommentSchema'
+        type: array
+      current_page:
+        example: 1
+        type: integer
+      last_page:
+        example: 100
+        type: integer
+      per_page:
+        example: 100
+        type: integer
+    type: object
+  schemas.CommentsResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.CommentsResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.EmailRequestSchema:
     properties:
       email:
@@ -674,6 +715,28 @@ paths:
       security:
       - BearerAuth: []
       summary: Update Post
+      tags:
+      - Feed
+  /feed/posts/{slug}/comments:
+    get:
+      description: This endpoint retrieves comments of a particular post
+      parameters:
+      - description: Post Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - default: 1
+        description: Current Page
+        in: query
+        name: page
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.CommentsResponseSchema'
+      summary: Retrieve Post Comments
       tags:
       - Feed
   /feed/reactions/{focus}/{slug}:

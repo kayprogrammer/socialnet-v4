@@ -64,7 +64,34 @@ type ReactionInputSchema struct {
 	Rtype		reaction.Rtype 			`json:"rtype" validate:"required,reaction_type_validator" example:"LIKE"`
 }
 
+// COMMENTS & REPLIES SCHEMA
+type ReplySchema struct {
+	Edges        	*ent.ReplyEdges 		`json:"edges,omitempty" swaggerignore:"true"`
+	Author			UserDataSchema			`json:"author"`
+	Slug			string					`json:"slug" example:"john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6"`
+	Text			string					`json:"text" example:"Jesus Is King"`
+}
+
+type CommentSchema struct {
+	ReplySchema
+	Edges        			*ent.CommentEdges 		`json:"edges,omitempty" swaggerignore:"true"`
+	RepliesCount			uint					`json:"replies_count" example:"50"`
+}
+
+func (comment CommentSchema) Init() CommentSchema {
+	// Set Related Data.
+	comment.Author = comment.Author.Init(comment.Edges.Author)
+	comment.RepliesCount = uint(len(comment.Edges.Replies))
+	comment.Edges = nil // Omit edges
+	return comment
+}
+
+type CommentInputSchema struct {
+	Text			string 			`json:"text"`
+}
+
 // RESPONSE SCHEMAS
+// POSTS
 type PostsResponseDataSchema struct {
 	PaginatedResponseDataSchema
 	Items			[]PostSchema		`json:"posts"`
@@ -111,6 +138,7 @@ type PostInputResponseSchema struct {
 	Data PostInputResponseDataSchema `json:"data"`
 }
 
+// REACTIONS
 type ReactionsResponseDataSchema struct {
 	PaginatedResponseDataSchema
 	Items			[]ReactionSchema		`json:"reactions"`
@@ -133,4 +161,49 @@ type ReactionsResponseSchema struct {
 type ReactionResponseSchema struct {
 	ResponseSchema
 	Data			ReactionSchema		`json:"data"`
+}
+
+// COMMENTS & REPLIES
+type CommentWithRepliesResponseDataSchema struct {
+	Items			[]ReplySchema		`json:"items"`
+}
+
+type CommentWithRepliesSchema struct {
+	Comment			CommentSchema								`json:"comment"`
+	Replies			CommentWithRepliesResponseDataSchema		`json:"replies"`
+}
+
+type CommentsResponseDataSchema struct {
+	PaginatedResponseDataSchema
+	Items		[]CommentSchema				`json:"comments"`
+}
+
+func (data CommentsResponseDataSchema) Init () CommentsResponseDataSchema {
+	// Set Initial Data
+	items := data.Items
+	for i := range items {
+		items[i] = items[i].Init()
+	}
+	data.Items = items
+	return data
+}
+
+type CommentsResponseSchema struct {
+	ResponseSchema
+	Data			CommentsResponseDataSchema		`json:"data"`
+}
+
+type CommentResponseSchema struct {
+	ResponseSchema
+	Data			CommentSchema			`json:"data"`
+}
+
+type CommentWithRepliesResponseSchema struct {
+	ResponseSchema
+	Data			CommentWithRepliesSchema			`json:"data"`
+}
+
+type ReplyResponseSchema struct {
+	ResponseSchema
+	Data			ReplySchema			`json:"data"`
 }

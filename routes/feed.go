@@ -292,3 +292,41 @@ func DeleteReaction(c *fiber.Ctx) error {
 	response := schemas.ResponseSchema{Message: "Reaction Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }
+
+var commentManager = managers.CommentManager{}
+
+// @Summary Retrieve Post Comments
+// @Description This endpoint retrieves comments of a particular post
+// @Tags Feed
+// @Param slug path string true "Post Slug"
+// @Param page query int false "Current Page" default(1)
+// @Success 200 {object} schemas.CommentsResponseSchema
+// @Router /feed/posts/{slug}/comments [get]
+func RetrieveComments(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+
+	// Get Post
+	post, errCode, errData := postManager.GetBySlug(db, slug)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+
+	// Get Comments
+	comments := commentManager.GetByPostID(db, post.ID)
+
+	// Paginate, Convert type and return comments
+	paginatedData, paginatedComments, err := PaginateQueryset(comments, c)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	convertedComments := utils.ConvertStructData(paginatedComments, []schemas.CommentSchema{}).(*[]schemas.CommentSchema)
+	response := schemas.CommentsResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Comments fetched"}.Init(),
+		Data: schemas.CommentsResponseDataSchema{
+			PaginatedResponseDataSchema: *paginatedData,
+			Items:                       *convertedComments,
+		}.Init(),
+	}
+	return c.Status(200).JSON(response)
+}

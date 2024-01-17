@@ -132,6 +132,15 @@ func (obj CommentManager) GetBySlug(client *ent.Client, slug string, opts ...boo
 	return comment, nil, nil
 }
 
+func (obj CommentManager) GetByPostID(client *ent.Client, postID uuid.UUID) []*ent.Comment {
+	comments, _ := client.Comment.Query().
+		Where(comment.PostID(postID)).
+		WithAuthor(func(uq *ent.UserQuery) { uq.WithAvatar() }).
+		WithReplies().
+		All(Ctx)
+	return comments
+}
+
 // ----------------------------------
 // REPLY MANAGEMENT
 // --------------------------------
