@@ -9,7 +9,7 @@ import (
 )
 
 var postManager = managers.PostManager{}
-var	validator = utils.Validator()
+var validator = utils.Validator()
 
 // @Summary Retrieve Latest Posts
 // @Description This endpoint retrieves paginated responses of latest posts
@@ -250,8 +250,45 @@ func CreateReaction(c *fiber.Ctx) error {
 	convertedReaction := utils.ConvertStructData(reaction, schemas.ReactionSchema{}).(*schemas.ReactionSchema)
 	response := schemas.ReactionResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Reaction created"}.Init(),
-		Data: convertedReaction.Init(),
+		Data:           convertedReaction.Init(),
 	}
+
+	// Send Notifications here later
 	return c.Status(201).JSON(response)
 }
 
+// @Summary Remove Reaction
+// @Description This endpoint deletes a reaction
+// @Tags Feed
+// @Param id path string true "Reaction id (uuid)"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /feed/reactions/{id} [delete]
+// @Security BearerAuth
+func DeleteReaction(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	id := c.Params("id")
+	// Parse the UUID parameter
+	reactionID, err := utils.ParseUUID(id)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	user := c.Locals("user").(*ent.User)
+
+	// Retrieve & Validate Reaction Existence & Ownership
+	reaction, errCode, errData := reactionManager.GetByID(db, *reactionID)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+
+	// Validate Reaction ownership
+	if reaction.UserID != user.ID {
+		return c.Status(400).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "This Reaction isn't yours"))
+	}
+
+	// Remove Reaction Notifications here later
+
+	// Delete and return response
+	db.Reaction.DeleteOne(reaction).Exec(managers.Ctx)
+	response := schemas.ResponseSchema{Message: "Reaction Deleted"}.Init()
+	return c.Status(200).JSON(response)
+}

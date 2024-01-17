@@ -35,4 +35,5 @@ func SetupRoutes(app *fiber.App) {
 	feedRouter.Delete("/posts/:slug", midw.AuthMiddleware, DeletePost)
 	feedRouter.Get("/reactions/:focus/:slug", RetrieveReactions)
 	feedRouter.Post("/reactions/:focus/:slug", midw.AuthMiddleware, CreateReaction)
+	feedRouter.Delete("/reactions/:id", midw.AuthMiddleware, DeleteReaction)
 }

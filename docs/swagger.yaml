@@ -739,6 +739,25 @@ paths:
       summary: Create Reaction
       tags:
       - Feed
+  /feed/reactions/{id}:
+    delete:
+      description: This endpoint deletes a reaction
+      parameters:
+      - description: Reaction id (uuid)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Remove Reaction
+      tags:
+      - Feed
   /general/site-detail:
     get:
       description: This endpoint retrieves few details of the site/application.

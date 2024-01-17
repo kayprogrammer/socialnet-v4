@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/utils"
@@ -35,12 +34,4 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	}
 	c.Locals("user", user)
 	return c.Next()
-}
-
-func ParseUUID(input string) *uuid.UUID {
-	uuidVal, err := uuid.Parse(input)
-	if err != nil {
-		return nil
-	}
-	return &uuidVal
 }

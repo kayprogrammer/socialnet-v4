@@ -261,3 +261,13 @@ func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, fo
 	reaction.Edges.User = user
 	return reaction, nil, nil
 }
+
+func (obj ReactionManager) GetByID (client *ent.Client, id uuid.UUID) (*ent.Reaction, *int, *utils.ErrorResponse) {
+	r, _ := client.Reaction.Query().Where(reaction.ID(id)).Only(Ctx)
+	if r == nil {
+		statusCode := 404
+		errData := utils.RequestErr(utils.ERR_NON_EXISTENT, "Reaction does not exist")
+		return nil, &statusCode, &errData
+	}
+	return r, nil, nil
+}
