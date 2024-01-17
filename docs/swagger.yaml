@@ -26,6 +26,22 @@ definitions:
         example: pong
         type: string
     type: object
+  schemas.CommentInputSchema:
+    properties:
+      text:
+        type: string
+    type: object
+  schemas.CommentResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.CommentSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.CommentSchema:
     properties:
       author:
@@ -737,6 +753,30 @@ paths:
           schema:
             $ref: '#/definitions/schemas.CommentsResponseSchema'
       summary: Retrieve Post Comments
+      tags:
+      - Feed
+    post:
+      description: This endpoint creates a new comment for a particular post
+      parameters:
+      - description: Post Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Comment object
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.CommentInputSchema'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.CommentResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Create Comment
       tags:
       - Feed
   /feed/reactions/{focus}/{slug}:

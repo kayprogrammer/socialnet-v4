@@ -141,6 +141,22 @@ func (obj CommentManager) GetByPostID(client *ent.Client, postID uuid.UUID) []*e
 	return comments
 }
 
+func (obj CommentManager) Create(client *ent.Client, author *ent.User, postID uuid.UUID, text string) *ent.Comment {
+	id := uuid.New()
+	slug := slug.Make(author.FirstName + "-" + author.LastName + "-" + id.String())
+	comment, _ := client.Comment.Create().
+		SetID(id).
+		SetSlug(slug).
+		SetAuthorID(author.ID).
+		SetPostID(postID).
+		SetText(text).
+		Save(Ctx)
+
+	// Set important edges
+	comment.Edges.Author = author
+	return comment
+}
+
 // ----------------------------------
 // REPLY MANAGEMENT
 // --------------------------------
@@ -271,7 +287,7 @@ func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, fo
 	return reaction, nil, nil
 }
 
-func (obj ReactionManager) GetByID (client *ent.Client, id uuid.UUID) (*ent.Reaction, *int, *utils.ErrorResponse) {
+func (obj ReactionManager) GetByID(client *ent.Client, id uuid.UUID) (*ent.Reaction, *int, *utils.ErrorResponse) {
 	r, _ := client.Reaction.Query().Where(reaction.ID(id)).Only(Ctx)
 	if r == nil {
 		statusCode := 404

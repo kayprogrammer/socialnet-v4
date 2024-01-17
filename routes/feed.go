@@ -330,3 +330,43 @@ func RetrieveComments(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Create Comment
+// @Description This endpoint creates a new comment for a particular post
+// @Tags Feed
+// @Param slug path string true "Post Slug"
+// @Param post body schemas.CommentInputSchema true "Comment object"
+// @Success 201 {object} schemas.CommentResponseSchema
+// @Router /feed/posts/{slug}/comments [post]
+// @Security BearerAuth
+func CreateComment(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+	user := c.Locals("user").(*ent.User)
+
+	// Get Post
+	post, errCode, errData := postManager.GetBySlug(db, slug)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+
+	commentData := schemas.CommentInputSchema{}
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &commentData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(commentData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	// Create Comment
+	comment := commentManager.Create(db, user, post.ID, commentData.Text)
+
+	// Convert type and return comment
+	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
+	response := schemas.CommentResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Comment created"}.Init(),
+		Data: convertedComment.Init(),
+	}
+	return c.Status(200).JSON(response)
+}
