@@ -2,6 +2,24 @@ basePath: /api/v4
 consumes:
 - application/json
 definitions:
+  reaction.Rtype:
+    enum:
+    - LIKE
+    - LIKE
+    - LOVE
+    - HAHA
+    - WOW
+    - SAD
+    - ANGRY
+    type: string
+    x-enum-varnames:
+    - DefaultRtype
+    - RtypeLIKE
+    - RtypeLOVE
+    - RtypeHAHA
+    - RtypeWOW
+    - RtypeSAD
+    - RtypeANGRY
   routes.HealthCheckSchema:
     properties:
       success:
@@ -76,6 +94,8 @@ definitions:
       text:
         example: God is good
         type: string
+    required:
+    - text
     type: object
   schemas.PostResponseSchema:
     properties:
@@ -134,6 +154,26 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/schemas.PostsResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  schemas.ReactionInputSchema:
+    properties:
+      rtype:
+        allOf:
+        - $ref: '#/definitions/reaction.Rtype'
+        example: LIKE
+    required:
+    - rtype
+    type: object
+  schemas.ReactionResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.ReactionSchema'
       message:
         example: Data fetched/created/updated/deleted
         type: string
@@ -667,6 +707,36 @@ paths:
           schema:
             $ref: '#/definitions/schemas.ReactionsResponseSchema'
       summary: Retrieve Latest Reactions of a Post, Comment, or Reply
+      tags:
+      - Feed
+    post:
+      description: This endpoint creates a new reaction.
+      parameters:
+      - description: 'Specify the usage. Use any of the three: POST, COMMENT, REPLY'
+        in: path
+        name: focus
+        required: true
+        type: string
+      - description: Enter the slug of the post or comment or reply
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: 'Reaction object. rtype should be any of these: LIKE, LOVE, HAHA,
+          WOW, SAD, ANGRY'
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.ReactionInputSchema'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.ReactionResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Create Reaction
       tags:
       - Feed
   /general/site-detail:

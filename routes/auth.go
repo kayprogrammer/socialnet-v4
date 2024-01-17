@@ -23,8 +23,6 @@ var otpManager = managers.OtpManager{}
 // @Router /auth/register [post]
 func Register(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-	validator := utils.Validator()
-
 	user := schemas.RegisterUser{}
 
 	// Validate request
@@ -66,8 +64,6 @@ func Register(c *fiber.Ctx) error {
 // @Router /auth/verify-email [post]
 func VerifyEmail(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-	validator := utils.Validator()
-
 	verifyEmail := schemas.VerifyEmailRequestSchema{}
 
 	// Validate request
@@ -115,8 +111,6 @@ func VerifyEmail(c *fiber.Ctx) error {
 // @Router /auth/resend-verification-email [post]
 func ResendVerificationEmail(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-	validator := utils.Validator()
-
 	emailSchema := schemas.EmailRequestSchema{}
 
 	// Validate request
@@ -154,8 +148,6 @@ func ResendVerificationEmail(c *fiber.Ctx) error {
 // @Router /auth/send-password-reset-otp [post]
 func SendPasswordResetOtp(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-	validator := utils.Validator()
-
 	emailSchema := schemas.EmailRequestSchema{}
 
 	// Validate request
@@ -189,7 +181,6 @@ func SendPasswordResetOtp(c *fiber.Ctx) error {
 // @Router /auth/set-new-password [post]
 func SetNewPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-	validator := utils.Validator()
 
 	passwordResetSchema := schemas.SetNewPasswordSchema{}
 
@@ -236,8 +227,6 @@ func SetNewPassword(c *fiber.Ctx) error {
 // @Router /auth/login [post]
 func Login(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-	validator := utils.Validator()
-
 	userLoginSchema := schemas.LoginSchema{}
 
 	// Validate request
@@ -283,8 +272,6 @@ func Login(c *fiber.Ctx) error {
 // @Router /auth/refresh [post]
 func Refresh(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-	validator := utils.Validator()
-
 	refreshTokenSchema := schemas.RefreshTokenSchema{}
 
 	// Validate request

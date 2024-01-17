@@ -517,6 +517,51 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint creates a new reaction.",
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Create Reaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Specify the usage. Use any of the three: POST, COMMENT, REPLY",
+                        "name": "focus",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Enter the slug of the post or comment or reply",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reaction object. rtype should be any of these: LIKE, LOVE, HAHA, WOW, SAD, ANGRY",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ReactionInputSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ReactionResponseSchema"
+                        }
+                    }
+                }
             }
         },
         "/general/site-detail": {
@@ -555,6 +600,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "reaction.Rtype": {
+            "type": "string",
+            "enum": [
+                "LIKE",
+                "LIKE",
+                "LOVE",
+                "HAHA",
+                "WOW",
+                "SAD",
+                "ANGRY"
+            ],
+            "x-enum-varnames": [
+                "DefaultRtype",
+                "RtypeLIKE",
+                "RtypeLOVE",
+                "RtypeHAHA",
+                "RtypeWOW",
+                "RtypeSAD",
+                "RtypeANGRY"
+            ]
+        },
         "routes.HealthCheckSchema": {
             "type": "object",
             "properties": {
@@ -651,6 +717,9 @@ const docTemplate = `{
         },
         "schemas.PostInputSchema": {
             "type": "object",
+            "required": [
+                "text"
+            ],
             "properties": {
                 "file_type": {
                     "type": "string",
@@ -742,6 +811,38 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/schemas.PostsResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "schemas.ReactionInputSchema": {
+            "type": "object",
+            "required": [
+                "rtype"
+            ],
+            "properties": {
+                "rtype": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/reaction.Rtype"
+                        }
+                    ],
+                    "example": "LIKE"
+                }
+            }
+        },
+        "schemas.ReactionResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.ReactionSchema"
                 },
                 "message": {
                     "type": "string",

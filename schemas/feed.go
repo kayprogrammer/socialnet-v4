@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
 	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
@@ -39,7 +40,7 @@ func (post PostSchema) Init () PostSchema {
 }
 
 type PostInputSchema struct {
-	Text				string		`json:"text" example:"God is good"`
+	Text				string		`json:"text" validate:"required" example:"God is good"`
 	FileType			*string		`json:"file_type" example:"image/jpeg" validate:"omitempty,file_type_validator"`
 }
 
@@ -57,6 +58,10 @@ func (reaction ReactionSchema) Init() ReactionSchema {
 
 	reaction.Edges = nil // Omit edges
 	return reaction
+}
+
+type ReactionInputSchema struct {
+	Rtype		reaction.Rtype 			`json:"rtype" validate:"required,reaction_type_validator" example:"LIKE"`
 }
 
 // RESPONSE SCHEMAS
@@ -123,4 +128,9 @@ func (data ReactionsResponseDataSchema) Init () ReactionsResponseDataSchema {
 type ReactionsResponseSchema struct {
 	ResponseSchema
 	Data			ReactionsResponseDataSchema		`json:"data"`
+}
+
+type ReactionResponseSchema struct {
+	ResponseSchema
+	Data			ReactionSchema		`json:"data"`
 }

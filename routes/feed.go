@@ -9,6 +9,7 @@ import (
 )
 
 var postManager = managers.PostManager{}
+var	validator = utils.Validator()
 
 // @Summary Retrieve Latest Posts
 // @Description This endpoint retrieves paginated responses of latest posts
@@ -46,8 +47,6 @@ func RetrievePosts(c *fiber.Ctx) error {
 func CreatePost(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
 	user := c.Locals("user").(*ent.User)
-
-	validator := utils.Validator()
 
 	postData := schemas.PostInputSchema{}
 
@@ -105,8 +104,6 @@ func UpdatePost(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
 	user := c.Locals("user").(*ent.User)
 	slug := c.Params("slug")
-
-	validator := utils.Validator()
 
 	postData := schemas.PostInputSchema{}
 
@@ -211,3 +208,50 @@ func RetrieveReactions(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Create Reaction
+// @Description This endpoint creates a new reaction.
+// @Tags Feed
+// @Param focus path string true "Specify the usage. Use any of the three: POST, COMMENT, REPLY"
+// @Param slug path string true "Enter the slug of the post or comment or reply"
+// @Param post body schemas.ReactionInputSchema true "Reaction object. rtype should be any of these: LIKE, LOVE, HAHA, WOW, SAD, ANGRY"
+// @Success 201 {object} schemas.ReactionResponseSchema
+// @Router /feed/reactions/{focus}/{slug} [post]
+// @Security BearerAuth
+func CreateReaction(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	focus := c.Params("focus")
+	slug := c.Params("slug")
+	user := c.Locals("user").(*ent.User)
+
+	// Validate Focus
+	err := ValidateReactionFocus(focus)
+	if err != nil {
+		return c.Status(404).JSON(err)
+	}
+
+	reactionData := schemas.ReactionInputSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &reactionData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(reactionData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	// Update Or Create Reaction
+	reaction, errCode, errData := reactionManager.UpdateOrCreate(db, user, focus, slug, reactionData.Rtype)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+
+	// Convert type and return Reactions
+	convertedReaction := utils.ConvertStructData(reaction, schemas.ReactionSchema{}).(*schemas.ReactionSchema)
+	response := schemas.ReactionResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Reaction created"}.Init(),
+		Data: convertedReaction.Init(),
+	}
+	return c.Status(201).JSON(response)
+}
+

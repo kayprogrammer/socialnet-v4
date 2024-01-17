@@ -192,3 +192,72 @@ func (obj ReactionManager) GetReactionsQueryset(client *ent.Client, fiberCtx *fi
 	reactions, _ := q.WithUser(func(uq *ent.UserQuery) { uq.WithAvatar() }).All(Ctx)
 	return reactions, nil, nil
 }
+
+func (obj ReactionManager) Update(reaction *ent.Reaction, focus string, id uuid.UUID, rtype reaction.Rtype) *ent.Reaction {
+	r := reaction.Update().SetRtype(rtype)
+	if focus == "POST" {
+		r = r.SetPostID(id)
+	} else if focus == "COMMENT" {
+		r = r.SetCommentID(id)
+	} else {
+		r = r.SetReplyID(id)
+	}
+	reaction, _ = r.Save(Ctx)
+	return reaction
+}
+
+func (obj ReactionManager) Create(client *ent.Client, userID uuid.UUID, focus string, focusID uuid.UUID, rtype reaction.Rtype) *ent.Reaction {
+	r := client.Reaction.Create().SetUserID(userID).SetRtype(rtype)
+	if focus == "POST" {
+		r = r.SetPostID(focusID)
+	} else if focus == "COMMENT" {
+		r = r.SetCommentID(focusID)
+	} else {
+		r = r.SetReplyID(focusID)
+	}
+	reaction, _ := r.Save(Ctx)
+	return reaction
+}
+
+func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, focus string, slug string, rtype reaction.Rtype) (*ent.Reaction, *int, *utils.ErrorResponse) {
+	q := client.Reaction.Query()
+	var focusID *uuid.UUID
+	if focus == "POST" {
+		// Get Post Object and Query reactions for the post
+		post, errCode, errData := PostManager{}.GetBySlug(client, slug)
+		if errCode != nil {
+			return nil, errCode, errData
+		}
+		focusID = &post.ID
+		q = q.Where(reaction.PostID(*focusID))
+	} else if focus == "COMMENT" {
+		// Get Comment Object and Query reactions for the comment
+		comment, errCode, errData := CommentManager{}.GetBySlug(client, slug)
+		if errCode != nil {
+			return nil, errCode, errData
+		}
+		focusID = &comment.ID
+		q = q.Where(reaction.CommentID(*focusID))
+	} else {
+		// Get Reply Object and Query reactions for the reply
+		reply, errCode, errData := ReplyManager{}.GetBySlug(client, slug)
+		if errCode != nil {
+			return nil, errCode, errData
+		}
+		focusID = &reply.ID
+		q = q.Where(reaction.ReplyID(*focusID))
+	}
+
+	reaction, _ := q.WithUser(func(uq *ent.UserQuery) { uq.WithAvatar() }).Only(Ctx)
+	if reaction == nil {
+		// Create reaction
+		reaction = obj.Create(client, user.ID, focus, *focusID, rtype)
+	} else {
+		// Update
+		reaction = obj.Update(reaction, focus, *focusID, rtype)
+	}
+
+	// Set Related Data
+	reaction.Edges.User = user
+	return reaction, nil, nil
+}

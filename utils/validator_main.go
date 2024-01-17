@@ -29,6 +29,7 @@ func init() {
     
     // Register Custom Validators
     customValidator.RegisterValidation("date", DateValidator)
+    customValidator.RegisterValidation("reaction_type_validator", ReactionTypeValidator)
     customValidator.RegisterValidation("file_type_validator", FileTypeValidator)
 
 
@@ -57,6 +58,7 @@ func registerTranslations(param string) {
     registerTranslation("date", "Invalid date format!", translator)
     registerTranslation("gt", "Value is too small!", translator)
     registerTranslation("file_type_validator", "Invalid file type", translator)
+    registerTranslation("reaction_type_validator", "Invalid reaction type", translator)
     registerTranslation("required", "This field is required.", translator)
 
     minErrMsg := fmt.Sprintf("%s characters min", param)
@@ -89,10 +91,7 @@ func (cv *CustomValidator) translateValidationErrors(errs validator.ValidationEr
         registerTranslations(err.Param())
 		errData[err.Field()] = err.Translate(translator)
     }
-    errResp := ErrorResponse{
-		Message: "Invalid Entry",
-		Data: &errData,
-	}.Init()
+    errResp := RequestErr(ERR_INVALID_ENTRY, "Invalid Entry", errData)
     return &errResp
 }
 
