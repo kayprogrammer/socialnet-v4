@@ -70,11 +70,13 @@ type ReplySchema struct {
 	Author			UserDataSchema			`json:"author"`
 	Slug			string					`json:"slug" example:"john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6"`
 	Text			string					`json:"text" example:"Jesus Is King"`
+	ReactionsCount 		uint				`json:"reactions_count" example:"200"`
 }
 
 func (reply ReplySchema) Init() ReplySchema {
 	// Set Related Data.
 	reply.Author = reply.Author.Init(reply.Edges.Author)
+	reply.ReactionsCount = uint(len(reply.Edges.Reactions))
 	reply.Edges = nil // Omit edges
 	return reply
 }
@@ -88,6 +90,7 @@ type CommentSchema struct {
 func (comment CommentSchema) Init() CommentSchema {
 	// Set Related Data.
 	comment.Author = comment.Author.Init(comment.Edges.Author)
+	comment.ReactionsCount = uint(len(comment.Edges.Reactions))
 	comment.RepliesCount = uint(len(comment.Edges.Replies))
 	comment.Edges = nil // Omit edges
 	return comment

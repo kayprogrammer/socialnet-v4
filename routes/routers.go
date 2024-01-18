@@ -42,4 +42,7 @@ func SetupRoutes(app *fiber.App) {
 	feedRouter.Post("/comments/:slug", midw.AuthMiddleware, CreateReply)
 	feedRouter.Put("/comments/:slug", midw.AuthMiddleware, UpdateComment)
 	feedRouter.Delete("/comments/:slug", midw.AuthMiddleware, DeleteComment)
+	feedRouter.Get("/replies/:slug", RetrieveReply)
+	feedRouter.Put("/replies/:slug", midw.AuthMiddleware, UpdateReply)
+	feedRouter.Delete("/replies/:slug", midw.AuthMiddleware, DeleteReply)
 }

@@ -136,6 +136,7 @@ func (obj CommentManager) GetByPostID(client *ent.Client, postID uuid.UUID) []*e
 	comments, _ := client.Comment.Query().
 		Where(comment.PostID(postID)).
 		WithAuthor(func(uq *ent.UserQuery) { uq.WithAvatar() }).
+		WithReactions().
 		WithReplies().
 		All(Ctx)
 	return comments
@@ -164,6 +165,7 @@ func (obj CommentManager) Update(comment *ent.Comment, author *ent.User, text st
 
 	// Set important edges
 	c.Edges.Author = comment.Edges.Author
+	c.Edges.Reactions = comment.Edges.Reactions
 	c.Edges.Replies = comment.Edges.Replies
 	return c
 }
@@ -203,6 +205,17 @@ func (obj ReplyManager) Create(client *ent.Client, author *ent.User, commentID u
 	// Set important edges
 	reply.Edges.Author = author
 	return reply
+}
+
+func (obj ReplyManager) Update(reply *ent.Reply, author *ent.User, text string) *ent.Reply {
+	r, _ := reply.Update().
+		SetText(text).
+		Save(Ctx)
+
+	// Set important edges
+	r.Edges.Author = reply.Edges.Author
+	r.Edges.Reactions = reply.Edges.Reactions
+	return r
 }
 
 // ----------------------------------

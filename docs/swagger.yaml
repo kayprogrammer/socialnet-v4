@@ -47,6 +47,9 @@ definitions:
     properties:
       author:
         $ref: '#/definitions/schemas.UserDataSchema'
+      reactions_count:
+        example: 200
+        type: integer
       replies_count:
         example: 50
         type: integer
@@ -372,6 +375,9 @@ definitions:
     properties:
       author:
         $ref: '#/definitions/schemas.UserDataSchema'
+      reactions_count:
+        example: 200
+        type: integer
       slug:
         example: john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6
         type: string
@@ -1004,6 +1010,65 @@ paths:
       security:
       - BearerAuth: []
       summary: Remove Reaction
+      tags:
+      - Feed
+  /feed/replies/{slug}:
+    delete:
+      description: This endpoint deletes a reply
+      parameters:
+      - description: Reply Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Delete Reply
+      tags:
+      - Feed
+    get:
+      description: This endpoint retrieves a reply
+      parameters:
+      - description: Reply Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ReplyResponseSchema'
+      summary: Retrieve Reply
+      tags:
+      - Feed
+    put:
+      description: This endpoint updates a reply
+      parameters:
+      - description: Reply Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Reply object
+        in: body
+        name: reply
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.CommentInputSchema'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ReplyResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Update Reply
       tags:
       - Feed
   /general/site-detail:

@@ -804,6 +804,99 @@ const docTemplate = `{
                 }
             }
         },
+        "/feed/replies/{slug}": {
+            "get": {
+                "description": "This endpoint retrieves a reply",
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Retrieve Reply",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reply Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ReplyResponseSchema"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint updates a reply",
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Update Reply",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reply Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reply object",
+                        "name": "reply",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.CommentInputSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ReplyResponseSchema"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint deletes a reply",
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Delete Reply",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reply Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/general/site-detail": {
             "get": {
                 "description": "This endpoint retrieves few details of the site/application.",
@@ -900,6 +993,10 @@ const docTemplate = `{
             "properties": {
                 "author": {
                     "$ref": "#/definitions/schemas.UserDataSchema"
+                },
+                "reactions_count": {
+                    "type": "integer",
+                    "example": 200
                 },
                 "replies_count": {
                     "type": "integer",
@@ -1367,6 +1464,10 @@ const docTemplate = `{
             "properties": {
                 "author": {
                     "$ref": "#/definitions/schemas.UserDataSchema"
+                },
+                "reactions_count": {
+                    "type": "integer",
+                    "example": 200
                 },
                 "slug": {
                     "type": "string",

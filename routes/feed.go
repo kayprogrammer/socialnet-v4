@@ -527,3 +527,102 @@ func DeleteComment(c *fiber.Ctx) error {
 	response := schemas.ResponseSchema{Message: "Comment Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Retrieve Reply
+// @Description This endpoint retrieves a reply
+// @Tags Feed
+// @Param slug path string true "Reply Slug"
+// @Success 200 {object} schemas.ReplyResponseSchema
+// @Router /feed/replies/{slug} [get]
+func RetrieveReply(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+
+	// Get Reply
+	reply, errCode, errData := replyManager.GetBySlug(db, slug, true)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+
+	// Convert type and return reply
+	convertedReply := utils.ConvertStructData(reply, schemas.ReplySchema{}).(*schemas.ReplySchema)
+	response := schemas.ReplyResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Reply Fetched"}.Init(),
+		Data:           convertedReply.Init(),
+	}
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Update Reply
+// @Description This endpoint updates a reply
+// @Tags Feed
+// @Param slug path string true "Reply Slug"
+// @Param reply body schemas.CommentInputSchema true "Reply object"
+// @Success 200 {object} schemas.ReplyResponseSchema
+// @Router /feed/replies/{slug} [put]
+// @Security BearerAuth
+func UpdateReply(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+	user := c.Locals("user").(*ent.User)
+
+	// Get Reply
+	reply, errCode, errData := replyManager.GetBySlug(db, slug, true)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+	if reply.AuthorID != user.ID {
+		return c.Status(401).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "Not yours to edit"))
+	}
+
+	replyData := schemas.CommentInputSchema{}
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &replyData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(replyData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	// Update Reply
+	reply = replyManager.Update(reply, user, replyData.Text)
+
+	// Send Notifications here later
+
+	// Convert type and return reply
+	convertedReply := utils.ConvertStructData(reply, schemas.ReplySchema{}).(*schemas.ReplySchema)
+	response := schemas.ReplyResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Reply updated"}.Init(),
+		Data:           convertedReply.Init(),
+	}
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Delete Reply
+// @Description This endpoint deletes a reply
+// @Tags Feed
+// @Param slug path string true "Reply Slug"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /feed/replies/{slug} [delete]
+// @Security BearerAuth
+func DeleteReply(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+	user := c.Locals("user").(*ent.User)
+
+	// Retrieve & Validate Reply Existence & Ownership
+	reply, errCode, errData := replyManager.GetBySlug(db, slug)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+	if reply.AuthorID != user.ID {
+		return c.Status(400).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "Not yours to delete"))
+	}
+
+	// Remove Reply Notifications here later
+
+	// Delete and return response
+	db.Reply.DeleteOne(reply).Exec(managers.Ctx)
+	response := schemas.ResponseSchema{Message: "Reply Deleted"}.Init()
+	return c.Status(200).JSON(response)
+}
