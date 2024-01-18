@@ -94,7 +94,7 @@ func (comment CommentSchema) Init() CommentSchema {
 }
 
 type CommentInputSchema struct {
-	Text			string 			`json:"text"`
+	Text			string 			`json:"text" example:"Jesus is Lord"`
 }
 
 // RESPONSE SCHEMAS

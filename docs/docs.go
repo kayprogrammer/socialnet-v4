@@ -354,6 +354,44 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint creates a reply for a comment",
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Create Reply",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comment Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reply object",
+                        "name": "reply",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.CommentInputSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ReplyResponseSchema"
+                        }
+                    }
+                }
             }
         },
         "/feed/posts": {
@@ -559,7 +597,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "Comment object",
-                        "name": "post",
+                        "name": "comment",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -769,7 +807,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "text": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Jesus is Lord"
                 }
             }
         },
@@ -1237,6 +1276,22 @@ const docTemplate = `{
                 },
                 "terms_agreement": {
                     "type": "boolean"
+                }
+            }
+        },
+        "schemas.ReplyResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.ReplySchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
                 }
             }
         },

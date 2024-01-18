@@ -335,7 +335,7 @@ func RetrieveComments(c *fiber.Ctx) error {
 // @Description This endpoint creates a new comment for a particular post
 // @Tags Feed
 // @Param slug path string true "Post Slug"
-// @Param post body schemas.CommentInputSchema true "Comment object"
+// @Param comment body schemas.CommentInputSchema true "Comment object"
 // @Success 201 {object} schemas.CommentResponseSchema
 // @Router /feed/posts/{slug}/comments [post]
 // @Security BearerAuth
@@ -406,6 +406,49 @@ func RetrieveCommentWithReplies(c *fiber.Ctx) error {
 				Items:                       *convertedReplies,
 			}.Init(),
 		},
+	}
+	return c.Status(200).JSON(response)
+}
+
+var replyManager = managers.ReplyManager{}
+// @Summary Create Reply
+// @Description This endpoint creates a reply for a comment
+// @Tags Feed
+// @Param slug path string true "Comment Slug"
+// @Param reply body schemas.CommentInputSchema true "Reply object"
+// @Success 201 {object} schemas.ReplyResponseSchema
+// @Router /feed/comments/{slug} [post]
+// @Security BearerAuth
+func CreateReply(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+	user := c.Locals("user").(*ent.User)
+
+	// Get Comment
+	comment, errCode, errData := commentManager.GetBySlug(db, slug)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+
+	replyData := schemas.CommentInputSchema{}
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &replyData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(replyData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	// Create reply
+	reply := replyManager.Create(db, user, comment.ID, replyData.Text)
+
+	// Send Notifications here later
+
+	// Convert type and return reply
+	convertedReply := utils.ConvertStructData(reply, schemas.ReplySchema{}).(*schemas.ReplySchema)
+	response := schemas.ReplyResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Reply created"}.Init(),
+		Data: convertedReply.Init(),
 	}
 	return c.Status(200).JSON(response)
 }

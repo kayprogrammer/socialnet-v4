@@ -178,6 +178,22 @@ func (obj ReplyManager) GetBySlug(client *ent.Client, slug string, opts ...bool)
 	return reply, nil, nil
 }
 
+func (obj ReplyManager) Create(client *ent.Client, author *ent.User, commentID uuid.UUID, text string) *ent.Reply {
+	id := uuid.New()
+	slug := slug.Make(author.FirstName + "-" + author.LastName + "-" + id.String())
+	reply, _ := client.Reply.Create().
+		SetID(id).
+		SetSlug(slug).
+		SetAuthorID(author.ID).
+		SetCommentID(commentID).
+		SetText(text).
+		Save(Ctx)
+
+	// Set important edges
+	reply.Edges.Author = author
+	return reply
+}
+
 // ----------------------------------
 // REACTIONS MANAGEMENT
 // --------------------------------

@@ -29,6 +29,7 @@ definitions:
   schemas.CommentInputSchema:
     properties:
       text:
+        example: Jesus is Lord
         type: string
     type: object
   schemas.CommentResponseSchema:
@@ -355,6 +356,17 @@ definitions:
     - first_name
     - last_name
     - password
+    type: object
+  schemas.ReplyResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.ReplySchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
     type: object
   schemas.ReplySchema:
     properties:
@@ -705,6 +717,30 @@ paths:
       summary: Retrieve Comment with replies
       tags:
       - Feed
+    post:
+      description: This endpoint creates a reply for a comment
+      parameters:
+      - description: Comment Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Reply object
+        in: body
+        name: reply
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.CommentInputSchema'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.ReplyResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Create Reply
+      tags:
+      - Feed
   /feed/posts:
     get:
       description: This endpoint retrieves paginated responses of latest posts
@@ -832,7 +868,7 @@ paths:
         type: string
       - description: Comment object
         in: body
-        name: post
+        name: comment
         required: true
         schema:
           $ref: '#/definitions/schemas.CommentInputSchema'
