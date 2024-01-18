@@ -368,7 +368,7 @@ func CreateComment(c *fiber.Ctx) error {
 	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
 	response := schemas.CommentResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Comment created"}.Init(),
-		Data: convertedComment.Init(),
+		Data:           convertedComment.Init(),
 	}
 	return c.Status(200).JSON(response)
 }
@@ -411,6 +411,7 @@ func RetrieveCommentWithReplies(c *fiber.Ctx) error {
 }
 
 var replyManager = managers.ReplyManager{}
+
 // @Summary Create Reply
 // @Description This endpoint creates a reply for a comment
 // @Tags Feed
@@ -448,7 +449,7 @@ func CreateReply(c *fiber.Ctx) error {
 	convertedReply := utils.ConvertStructData(reply, schemas.ReplySchema{}).(*schemas.ReplySchema)
 	response := schemas.ReplyResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Reply created"}.Init(),
-		Data: convertedReply.Init(),
+		Data:           convertedReply.Init(),
 	}
 	return c.Status(200).JSON(response)
 }
@@ -493,7 +494,36 @@ func UpdateComment(c *fiber.Ctx) error {
 	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
 	response := schemas.CommentResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Comment updated"}.Init(),
-		Data: convertedComment.Init(),
+		Data:           convertedComment.Init(),
 	}
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Delete Comment
+// @Description This endpoint deletes a comment
+// @Tags Feed
+// @Param slug path string true "Comment Slug"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /feed/comments/{slug} [delete]
+// @Security BearerAuth
+func DeleteComment(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+	user := c.Locals("user").(*ent.User)
+
+	// Retrieve & Validate Comment Existence & Ownership
+	comment, errCode, errData := commentManager.GetBySlug(db, slug)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+	if comment.AuthorID != user.ID {
+		return c.Status(400).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "Not yours to delete"))
+	}
+
+	// Remove Comment Notifications here later
+
+	// Delete and return response
+	db.Comment.DeleteOne(comment).Exec(managers.Ctx)
+	response := schemas.ResponseSchema{Message: "Comment Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }

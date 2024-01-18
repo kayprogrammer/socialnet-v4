@@ -696,6 +696,24 @@ paths:
       tags:
       - Auth
   /feed/comments/{slug}:
+    delete:
+      description: This endpoint deletes a comment
+      parameters:
+      - description: Comment Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Delete Comment
+      tags:
+      - Feed
     get:
       description: This endpoint retrieves a comment with replies
       parameters:

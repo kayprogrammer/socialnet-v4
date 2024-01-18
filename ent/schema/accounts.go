@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ func (City) Fields() []ent.Field {
 // Edges of the City.
 func (City) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("users", User.Type),
+		edge.To("users", User.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
 	}
 }
 
@@ -69,13 +70,13 @@ func (User) Fields() []ent.Field {
 // Edges of the User. (Relationship)
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("city", City.Type).Ref("users").Field("city_id").Unique(),
-		edge.From("avatar", File.Type).Ref("users").Field("avatar_id").Unique(),
-		edge.To("otp", Otp.Type).Unique(),
-        edge.To("posts", Post.Type),
-        edge.To("reactions", Reaction.Type),
-        edge.To("comments", Comment.Type),
-        edge.To("replies", Reply.Type),
+		edge.From("city", City.Type).Ref("users").Field("city_id").Unique().Annotations(entsql.OnDelete(entsql.SetNull)),
+		edge.From("avatar", File.Type).Ref("users").Field("avatar_id").Unique().Annotations(entsql.OnDelete(entsql.SetNull)),
+		edge.To("otp", Otp.Type).Unique().Annotations(entsql.OnDelete(entsql.Cascade)),
+        edge.To("posts", Post.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+        edge.To("reactions", Reaction.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+        edge.To("comments", Comment.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+        edge.To("replies", Reply.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }
 

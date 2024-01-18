@@ -4,9 +4,10 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"entgo.io/ent/schema/edge"
 )
 
 var CommonFields = []ent.Field{
@@ -34,7 +35,7 @@ func (File) Fields() []ent.Field {
 // Edges of the File.
 func (File) Edges() []ent.Edge {
     return []ent.Edge{
-        edge.To("users", User.Type),
-        edge.To("posts", Post.Type),
+        edge.To("users", User.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
+        edge.To("posts", Post.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
     }
 }

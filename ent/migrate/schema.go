@@ -41,13 +41,13 @@ var (
 				Symbol:     "comments_posts_comments",
 				Columns:    []*schema.Column{CommentsColumns[5]},
 				RefColumns: []*schema.Column{PostsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "comments_users_comments",
 				Columns:    []*schema.Column{CommentsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -82,7 +82,7 @@ var (
 				Symbol:     "otps_users_otp",
 				Columns:    []*schema.Column{OtpsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -112,7 +112,7 @@ var (
 				Symbol:     "posts_users_posts",
 				Columns:    []*schema.Column{PostsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -155,7 +155,7 @@ var (
 				Symbol:     "reactions_users_reactions",
 				Columns:    []*schema.Column{ReactionsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -196,13 +196,13 @@ var (
 				Symbol:     "replies_comments_replies",
 				Columns:    []*schema.Column{RepliesColumns[5]},
 				RefColumns: []*schema.Column{CommentsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "replies_users_replies",
 				Columns:    []*schema.Column{RepliesColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
