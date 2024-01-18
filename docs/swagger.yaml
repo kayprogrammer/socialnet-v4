@@ -741,6 +741,30 @@ paths:
       summary: Create Reply
       tags:
       - Feed
+    put:
+      description: This endpoint updates a comment
+      parameters:
+      - description: Comment Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Comment object
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.CommentInputSchema'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.CommentResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Update Comment
+      tags:
+      - Feed
   /feed/posts:
     get:
       description: This endpoint retrieves paginated responses of latest posts

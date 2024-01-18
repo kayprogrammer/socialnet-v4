@@ -157,6 +157,17 @@ func (obj CommentManager) Create(client *ent.Client, author *ent.User, postID uu
 	return comment
 }
 
+func (obj CommentManager) Update(comment *ent.Comment, author *ent.User, text string) *ent.Comment {
+	c, _ := comment.Update().
+		SetText(text).
+		Save(Ctx)
+
+	// Set important edges
+	c.Edges.Author = comment.Edges.Author
+	c.Edges.Replies = comment.Edges.Replies
+	return c
+}
+
 // ----------------------------------
 // REPLY MANAGEMENT
 // --------------------------------

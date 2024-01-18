@@ -452,3 +452,48 @@ func CreateReply(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Update Comment
+// @Description This endpoint updates a comment
+// @Tags Feed
+// @Param slug path string true "Comment Slug"
+// @Param comment body schemas.CommentInputSchema true "Comment object"
+// @Success 200 {object} schemas.CommentResponseSchema
+// @Router /feed/comments/{slug} [put]
+// @Security BearerAuth
+func UpdateComment(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	slug := c.Params("slug")
+	user := c.Locals("user").(*ent.User)
+
+	// Get Comment
+	comment, errCode, errData := commentManager.GetBySlug(db, slug, true)
+	if errCode != nil {
+		return c.Status(*errCode).JSON(errData)
+	}
+	if comment.AuthorID != user.ID {
+		return c.Status(401).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "Not yours to edit"))
+	}
+
+	commentData := schemas.CommentInputSchema{}
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &commentData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(commentData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	// Update Comment
+	comment = commentManager.Update(comment, user, commentData.Text)
+
+	// Send Notifications here later
+
+	// Convert type and return comment
+	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
+	response := schemas.CommentResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Comment updated"}.Init(),
+		Data: convertedComment.Init(),
+	}
+	return c.Status(200).JSON(response)
+}
