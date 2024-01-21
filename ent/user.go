@@ -77,9 +77,19 @@ type UserEdges struct {
 	Comments []*Comment `json:"comments,omitempty"`
 	// Replies holds the value of the replies edge.
 	Replies []*Reply `json:"replies,omitempty"`
+	// RequesterFriends holds the value of the requester_friends edge.
+	RequesterFriends []*Friend `json:"requester_friends,omitempty"`
+	// RequesteeFriends holds the value of the requestee_friends edge.
+	RequesteeFriends []*Friend `json:"requestee_friends,omitempty"`
+	// NotificationsFrom holds the value of the notifications_from edge.
+	NotificationsFrom []*Notification `json:"notifications_from,omitempty"`
+	// Notifications holds the value of the notifications edge.
+	Notifications []*Notification `json:"notifications,omitempty"`
+	// NotificationsRead holds the value of the notifications_read edge.
+	NotificationsRead []*Notification `json:"notifications_read,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [12]bool
 }
 
 // CityOrErr returns the City value or an error if the edge
@@ -155,6 +165,51 @@ func (e UserEdges) RepliesOrErr() ([]*Reply, error) {
 		return e.Replies, nil
 	}
 	return nil, &NotLoadedError{edge: "replies"}
+}
+
+// RequesterFriendsOrErr returns the RequesterFriends value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RequesterFriendsOrErr() ([]*Friend, error) {
+	if e.loadedTypes[7] {
+		return e.RequesterFriends, nil
+	}
+	return nil, &NotLoadedError{edge: "requester_friends"}
+}
+
+// RequesteeFriendsOrErr returns the RequesteeFriends value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RequesteeFriendsOrErr() ([]*Friend, error) {
+	if e.loadedTypes[8] {
+		return e.RequesteeFriends, nil
+	}
+	return nil, &NotLoadedError{edge: "requestee_friends"}
+}
+
+// NotificationsFromOrErr returns the NotificationsFrom value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NotificationsFromOrErr() ([]*Notification, error) {
+	if e.loadedTypes[9] {
+		return e.NotificationsFrom, nil
+	}
+	return nil, &NotLoadedError{edge: "notifications_from"}
+}
+
+// NotificationsOrErr returns the Notifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NotificationsOrErr() ([]*Notification, error) {
+	if e.loadedTypes[10] {
+		return e.Notifications, nil
+	}
+	return nil, &NotLoadedError{edge: "notifications"}
+}
+
+// NotificationsReadOrErr returns the NotificationsRead value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NotificationsReadOrErr() ([]*Notification, error) {
+	if e.loadedTypes[11] {
+		return e.NotificationsRead, nil
+	}
+	return nil, &NotLoadedError{edge: "notifications_read"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -347,6 +402,31 @@ func (u *User) QueryComments() *CommentQuery {
 // QueryReplies queries the "replies" edge of the User entity.
 func (u *User) QueryReplies() *ReplyQuery {
 	return NewUserClient(u.config).QueryReplies(u)
+}
+
+// QueryRequesterFriends queries the "requester_friends" edge of the User entity.
+func (u *User) QueryRequesterFriends() *FriendQuery {
+	return NewUserClient(u.config).QueryRequesterFriends(u)
+}
+
+// QueryRequesteeFriends queries the "requestee_friends" edge of the User entity.
+func (u *User) QueryRequesteeFriends() *FriendQuery {
+	return NewUserClient(u.config).QueryRequesteeFriends(u)
+}
+
+// QueryNotificationsFrom queries the "notifications_from" edge of the User entity.
+func (u *User) QueryNotificationsFrom() *NotificationQuery {
+	return NewUserClient(u.config).QueryNotificationsFrom(u)
+}
+
+// QueryNotifications queries the "notifications" edge of the User entity.
+func (u *User) QueryNotifications() *NotificationQuery {
+	return NewUserClient(u.config).QueryNotifications(u)
+}
+
+// QueryNotificationsRead queries the "notifications_read" edge of the User entity.
+func (u *User) QueryNotificationsRead() *NotificationQuery {
+	return NewUserClient(u.config).QueryNotificationsRead(u)
 }
 
 // Update returns a builder for updating this User.

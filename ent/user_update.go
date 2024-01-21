@@ -15,6 +15,8 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
@@ -391,6 +393,81 @@ func (uu *UserUpdate) AddReplies(r ...*Reply) *UserUpdate {
 	return uu.AddReplyIDs(ids...)
 }
 
+// AddRequesterFriendIDs adds the "requester_friends" edge to the Friend entity by IDs.
+func (uu *UserUpdate) AddRequesterFriendIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddRequesterFriendIDs(ids...)
+	return uu
+}
+
+// AddRequesterFriends adds the "requester_friends" edges to the Friend entity.
+func (uu *UserUpdate) AddRequesterFriends(f ...*Friend) *UserUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uu.AddRequesterFriendIDs(ids...)
+}
+
+// AddRequesteeFriendIDs adds the "requestee_friends" edge to the Friend entity by IDs.
+func (uu *UserUpdate) AddRequesteeFriendIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddRequesteeFriendIDs(ids...)
+	return uu
+}
+
+// AddRequesteeFriends adds the "requestee_friends" edges to the Friend entity.
+func (uu *UserUpdate) AddRequesteeFriends(f ...*Friend) *UserUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uu.AddRequesteeFriendIDs(ids...)
+}
+
+// AddNotificationsFromIDs adds the "notifications_from" edge to the Notification entity by IDs.
+func (uu *UserUpdate) AddNotificationsFromIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddNotificationsFromIDs(ids...)
+	return uu
+}
+
+// AddNotificationsFrom adds the "notifications_from" edges to the Notification entity.
+func (uu *UserUpdate) AddNotificationsFrom(n ...*Notification) *UserUpdate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uu.AddNotificationsFromIDs(ids...)
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (uu *UserUpdate) AddNotificationIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddNotificationIDs(ids...)
+	return uu
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (uu *UserUpdate) AddNotifications(n ...*Notification) *UserUpdate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uu.AddNotificationIDs(ids...)
+}
+
+// AddNotificationsReadIDs adds the "notifications_read" edge to the Notification entity by IDs.
+func (uu *UserUpdate) AddNotificationsReadIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddNotificationsReadIDs(ids...)
+	return uu
+}
+
+// AddNotificationsRead adds the "notifications_read" edges to the Notification entity.
+func (uu *UserUpdate) AddNotificationsRead(n ...*Notification) *UserUpdate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uu.AddNotificationsReadIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -496,6 +573,111 @@ func (uu *UserUpdate) RemoveReplies(r ...*Reply) *UserUpdate {
 		ids[i] = r[i].ID
 	}
 	return uu.RemoveReplyIDs(ids...)
+}
+
+// ClearRequesterFriends clears all "requester_friends" edges to the Friend entity.
+func (uu *UserUpdate) ClearRequesterFriends() *UserUpdate {
+	uu.mutation.ClearRequesterFriends()
+	return uu
+}
+
+// RemoveRequesterFriendIDs removes the "requester_friends" edge to Friend entities by IDs.
+func (uu *UserUpdate) RemoveRequesterFriendIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveRequesterFriendIDs(ids...)
+	return uu
+}
+
+// RemoveRequesterFriends removes "requester_friends" edges to Friend entities.
+func (uu *UserUpdate) RemoveRequesterFriends(f ...*Friend) *UserUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uu.RemoveRequesterFriendIDs(ids...)
+}
+
+// ClearRequesteeFriends clears all "requestee_friends" edges to the Friend entity.
+func (uu *UserUpdate) ClearRequesteeFriends() *UserUpdate {
+	uu.mutation.ClearRequesteeFriends()
+	return uu
+}
+
+// RemoveRequesteeFriendIDs removes the "requestee_friends" edge to Friend entities by IDs.
+func (uu *UserUpdate) RemoveRequesteeFriendIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveRequesteeFriendIDs(ids...)
+	return uu
+}
+
+// RemoveRequesteeFriends removes "requestee_friends" edges to Friend entities.
+func (uu *UserUpdate) RemoveRequesteeFriends(f ...*Friend) *UserUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uu.RemoveRequesteeFriendIDs(ids...)
+}
+
+// ClearNotificationsFrom clears all "notifications_from" edges to the Notification entity.
+func (uu *UserUpdate) ClearNotificationsFrom() *UserUpdate {
+	uu.mutation.ClearNotificationsFrom()
+	return uu
+}
+
+// RemoveNotificationsFromIDs removes the "notifications_from" edge to Notification entities by IDs.
+func (uu *UserUpdate) RemoveNotificationsFromIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveNotificationsFromIDs(ids...)
+	return uu
+}
+
+// RemoveNotificationsFrom removes "notifications_from" edges to Notification entities.
+func (uu *UserUpdate) RemoveNotificationsFrom(n ...*Notification) *UserUpdate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uu.RemoveNotificationsFromIDs(ids...)
+}
+
+// ClearNotifications clears all "notifications" edges to the Notification entity.
+func (uu *UserUpdate) ClearNotifications() *UserUpdate {
+	uu.mutation.ClearNotifications()
+	return uu
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
+func (uu *UserUpdate) RemoveNotificationIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveNotificationIDs(ids...)
+	return uu
+}
+
+// RemoveNotifications removes "notifications" edges to Notification entities.
+func (uu *UserUpdate) RemoveNotifications(n ...*Notification) *UserUpdate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uu.RemoveNotificationIDs(ids...)
+}
+
+// ClearNotificationsRead clears all "notifications_read" edges to the Notification entity.
+func (uu *UserUpdate) ClearNotificationsRead() *UserUpdate {
+	uu.mutation.ClearNotificationsRead()
+	return uu
+}
+
+// RemoveNotificationsReadIDs removes the "notifications_read" edge to Notification entities by IDs.
+func (uu *UserUpdate) RemoveNotificationsReadIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveNotificationsReadIDs(ids...)
+	return uu
+}
+
+// RemoveNotificationsRead removes "notifications_read" edges to Notification entities.
+func (uu *UserUpdate) RemoveNotificationsRead(n ...*Notification) *UserUpdate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uu.RemoveNotificationsReadIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -900,6 +1082,231 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.RequesterFriendsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesterFriendsTable,
+			Columns: []string{user.RequesterFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedRequesterFriendsIDs(); len(nodes) > 0 && !uu.mutation.RequesterFriendsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesterFriendsTable,
+			Columns: []string{user.RequesterFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RequesterFriendsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesterFriendsTable,
+			Columns: []string{user.RequesterFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.RequesteeFriendsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesteeFriendsTable,
+			Columns: []string{user.RequesteeFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedRequesteeFriendsIDs(); len(nodes) > 0 && !uu.mutation.RequesteeFriendsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesteeFriendsTable,
+			Columns: []string{user.RequesteeFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RequesteeFriendsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesteeFriendsTable,
+			Columns: []string{user.RequesteeFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.NotificationsFromCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationsFromTable,
+			Columns: []string{user.NotificationsFromColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedNotificationsFromIDs(); len(nodes) > 0 && !uu.mutation.NotificationsFromCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationsFromTable,
+			Columns: []string{user.NotificationsFromColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.NotificationsFromIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationsFromTable,
+			Columns: []string{user.NotificationsFromColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsTable,
+			Columns: user.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !uu.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsTable,
+			Columns: user.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsTable,
+			Columns: user.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.NotificationsReadCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsReadTable,
+			Columns: user.NotificationsReadPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedNotificationsReadIDs(); len(nodes) > 0 && !uu.mutation.NotificationsReadCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsReadTable,
+			Columns: user.NotificationsReadPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.NotificationsReadIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsReadTable,
+			Columns: user.NotificationsReadPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -1275,6 +1682,81 @@ func (uuo *UserUpdateOne) AddReplies(r ...*Reply) *UserUpdateOne {
 	return uuo.AddReplyIDs(ids...)
 }
 
+// AddRequesterFriendIDs adds the "requester_friends" edge to the Friend entity by IDs.
+func (uuo *UserUpdateOne) AddRequesterFriendIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddRequesterFriendIDs(ids...)
+	return uuo
+}
+
+// AddRequesterFriends adds the "requester_friends" edges to the Friend entity.
+func (uuo *UserUpdateOne) AddRequesterFriends(f ...*Friend) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uuo.AddRequesterFriendIDs(ids...)
+}
+
+// AddRequesteeFriendIDs adds the "requestee_friends" edge to the Friend entity by IDs.
+func (uuo *UserUpdateOne) AddRequesteeFriendIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddRequesteeFriendIDs(ids...)
+	return uuo
+}
+
+// AddRequesteeFriends adds the "requestee_friends" edges to the Friend entity.
+func (uuo *UserUpdateOne) AddRequesteeFriends(f ...*Friend) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uuo.AddRequesteeFriendIDs(ids...)
+}
+
+// AddNotificationsFromIDs adds the "notifications_from" edge to the Notification entity by IDs.
+func (uuo *UserUpdateOne) AddNotificationsFromIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddNotificationsFromIDs(ids...)
+	return uuo
+}
+
+// AddNotificationsFrom adds the "notifications_from" edges to the Notification entity.
+func (uuo *UserUpdateOne) AddNotificationsFrom(n ...*Notification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uuo.AddNotificationsFromIDs(ids...)
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (uuo *UserUpdateOne) AddNotificationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddNotificationIDs(ids...)
+	return uuo
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (uuo *UserUpdateOne) AddNotifications(n ...*Notification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uuo.AddNotificationIDs(ids...)
+}
+
+// AddNotificationsReadIDs adds the "notifications_read" edge to the Notification entity by IDs.
+func (uuo *UserUpdateOne) AddNotificationsReadIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddNotificationsReadIDs(ids...)
+	return uuo
+}
+
+// AddNotificationsRead adds the "notifications_read" edges to the Notification entity.
+func (uuo *UserUpdateOne) AddNotificationsRead(n ...*Notification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uuo.AddNotificationsReadIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -1380,6 +1862,111 @@ func (uuo *UserUpdateOne) RemoveReplies(r ...*Reply) *UserUpdateOne {
 		ids[i] = r[i].ID
 	}
 	return uuo.RemoveReplyIDs(ids...)
+}
+
+// ClearRequesterFriends clears all "requester_friends" edges to the Friend entity.
+func (uuo *UserUpdateOne) ClearRequesterFriends() *UserUpdateOne {
+	uuo.mutation.ClearRequesterFriends()
+	return uuo
+}
+
+// RemoveRequesterFriendIDs removes the "requester_friends" edge to Friend entities by IDs.
+func (uuo *UserUpdateOne) RemoveRequesterFriendIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveRequesterFriendIDs(ids...)
+	return uuo
+}
+
+// RemoveRequesterFriends removes "requester_friends" edges to Friend entities.
+func (uuo *UserUpdateOne) RemoveRequesterFriends(f ...*Friend) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uuo.RemoveRequesterFriendIDs(ids...)
+}
+
+// ClearRequesteeFriends clears all "requestee_friends" edges to the Friend entity.
+func (uuo *UserUpdateOne) ClearRequesteeFriends() *UserUpdateOne {
+	uuo.mutation.ClearRequesteeFriends()
+	return uuo
+}
+
+// RemoveRequesteeFriendIDs removes the "requestee_friends" edge to Friend entities by IDs.
+func (uuo *UserUpdateOne) RemoveRequesteeFriendIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveRequesteeFriendIDs(ids...)
+	return uuo
+}
+
+// RemoveRequesteeFriends removes "requestee_friends" edges to Friend entities.
+func (uuo *UserUpdateOne) RemoveRequesteeFriends(f ...*Friend) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uuo.RemoveRequesteeFriendIDs(ids...)
+}
+
+// ClearNotificationsFrom clears all "notifications_from" edges to the Notification entity.
+func (uuo *UserUpdateOne) ClearNotificationsFrom() *UserUpdateOne {
+	uuo.mutation.ClearNotificationsFrom()
+	return uuo
+}
+
+// RemoveNotificationsFromIDs removes the "notifications_from" edge to Notification entities by IDs.
+func (uuo *UserUpdateOne) RemoveNotificationsFromIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveNotificationsFromIDs(ids...)
+	return uuo
+}
+
+// RemoveNotificationsFrom removes "notifications_from" edges to Notification entities.
+func (uuo *UserUpdateOne) RemoveNotificationsFrom(n ...*Notification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uuo.RemoveNotificationsFromIDs(ids...)
+}
+
+// ClearNotifications clears all "notifications" edges to the Notification entity.
+func (uuo *UserUpdateOne) ClearNotifications() *UserUpdateOne {
+	uuo.mutation.ClearNotifications()
+	return uuo
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
+func (uuo *UserUpdateOne) RemoveNotificationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveNotificationIDs(ids...)
+	return uuo
+}
+
+// RemoveNotifications removes "notifications" edges to Notification entities.
+func (uuo *UserUpdateOne) RemoveNotifications(n ...*Notification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uuo.RemoveNotificationIDs(ids...)
+}
+
+// ClearNotificationsRead clears all "notifications_read" edges to the Notification entity.
+func (uuo *UserUpdateOne) ClearNotificationsRead() *UserUpdateOne {
+	uuo.mutation.ClearNotificationsRead()
+	return uuo
+}
+
+// RemoveNotificationsReadIDs removes the "notifications_read" edge to Notification entities by IDs.
+func (uuo *UserUpdateOne) RemoveNotificationsReadIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveNotificationsReadIDs(ids...)
+	return uuo
+}
+
+// RemoveNotificationsRead removes "notifications_read" edges to Notification entities.
+func (uuo *UserUpdateOne) RemoveNotificationsRead(n ...*Notification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return uuo.RemoveNotificationsReadIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1807,6 +2394,231 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.RequesterFriendsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesterFriendsTable,
+			Columns: []string{user.RequesterFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedRequesterFriendsIDs(); len(nodes) > 0 && !uuo.mutation.RequesterFriendsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesterFriendsTable,
+			Columns: []string{user.RequesterFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RequesterFriendsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesterFriendsTable,
+			Columns: []string{user.RequesterFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.RequesteeFriendsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesteeFriendsTable,
+			Columns: []string{user.RequesteeFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedRequesteeFriendsIDs(); len(nodes) > 0 && !uuo.mutation.RequesteeFriendsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesteeFriendsTable,
+			Columns: []string{user.RequesteeFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RequesteeFriendsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequesteeFriendsTable,
+			Columns: []string{user.RequesteeFriendsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(friend.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.NotificationsFromCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationsFromTable,
+			Columns: []string{user.NotificationsFromColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedNotificationsFromIDs(); len(nodes) > 0 && !uuo.mutation.NotificationsFromCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationsFromTable,
+			Columns: []string{user.NotificationsFromColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.NotificationsFromIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationsFromTable,
+			Columns: []string{user.NotificationsFromColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsTable,
+			Columns: user.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !uuo.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsTable,
+			Columns: user.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsTable,
+			Columns: user.NotificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.NotificationsReadCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsReadTable,
+			Columns: user.NotificationsReadPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedNotificationsReadIDs(); len(nodes) > 0 && !uuo.mutation.NotificationsReadCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsReadTable,
+			Columns: user.NotificationsReadPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.NotificationsReadIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.NotificationsReadTable,
+			Columns: user.NotificationsReadPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

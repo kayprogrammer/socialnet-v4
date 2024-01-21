@@ -56,7 +56,7 @@ func (obj UserManager) GetByEmail(client *ent.Client, email string) (*ent.User, 
 }
 
 func (obj UserManager) Create(client *ent.Client, userData schemas.RegisterUser) (*ent.User, error) {
-	username := UsernameGenerator(client, userData.FirstName, userData.LastName, nil, nil)
+	username := UsernameGenerator(client, userData.FirstName, userData.LastName, nil)
 	password := utils.HashPassword(userData.Password)
 
 	u, err := client.User.

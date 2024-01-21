@@ -12,6 +12,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/country"
+	"github.com/kayprogrammer/socialnet-v4/ent/region"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
@@ -56,6 +58,26 @@ func (cc *CityCreate) SetName(s string) *CityCreate {
 	return cc
 }
 
+// SetRegionID sets the "region_id" field.
+func (cc *CityCreate) SetRegionID(u uuid.UUID) *CityCreate {
+	cc.mutation.SetRegionID(u)
+	return cc
+}
+
+// SetNillableRegionID sets the "region_id" field if the given value is not nil.
+func (cc *CityCreate) SetNillableRegionID(u *uuid.UUID) *CityCreate {
+	if u != nil {
+		cc.SetRegionID(*u)
+	}
+	return cc
+}
+
+// SetCountryID sets the "country_id" field.
+func (cc *CityCreate) SetCountryID(u uuid.UUID) *CityCreate {
+	cc.mutation.SetCountryID(u)
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CityCreate) SetID(u uuid.UUID) *CityCreate {
 	cc.mutation.SetID(u)
@@ -68,6 +90,16 @@ func (cc *CityCreate) SetNillableID(u *uuid.UUID) *CityCreate {
 		cc.SetID(*u)
 	}
 	return cc
+}
+
+// SetRegion sets the "region" edge to the Region entity.
+func (cc *CityCreate) SetRegion(r *Region) *CityCreate {
+	return cc.SetRegionID(r.ID)
+}
+
+// SetCountry sets the "country" edge to the Country entity.
+func (cc *CityCreate) SetCountry(c *Country) *CityCreate {
+	return cc.SetCountryID(c.ID)
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
@@ -150,6 +182,12 @@ func (cc *CityCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "City.name": %w`, err)}
 		}
 	}
+	if _, ok := cc.mutation.CountryID(); !ok {
+		return &ValidationError{Name: "country_id", err: errors.New(`ent: missing required field "City.country_id"`)}
+	}
+	if _, ok := cc.mutation.CountryID(); !ok {
+		return &ValidationError{Name: "country", err: errors.New(`ent: missing required edge "City.country"`)}
+	}
 	return nil
 }
 
@@ -196,6 +234,40 @@ func (cc *CityCreate) createSpec() (*City, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(city.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if nodes := cc.mutation.RegionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.RegionTable,
+			Columns: []string{city.RegionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(region.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RegionID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CountryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.CountryTable,
+			Columns: []string{city.CountryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(country.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CountryID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := cc.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

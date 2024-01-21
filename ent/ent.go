@@ -14,10 +14,14 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
+	"github.com/kayprogrammer/socialnet-v4/ent/country"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
+	"github.com/kayprogrammer/socialnet-v4/ent/region"
 	"github.com/kayprogrammer/socialnet-v4/ent/reply"
 	"github.com/kayprogrammer/socialnet-v4/ent/sitedetail"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
@@ -81,15 +85,19 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			city.Table:       city.ValidColumn,
-			comment.Table:    comment.ValidColumn,
-			file.Table:       file.ValidColumn,
-			otp.Table:        otp.ValidColumn,
-			post.Table:       post.ValidColumn,
-			reaction.Table:   reaction.ValidColumn,
-			reply.Table:      reply.ValidColumn,
-			sitedetail.Table: sitedetail.ValidColumn,
-			user.Table:       user.ValidColumn,
+			city.Table:         city.ValidColumn,
+			comment.Table:      comment.ValidColumn,
+			country.Table:      country.ValidColumn,
+			file.Table:         file.ValidColumn,
+			friend.Table:       friend.ValidColumn,
+			notification.Table: notification.ValidColumn,
+			otp.Table:          otp.ValidColumn,
+			post.Table:         post.ValidColumn,
+			reaction.Table:     reaction.ValidColumn,
+			region.Table:       region.ValidColumn,
+			reply.Table:        reply.ValidColumn,
+			sitedetail.Table:   sitedetail.ValidColumn,
+			user.Table:         user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -14,12 +15,28 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
+		{Name: "country_id", Type: field.TypeUUID},
+		{Name: "region_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// CitiesTable holds the schema information for the "cities" table.
 	CitiesTable = &schema.Table{
 		Name:       "cities",
 		Columns:    CitiesColumns,
 		PrimaryKey: []*schema.Column{CitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cities_countries_cities",
+				Columns:    []*schema.Column{CitiesColumns[4]},
+				RefColumns: []*schema.Column{CountriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "cities_regions_cities",
+				Columns:    []*schema.Column{CitiesColumns[5]},
+				RefColumns: []*schema.Column{RegionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// CommentsColumns holds the columns for the "comments" table.
 	CommentsColumns = []*schema.Column{
@@ -51,6 +68,20 @@ var (
 			},
 		},
 	}
+	// CountriesColumns holds the columns for the "countries" table.
+	CountriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "code", Type: field.TypeString},
+	}
+	// CountriesTable holds the schema information for the "countries" table.
+	CountriesTable = &schema.Table{
+		Name:       "countries",
+		Columns:    CountriesColumns,
+		PrimaryKey: []*schema.Column{CountriesColumns[0]},
+	}
 	// FilesColumns holds the columns for the "files" table.
 	FilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -63,6 +94,91 @@ var (
 		Name:       "files",
 		Columns:    FilesColumns,
 		PrimaryKey: []*schema.Column{FilesColumns[0]},
+	}
+	// FriendsColumns holds the columns for the "friends" table.
+	FriendsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "ACCEPTED"}, Default: "PENDING"},
+		{Name: "requester_id", Type: field.TypeUUID},
+		{Name: "requestee_id", Type: field.TypeUUID},
+	}
+	// FriendsTable holds the schema information for the "friends" table.
+	FriendsTable = &schema.Table{
+		Name:       "friends",
+		Columns:    FriendsColumns,
+		PrimaryKey: []*schema.Column{FriendsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "friends_users_requester_friends",
+				Columns:    []*schema.Column{FriendsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "friends_users_requestee_friends",
+				Columns:    []*schema.Column{FriendsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "unique_requester_requestee_combination",
+				Unique:  true,
+				Columns: []*schema.Column{FriendsColumns[4], FriendsColumns[5]},
+			},
+			{
+				Name:    "unique_requestee_requester_combination",
+				Unique:  true,
+				Columns: []*schema.Column{FriendsColumns[5], FriendsColumns[4]},
+			},
+		},
+	}
+	// NotificationsColumns holds the columns for the "notifications" table.
+	NotificationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "ntype", Type: field.TypeEnum, Enums: []string{"REACTION", "COMMENT", "REPLY", "ADMIN"}},
+		{Name: "text", Type: field.TypeString, Nullable: true},
+		{Name: "comment_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "post_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "reply_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "sender_id", Type: field.TypeUUID},
+	}
+	// NotificationsTable holds the schema information for the "notifications" table.
+	NotificationsTable = &schema.Table{
+		Name:       "notifications",
+		Columns:    NotificationsColumns,
+		PrimaryKey: []*schema.Column{NotificationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "notifications_comments_notifications",
+				Columns:    []*schema.Column{NotificationsColumns[5]},
+				RefColumns: []*schema.Column{CommentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "notifications_posts_notifications",
+				Columns:    []*schema.Column{NotificationsColumns[6]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "notifications_replies_notifications",
+				Columns:    []*schema.Column{NotificationsColumns[7]},
+				RefColumns: []*schema.Column{RepliesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "notifications_users_notifications_from",
+				Columns:    []*schema.Column{NotificationsColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// OtpsColumns holds the columns for the "otps" table.
 	OtpsColumns = []*schema.Column{
@@ -176,6 +292,28 @@ var (
 			},
 		},
 	}
+	// RegionsColumns holds the columns for the "regions" table.
+	RegionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "country_id", Type: field.TypeUUID},
+	}
+	// RegionsTable holds the schema information for the "regions" table.
+	RegionsTable = &schema.Table{
+		Name:       "regions",
+		Columns:    RegionsColumns,
+		PrimaryKey: []*schema.Column{RegionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "regions_countries_regions",
+				Columns:    []*schema.Column{RegionsColumns[4]},
+				RefColumns: []*schema.Column{CountriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// RepliesColumns holds the columns for the "replies" table.
 	RepliesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -267,23 +405,91 @@ var (
 			},
 		},
 	}
+	// UserNotificationsColumns holds the columns for the "user_notifications" table.
+	UserNotificationsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "notification_id", Type: field.TypeUUID},
+	}
+	// UserNotificationsTable holds the schema information for the "user_notifications" table.
+	UserNotificationsTable = &schema.Table{
+		Name:       "user_notifications",
+		Columns:    UserNotificationsColumns,
+		PrimaryKey: []*schema.Column{UserNotificationsColumns[0], UserNotificationsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_notifications_user_id",
+				Columns:    []*schema.Column{UserNotificationsColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_notifications_notification_id",
+				Columns:    []*schema.Column{UserNotificationsColumns[1]},
+				RefColumns: []*schema.Column{NotificationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// UserNotificationsReadColumns holds the columns for the "user_notifications_read" table.
+	UserNotificationsReadColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "notification_id", Type: field.TypeUUID},
+	}
+	// UserNotificationsReadTable holds the schema information for the "user_notifications_read" table.
+	UserNotificationsReadTable = &schema.Table{
+		Name:       "user_notifications_read",
+		Columns:    UserNotificationsReadColumns,
+		PrimaryKey: []*schema.Column{UserNotificationsReadColumns[0], UserNotificationsReadColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_notifications_read_user_id",
+				Columns:    []*schema.Column{UserNotificationsReadColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_notifications_read_notification_id",
+				Columns:    []*schema.Column{UserNotificationsReadColumns[1]},
+				RefColumns: []*schema.Column{NotificationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CitiesTable,
 		CommentsTable,
+		CountriesTable,
 		FilesTable,
+		FriendsTable,
+		NotificationsTable,
 		OtpsTable,
 		PostsTable,
 		ReactionsTable,
+		RegionsTable,
 		RepliesTable,
 		SiteDetailsTable,
 		UsersTable,
+		UserNotificationsTable,
+		UserNotificationsReadTable,
 	}
 )
 
 func init() {
+	CitiesTable.ForeignKeys[0].RefTable = CountriesTable
+	CitiesTable.ForeignKeys[1].RefTable = RegionsTable
 	CommentsTable.ForeignKeys[0].RefTable = PostsTable
 	CommentsTable.ForeignKeys[1].RefTable = UsersTable
+	FriendsTable.ForeignKeys[0].RefTable = UsersTable
+	FriendsTable.ForeignKeys[1].RefTable = UsersTable
+	FriendsTable.Annotation = &entsql.Annotation{}
+	FriendsTable.Annotation.Checks = map[string]string{
+		"different_users": "requester_id <> requestee_id",
+	}
+	NotificationsTable.ForeignKeys[0].RefTable = CommentsTable
+	NotificationsTable.ForeignKeys[1].RefTable = PostsTable
+	NotificationsTable.ForeignKeys[2].RefTable = RepliesTable
+	NotificationsTable.ForeignKeys[3].RefTable = UsersTable
 	OtpsTable.ForeignKeys[0].RefTable = UsersTable
 	PostsTable.ForeignKeys[0].RefTable = FilesTable
 	PostsTable.ForeignKeys[1].RefTable = UsersTable
@@ -291,8 +497,13 @@ func init() {
 	ReactionsTable.ForeignKeys[1].RefTable = PostsTable
 	ReactionsTable.ForeignKeys[2].RefTable = RepliesTable
 	ReactionsTable.ForeignKeys[3].RefTable = UsersTable
+	RegionsTable.ForeignKeys[0].RefTable = CountriesTable
 	RepliesTable.ForeignKeys[0].RefTable = CommentsTable
 	RepliesTable.ForeignKeys[1].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = CitiesTable
 	UsersTable.ForeignKeys[1].RefTable = FilesTable
+	UserNotificationsTable.ForeignKeys[0].RefTable = UsersTable
+	UserNotificationsTable.ForeignKeys[1].RefTable = NotificationsTable
+	UserNotificationsReadTable.ForeignKeys[0].RefTable = UsersTable
+	UserNotificationsReadTable.ForeignKeys[1].RefTable = NotificationsTable
 }

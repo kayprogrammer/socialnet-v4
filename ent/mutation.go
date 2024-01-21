@@ -14,11 +14,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
+	"github.com/kayprogrammer/socialnet-v4/ent/country"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
+	"github.com/kayprogrammer/socialnet-v4/ent/region"
 	"github.com/kayprogrammer/socialnet-v4/ent/reply"
 	"github.com/kayprogrammer/socialnet-v4/ent/sitedetail"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
@@ -33,33 +37,41 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCity       = "City"
-	TypeComment    = "Comment"
-	TypeFile       = "File"
-	TypeOtp        = "Otp"
-	TypePost       = "Post"
-	TypeReaction   = "Reaction"
-	TypeReply      = "Reply"
-	TypeSiteDetail = "SiteDetail"
-	TypeUser       = "User"
+	TypeCity         = "City"
+	TypeComment      = "Comment"
+	TypeCountry      = "Country"
+	TypeFile         = "File"
+	TypeFriend       = "Friend"
+	TypeNotification = "Notification"
+	TypeOtp          = "Otp"
+	TypePost         = "Post"
+	TypeReaction     = "Reaction"
+	TypeRegion       = "Region"
+	TypeReply        = "Reply"
+	TypeSiteDetail   = "SiteDetail"
+	TypeUser         = "User"
 )
 
 // CityMutation represents an operation that mutates the City nodes in the graph.
 type CityMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created_at    *time.Time
-	updated_at    *time.Time
-	name          *string
-	clearedFields map[string]struct{}
-	users         map[uuid.UUID]struct{}
-	removedusers  map[uuid.UUID]struct{}
-	clearedusers  bool
-	done          bool
-	oldValue      func(context.Context) (*City, error)
-	predicates    []predicate.City
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	created_at     *time.Time
+	updated_at     *time.Time
+	name           *string
+	clearedFields  map[string]struct{}
+	region         *uuid.UUID
+	clearedregion  bool
+	country        *uuid.UUID
+	clearedcountry bool
+	users          map[uuid.UUID]struct{}
+	removedusers   map[uuid.UUID]struct{}
+	clearedusers   bool
+	done           bool
+	oldValue       func(context.Context) (*City, error)
+	predicates     []predicate.City
 }
 
 var _ ent.Mutation = (*CityMutation)(nil)
@@ -274,6 +286,145 @@ func (m *CityMutation) ResetName() {
 	m.name = nil
 }
 
+// SetRegionID sets the "region_id" field.
+func (m *CityMutation) SetRegionID(u uuid.UUID) {
+	m.region = &u
+}
+
+// RegionID returns the value of the "region_id" field in the mutation.
+func (m *CityMutation) RegionID() (r uuid.UUID, exists bool) {
+	v := m.region
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRegionID returns the old "region_id" field's value of the City entity.
+// If the City object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CityMutation) OldRegionID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRegionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRegionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRegionID: %w", err)
+	}
+	return oldValue.RegionID, nil
+}
+
+// ClearRegionID clears the value of the "region_id" field.
+func (m *CityMutation) ClearRegionID() {
+	m.region = nil
+	m.clearedFields[city.FieldRegionID] = struct{}{}
+}
+
+// RegionIDCleared returns if the "region_id" field was cleared in this mutation.
+func (m *CityMutation) RegionIDCleared() bool {
+	_, ok := m.clearedFields[city.FieldRegionID]
+	return ok
+}
+
+// ResetRegionID resets all changes to the "region_id" field.
+func (m *CityMutation) ResetRegionID() {
+	m.region = nil
+	delete(m.clearedFields, city.FieldRegionID)
+}
+
+// SetCountryID sets the "country_id" field.
+func (m *CityMutation) SetCountryID(u uuid.UUID) {
+	m.country = &u
+}
+
+// CountryID returns the value of the "country_id" field in the mutation.
+func (m *CityMutation) CountryID() (r uuid.UUID, exists bool) {
+	v := m.country
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryID returns the old "country_id" field's value of the City entity.
+// If the City object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CityMutation) OldCountryID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryID: %w", err)
+	}
+	return oldValue.CountryID, nil
+}
+
+// ResetCountryID resets all changes to the "country_id" field.
+func (m *CityMutation) ResetCountryID() {
+	m.country = nil
+}
+
+// ClearRegion clears the "region" edge to the Region entity.
+func (m *CityMutation) ClearRegion() {
+	m.clearedregion = true
+	m.clearedFields[city.FieldRegionID] = struct{}{}
+}
+
+// RegionCleared reports if the "region" edge to the Region entity was cleared.
+func (m *CityMutation) RegionCleared() bool {
+	return m.RegionIDCleared() || m.clearedregion
+}
+
+// RegionIDs returns the "region" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RegionID instead. It exists only for internal usage by the builders.
+func (m *CityMutation) RegionIDs() (ids []uuid.UUID) {
+	if id := m.region; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRegion resets all changes to the "region" edge.
+func (m *CityMutation) ResetRegion() {
+	m.region = nil
+	m.clearedregion = false
+}
+
+// ClearCountry clears the "country" edge to the Country entity.
+func (m *CityMutation) ClearCountry() {
+	m.clearedcountry = true
+	m.clearedFields[city.FieldCountryID] = struct{}{}
+}
+
+// CountryCleared reports if the "country" edge to the Country entity was cleared.
+func (m *CityMutation) CountryCleared() bool {
+	return m.clearedcountry
+}
+
+// CountryIDs returns the "country" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CountryID instead. It exists only for internal usage by the builders.
+func (m *CityMutation) CountryIDs() (ids []uuid.UUID) {
+	if id := m.country; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCountry resets all changes to the "country" edge.
+func (m *CityMutation) ResetCountry() {
+	m.country = nil
+	m.clearedcountry = false
+}
+
 // AddUserIDs adds the "users" edge to the User entity by ids.
 func (m *CityMutation) AddUserIDs(ids ...uuid.UUID) {
 	if m.users == nil {
@@ -362,7 +513,7 @@ func (m *CityMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CityMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.created_at != nil {
 		fields = append(fields, city.FieldCreatedAt)
 	}
@@ -371,6 +522,12 @@ func (m *CityMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, city.FieldName)
+	}
+	if m.region != nil {
+		fields = append(fields, city.FieldRegionID)
+	}
+	if m.country != nil {
+		fields = append(fields, city.FieldCountryID)
 	}
 	return fields
 }
@@ -386,6 +543,10 @@ func (m *CityMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case city.FieldName:
 		return m.Name()
+	case city.FieldRegionID:
+		return m.RegionID()
+	case city.FieldCountryID:
+		return m.CountryID()
 	}
 	return nil, false
 }
@@ -401,6 +562,10 @@ func (m *CityMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUpdatedAt(ctx)
 	case city.FieldName:
 		return m.OldName(ctx)
+	case city.FieldRegionID:
+		return m.OldRegionID(ctx)
+	case city.FieldCountryID:
+		return m.OldCountryID(ctx)
 	}
 	return nil, fmt.Errorf("unknown City field %s", name)
 }
@@ -431,6 +596,20 @@ func (m *CityMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
+	case city.FieldRegionID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRegionID(v)
+		return nil
+	case city.FieldCountryID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown City field %s", name)
 }
@@ -460,7 +639,11 @@ func (m *CityMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *CityMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(city.FieldRegionID) {
+		fields = append(fields, city.FieldRegionID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -473,6 +656,11 @@ func (m *CityMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *CityMutation) ClearField(name string) error {
+	switch name {
+	case city.FieldRegionID:
+		m.ClearRegionID()
+		return nil
+	}
 	return fmt.Errorf("unknown City nullable field %s", name)
 }
 
@@ -489,13 +677,25 @@ func (m *CityMutation) ResetField(name string) error {
 	case city.FieldName:
 		m.ResetName()
 		return nil
+	case city.FieldRegionID:
+		m.ResetRegionID()
+		return nil
+	case city.FieldCountryID:
+		m.ResetCountryID()
+		return nil
 	}
 	return fmt.Errorf("unknown City field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CityMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
+	if m.region != nil {
+		edges = append(edges, city.EdgeRegion)
+	}
+	if m.country != nil {
+		edges = append(edges, city.EdgeCountry)
+	}
 	if m.users != nil {
 		edges = append(edges, city.EdgeUsers)
 	}
@@ -506,6 +706,14 @@ func (m *CityMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *CityMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case city.EdgeRegion:
+		if id := m.region; id != nil {
+			return []ent.Value{*id}
+		}
+	case city.EdgeCountry:
+		if id := m.country; id != nil {
+			return []ent.Value{*id}
+		}
 	case city.EdgeUsers:
 		ids := make([]ent.Value, 0, len(m.users))
 		for id := range m.users {
@@ -518,7 +726,7 @@ func (m *CityMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CityMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.removedusers != nil {
 		edges = append(edges, city.EdgeUsers)
 	}
@@ -541,7 +749,13 @@ func (m *CityMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CityMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
+	if m.clearedregion {
+		edges = append(edges, city.EdgeRegion)
+	}
+	if m.clearedcountry {
+		edges = append(edges, city.EdgeCountry)
+	}
 	if m.clearedusers {
 		edges = append(edges, city.EdgeUsers)
 	}
@@ -552,6 +766,10 @@ func (m *CityMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *CityMutation) EdgeCleared(name string) bool {
 	switch name {
+	case city.EdgeRegion:
+		return m.clearedregion
+	case city.EdgeCountry:
+		return m.clearedcountry
 	case city.EdgeUsers:
 		return m.clearedusers
 	}
@@ -562,6 +780,12 @@ func (m *CityMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *CityMutation) ClearEdge(name string) error {
 	switch name {
+	case city.EdgeRegion:
+		m.ClearRegion()
+		return nil
+	case city.EdgeCountry:
+		m.ClearCountry()
+		return nil
 	}
 	return fmt.Errorf("unknown City unique edge %s", name)
 }
@@ -570,6 +794,12 @@ func (m *CityMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *CityMutation) ResetEdge(name string) error {
 	switch name {
+	case city.EdgeRegion:
+		m.ResetRegion()
+		return nil
+	case city.EdgeCountry:
+		m.ResetCountry()
+		return nil
 	case city.EdgeUsers:
 		m.ResetUsers()
 		return nil
@@ -580,27 +810,30 @@ func (m *CityMutation) ResetEdge(name string) error {
 // CommentMutation represents an operation that mutates the Comment nodes in the graph.
 type CommentMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	created_at       *time.Time
-	updated_at       *time.Time
-	text             *string
-	slug             *string
-	clearedFields    map[string]struct{}
-	reactions        map[uuid.UUID]struct{}
-	removedreactions map[uuid.UUID]struct{}
-	clearedreactions bool
-	author           *uuid.UUID
-	clearedauthor    bool
-	post             *uuid.UUID
-	clearedpost      bool
-	replies          map[uuid.UUID]struct{}
-	removedreplies   map[uuid.UUID]struct{}
-	clearedreplies   bool
-	done             bool
-	oldValue         func(context.Context) (*Comment, error)
-	predicates       []predicate.Comment
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	created_at           *time.Time
+	updated_at           *time.Time
+	text                 *string
+	slug                 *string
+	clearedFields        map[string]struct{}
+	reactions            map[uuid.UUID]struct{}
+	removedreactions     map[uuid.UUID]struct{}
+	clearedreactions     bool
+	author               *uuid.UUID
+	clearedauthor        bool
+	post                 *uuid.UUID
+	clearedpost          bool
+	replies              map[uuid.UUID]struct{}
+	removedreplies       map[uuid.UUID]struct{}
+	clearedreplies       bool
+	notifications        map[uuid.UUID]struct{}
+	removednotifications map[uuid.UUID]struct{}
+	clearednotifications bool
+	done                 bool
+	oldValue             func(context.Context) (*Comment, error)
+	predicates           []predicate.Comment
 }
 
 var _ ent.Mutation = (*CommentMutation)(nil)
@@ -1085,6 +1318,60 @@ func (m *CommentMutation) ResetReplies() {
 	m.removedreplies = nil
 }
 
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by ids.
+func (m *CommentMutation) AddNotificationIDs(ids ...uuid.UUID) {
+	if m.notifications == nil {
+		m.notifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.notifications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNotifications clears the "notifications" edge to the Notification entity.
+func (m *CommentMutation) ClearNotifications() {
+	m.clearednotifications = true
+}
+
+// NotificationsCleared reports if the "notifications" edge to the Notification entity was cleared.
+func (m *CommentMutation) NotificationsCleared() bool {
+	return m.clearednotifications
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to the Notification entity by IDs.
+func (m *CommentMutation) RemoveNotificationIDs(ids ...uuid.UUID) {
+	if m.removednotifications == nil {
+		m.removednotifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.notifications, ids[i])
+		m.removednotifications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNotifications returns the removed IDs of the "notifications" edge to the Notification entity.
+func (m *CommentMutation) RemovedNotificationsIDs() (ids []uuid.UUID) {
+	for id := range m.removednotifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NotificationsIDs returns the "notifications" edge IDs in the mutation.
+func (m *CommentMutation) NotificationsIDs() (ids []uuid.UUID) {
+	for id := range m.notifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNotifications resets all changes to the "notifications" edge.
+func (m *CommentMutation) ResetNotifications() {
+	m.notifications = nil
+	m.clearednotifications = false
+	m.removednotifications = nil
+}
+
 // Where appends a list predicates to the CommentMutation builder.
 func (m *CommentMutation) Where(ps ...predicate.Comment) {
 	m.predicates = append(m.predicates, ps...)
@@ -1303,7 +1590,7 @@ func (m *CommentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CommentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.reactions != nil {
 		edges = append(edges, comment.EdgeReactions)
 	}
@@ -1315,6 +1602,9 @@ func (m *CommentMutation) AddedEdges() []string {
 	}
 	if m.replies != nil {
 		edges = append(edges, comment.EdgeReplies)
+	}
+	if m.notifications != nil {
+		edges = append(edges, comment.EdgeNotifications)
 	}
 	return edges
 }
@@ -1343,18 +1633,27 @@ func (m *CommentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case comment.EdgeNotifications:
+		ids := make([]ent.Value, 0, len(m.notifications))
+		for id := range m.notifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CommentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedreactions != nil {
 		edges = append(edges, comment.EdgeReactions)
 	}
 	if m.removedreplies != nil {
 		edges = append(edges, comment.EdgeReplies)
+	}
+	if m.removednotifications != nil {
+		edges = append(edges, comment.EdgeNotifications)
 	}
 	return edges
 }
@@ -1375,13 +1674,19 @@ func (m *CommentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case comment.EdgeNotifications:
+		ids := make([]ent.Value, 0, len(m.removednotifications))
+		for id := range m.removednotifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CommentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedreactions {
 		edges = append(edges, comment.EdgeReactions)
 	}
@@ -1393,6 +1698,9 @@ func (m *CommentMutation) ClearedEdges() []string {
 	}
 	if m.clearedreplies {
 		edges = append(edges, comment.EdgeReplies)
+	}
+	if m.clearednotifications {
+		edges = append(edges, comment.EdgeNotifications)
 	}
 	return edges
 }
@@ -1409,6 +1717,8 @@ func (m *CommentMutation) EdgeCleared(name string) bool {
 		return m.clearedpost
 	case comment.EdgeReplies:
 		return m.clearedreplies
+	case comment.EdgeNotifications:
+		return m.clearednotifications
 	}
 	return false
 }
@@ -1443,8 +1753,681 @@ func (m *CommentMutation) ResetEdge(name string) error {
 	case comment.EdgeReplies:
 		m.ResetReplies()
 		return nil
+	case comment.EdgeNotifications:
+		m.ResetNotifications()
+		return nil
 	}
 	return fmt.Errorf("unknown Comment edge %s", name)
+}
+
+// CountryMutation represents an operation that mutates the Country nodes in the graph.
+type CountryMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	created_at     *time.Time
+	updated_at     *time.Time
+	name           *string
+	code           *string
+	clearedFields  map[string]struct{}
+	cities         map[uuid.UUID]struct{}
+	removedcities  map[uuid.UUID]struct{}
+	clearedcities  bool
+	regions        map[uuid.UUID]struct{}
+	removedregions map[uuid.UUID]struct{}
+	clearedregions bool
+	done           bool
+	oldValue       func(context.Context) (*Country, error)
+	predicates     []predicate.Country
+}
+
+var _ ent.Mutation = (*CountryMutation)(nil)
+
+// countryOption allows management of the mutation configuration using functional options.
+type countryOption func(*CountryMutation)
+
+// newCountryMutation creates new mutation for the Country entity.
+func newCountryMutation(c config, op Op, opts ...countryOption) *CountryMutation {
+	m := &CountryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCountry,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCountryID sets the ID field of the mutation.
+func withCountryID(id uuid.UUID) countryOption {
+	return func(m *CountryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Country
+		)
+		m.oldValue = func(ctx context.Context) (*Country, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Country.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCountry sets the old Country of the mutation.
+func withCountry(node *Country) countryOption {
+	return func(m *CountryMutation) {
+		m.oldValue = func(context.Context) (*Country, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CountryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CountryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Country entities.
+func (m *CountryMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CountryMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CountryMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Country.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CountryMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CountryMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Country entity.
+// If the Country object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CountryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CountryMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CountryMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CountryMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Country entity.
+// If the Country object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CountryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CountryMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetName sets the "name" field.
+func (m *CountryMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CountryMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Country entity.
+// If the Country object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CountryMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CountryMutation) ResetName() {
+	m.name = nil
+}
+
+// SetCode sets the "code" field.
+func (m *CountryMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *CountryMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the Country entity.
+// If the Country object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CountryMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *CountryMutation) ResetCode() {
+	m.code = nil
+}
+
+// AddCityIDs adds the "cities" edge to the City entity by ids.
+func (m *CountryMutation) AddCityIDs(ids ...uuid.UUID) {
+	if m.cities == nil {
+		m.cities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.cities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCities clears the "cities" edge to the City entity.
+func (m *CountryMutation) ClearCities() {
+	m.clearedcities = true
+}
+
+// CitiesCleared reports if the "cities" edge to the City entity was cleared.
+func (m *CountryMutation) CitiesCleared() bool {
+	return m.clearedcities
+}
+
+// RemoveCityIDs removes the "cities" edge to the City entity by IDs.
+func (m *CountryMutation) RemoveCityIDs(ids ...uuid.UUID) {
+	if m.removedcities == nil {
+		m.removedcities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.cities, ids[i])
+		m.removedcities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCities returns the removed IDs of the "cities" edge to the City entity.
+func (m *CountryMutation) RemovedCitiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CitiesIDs returns the "cities" edge IDs in the mutation.
+func (m *CountryMutation) CitiesIDs() (ids []uuid.UUID) {
+	for id := range m.cities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCities resets all changes to the "cities" edge.
+func (m *CountryMutation) ResetCities() {
+	m.cities = nil
+	m.clearedcities = false
+	m.removedcities = nil
+}
+
+// AddRegionIDs adds the "regions" edge to the Region entity by ids.
+func (m *CountryMutation) AddRegionIDs(ids ...uuid.UUID) {
+	if m.regions == nil {
+		m.regions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.regions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRegions clears the "regions" edge to the Region entity.
+func (m *CountryMutation) ClearRegions() {
+	m.clearedregions = true
+}
+
+// RegionsCleared reports if the "regions" edge to the Region entity was cleared.
+func (m *CountryMutation) RegionsCleared() bool {
+	return m.clearedregions
+}
+
+// RemoveRegionIDs removes the "regions" edge to the Region entity by IDs.
+func (m *CountryMutation) RemoveRegionIDs(ids ...uuid.UUID) {
+	if m.removedregions == nil {
+		m.removedregions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.regions, ids[i])
+		m.removedregions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRegions returns the removed IDs of the "regions" edge to the Region entity.
+func (m *CountryMutation) RemovedRegionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedregions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RegionsIDs returns the "regions" edge IDs in the mutation.
+func (m *CountryMutation) RegionsIDs() (ids []uuid.UUID) {
+	for id := range m.regions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRegions resets all changes to the "regions" edge.
+func (m *CountryMutation) ResetRegions() {
+	m.regions = nil
+	m.clearedregions = false
+	m.removedregions = nil
+}
+
+// Where appends a list predicates to the CountryMutation builder.
+func (m *CountryMutation) Where(ps ...predicate.Country) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CountryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CountryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Country, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CountryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CountryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Country).
+func (m *CountryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CountryMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, country.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, country.FieldUpdatedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, country.FieldName)
+	}
+	if m.code != nil {
+		fields = append(fields, country.FieldCode)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CountryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case country.FieldCreatedAt:
+		return m.CreatedAt()
+	case country.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case country.FieldName:
+		return m.Name()
+	case country.FieldCode:
+		return m.Code()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CountryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case country.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case country.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case country.FieldName:
+		return m.OldName(ctx)
+	case country.FieldCode:
+		return m.OldCode(ctx)
+	}
+	return nil, fmt.Errorf("unknown Country field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CountryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case country.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case country.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case country.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case country.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Country field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CountryMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CountryMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CountryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Country numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CountryMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CountryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CountryMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Country nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CountryMutation) ResetField(name string) error {
+	switch name {
+	case country.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case country.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case country.FieldName:
+		m.ResetName()
+		return nil
+	case country.FieldCode:
+		m.ResetCode()
+		return nil
+	}
+	return fmt.Errorf("unknown Country field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CountryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cities != nil {
+		edges = append(edges, country.EdgeCities)
+	}
+	if m.regions != nil {
+		edges = append(edges, country.EdgeRegions)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CountryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case country.EdgeCities:
+		ids := make([]ent.Value, 0, len(m.cities))
+		for id := range m.cities {
+			ids = append(ids, id)
+		}
+		return ids
+	case country.EdgeRegions:
+		ids := make([]ent.Value, 0, len(m.regions))
+		for id := range m.regions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CountryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedcities != nil {
+		edges = append(edges, country.EdgeCities)
+	}
+	if m.removedregions != nil {
+		edges = append(edges, country.EdgeRegions)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CountryMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case country.EdgeCities:
+		ids := make([]ent.Value, 0, len(m.removedcities))
+		for id := range m.removedcities {
+			ids = append(ids, id)
+		}
+		return ids
+	case country.EdgeRegions:
+		ids := make([]ent.Value, 0, len(m.removedregions))
+		for id := range m.removedregions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CountryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedcities {
+		edges = append(edges, country.EdgeCities)
+	}
+	if m.clearedregions {
+		edges = append(edges, country.EdgeRegions)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CountryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case country.EdgeCities:
+		return m.clearedcities
+	case country.EdgeRegions:
+		return m.clearedregions
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CountryMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Country unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CountryMutation) ResetEdge(name string) error {
+	switch name {
+	case country.EdgeCities:
+		m.ResetCities()
+		return nil
+	case country.EdgeRegions:
+		m.ResetRegions()
+		return nil
+	}
+	return fmt.Errorf("unknown Country edge %s", name)
 }
 
 // FileMutation represents an operation that mutates the File nodes in the graph.
@@ -2063,6 +3046,1803 @@ func (m *FileMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown File edge %s", name)
 }
 
+// FriendMutation represents an operation that mutates the Friend nodes in the graph.
+type FriendMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	created_at       *time.Time
+	updated_at       *time.Time
+	status           *friend.Status
+	clearedFields    map[string]struct{}
+	requester        *uuid.UUID
+	clearedrequester bool
+	requestee        *uuid.UUID
+	clearedrequestee bool
+	done             bool
+	oldValue         func(context.Context) (*Friend, error)
+	predicates       []predicate.Friend
+}
+
+var _ ent.Mutation = (*FriendMutation)(nil)
+
+// friendOption allows management of the mutation configuration using functional options.
+type friendOption func(*FriendMutation)
+
+// newFriendMutation creates new mutation for the Friend entity.
+func newFriendMutation(c config, op Op, opts ...friendOption) *FriendMutation {
+	m := &FriendMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFriend,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFriendID sets the ID field of the mutation.
+func withFriendID(id uuid.UUID) friendOption {
+	return func(m *FriendMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Friend
+		)
+		m.oldValue = func(ctx context.Context) (*Friend, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Friend.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFriend sets the old Friend of the mutation.
+func withFriend(node *Friend) friendOption {
+	return func(m *FriendMutation) {
+		m.oldValue = func(context.Context) (*Friend, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FriendMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FriendMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Friend entities.
+func (m *FriendMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FriendMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FriendMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Friend.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FriendMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FriendMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Friend entity.
+// If the Friend object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FriendMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FriendMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FriendMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FriendMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Friend entity.
+// If the Friend object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FriendMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FriendMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetRequesterID sets the "requester_id" field.
+func (m *FriendMutation) SetRequesterID(u uuid.UUID) {
+	m.requester = &u
+}
+
+// RequesterID returns the value of the "requester_id" field in the mutation.
+func (m *FriendMutation) RequesterID() (r uuid.UUID, exists bool) {
+	v := m.requester
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequesterID returns the old "requester_id" field's value of the Friend entity.
+// If the Friend object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FriendMutation) OldRequesterID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequesterID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequesterID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequesterID: %w", err)
+	}
+	return oldValue.RequesterID, nil
+}
+
+// ResetRequesterID resets all changes to the "requester_id" field.
+func (m *FriendMutation) ResetRequesterID() {
+	m.requester = nil
+}
+
+// SetRequesteeID sets the "requestee_id" field.
+func (m *FriendMutation) SetRequesteeID(u uuid.UUID) {
+	m.requestee = &u
+}
+
+// RequesteeID returns the value of the "requestee_id" field in the mutation.
+func (m *FriendMutation) RequesteeID() (r uuid.UUID, exists bool) {
+	v := m.requestee
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequesteeID returns the old "requestee_id" field's value of the Friend entity.
+// If the Friend object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FriendMutation) OldRequesteeID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequesteeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequesteeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequesteeID: %w", err)
+	}
+	return oldValue.RequesteeID, nil
+}
+
+// ResetRequesteeID resets all changes to the "requestee_id" field.
+func (m *FriendMutation) ResetRequesteeID() {
+	m.requestee = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *FriendMutation) SetStatus(f friend.Status) {
+	m.status = &f
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *FriendMutation) Status() (r friend.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Friend entity.
+// If the Friend object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FriendMutation) OldStatus(ctx context.Context) (v friend.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *FriendMutation) ResetStatus() {
+	m.status = nil
+}
+
+// ClearRequester clears the "requester" edge to the User entity.
+func (m *FriendMutation) ClearRequester() {
+	m.clearedrequester = true
+	m.clearedFields[friend.FieldRequesterID] = struct{}{}
+}
+
+// RequesterCleared reports if the "requester" edge to the User entity was cleared.
+func (m *FriendMutation) RequesterCleared() bool {
+	return m.clearedrequester
+}
+
+// RequesterIDs returns the "requester" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RequesterID instead. It exists only for internal usage by the builders.
+func (m *FriendMutation) RequesterIDs() (ids []uuid.UUID) {
+	if id := m.requester; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRequester resets all changes to the "requester" edge.
+func (m *FriendMutation) ResetRequester() {
+	m.requester = nil
+	m.clearedrequester = false
+}
+
+// ClearRequestee clears the "requestee" edge to the User entity.
+func (m *FriendMutation) ClearRequestee() {
+	m.clearedrequestee = true
+	m.clearedFields[friend.FieldRequesteeID] = struct{}{}
+}
+
+// RequesteeCleared reports if the "requestee" edge to the User entity was cleared.
+func (m *FriendMutation) RequesteeCleared() bool {
+	return m.clearedrequestee
+}
+
+// RequesteeIDs returns the "requestee" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RequesteeID instead. It exists only for internal usage by the builders.
+func (m *FriendMutation) RequesteeIDs() (ids []uuid.UUID) {
+	if id := m.requestee; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRequestee resets all changes to the "requestee" edge.
+func (m *FriendMutation) ResetRequestee() {
+	m.requestee = nil
+	m.clearedrequestee = false
+}
+
+// Where appends a list predicates to the FriendMutation builder.
+func (m *FriendMutation) Where(ps ...predicate.Friend) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FriendMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FriendMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Friend, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FriendMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FriendMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Friend).
+func (m *FriendMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FriendMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, friend.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, friend.FieldUpdatedAt)
+	}
+	if m.requester != nil {
+		fields = append(fields, friend.FieldRequesterID)
+	}
+	if m.requestee != nil {
+		fields = append(fields, friend.FieldRequesteeID)
+	}
+	if m.status != nil {
+		fields = append(fields, friend.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FriendMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case friend.FieldCreatedAt:
+		return m.CreatedAt()
+	case friend.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case friend.FieldRequesterID:
+		return m.RequesterID()
+	case friend.FieldRequesteeID:
+		return m.RequesteeID()
+	case friend.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FriendMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case friend.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case friend.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case friend.FieldRequesterID:
+		return m.OldRequesterID(ctx)
+	case friend.FieldRequesteeID:
+		return m.OldRequesteeID(ctx)
+	case friend.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown Friend field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FriendMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case friend.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case friend.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case friend.FieldRequesterID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequesterID(v)
+		return nil
+	case friend.FieldRequesteeID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequesteeID(v)
+		return nil
+	case friend.FieldStatus:
+		v, ok := value.(friend.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Friend field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FriendMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FriendMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FriendMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Friend numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FriendMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FriendMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FriendMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Friend nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FriendMutation) ResetField(name string) error {
+	switch name {
+	case friend.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case friend.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case friend.FieldRequesterID:
+		m.ResetRequesterID()
+		return nil
+	case friend.FieldRequesteeID:
+		m.ResetRequesteeID()
+		return nil
+	case friend.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown Friend field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FriendMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.requester != nil {
+		edges = append(edges, friend.EdgeRequester)
+	}
+	if m.requestee != nil {
+		edges = append(edges, friend.EdgeRequestee)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FriendMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case friend.EdgeRequester:
+		if id := m.requester; id != nil {
+			return []ent.Value{*id}
+		}
+	case friend.EdgeRequestee:
+		if id := m.requestee; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FriendMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FriendMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FriendMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedrequester {
+		edges = append(edges, friend.EdgeRequester)
+	}
+	if m.clearedrequestee {
+		edges = append(edges, friend.EdgeRequestee)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FriendMutation) EdgeCleared(name string) bool {
+	switch name {
+	case friend.EdgeRequester:
+		return m.clearedrequester
+	case friend.EdgeRequestee:
+		return m.clearedrequestee
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FriendMutation) ClearEdge(name string) error {
+	switch name {
+	case friend.EdgeRequester:
+		m.ClearRequester()
+		return nil
+	case friend.EdgeRequestee:
+		m.ClearRequestee()
+		return nil
+	}
+	return fmt.Errorf("unknown Friend unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FriendMutation) ResetEdge(name string) error {
+	switch name {
+	case friend.EdgeRequester:
+		m.ResetRequester()
+		return nil
+	case friend.EdgeRequestee:
+		m.ResetRequestee()
+		return nil
+	}
+	return fmt.Errorf("unknown Friend edge %s", name)
+}
+
+// NotificationMutation represents an operation that mutates the Notification nodes in the graph.
+type NotificationMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	created_at       *time.Time
+	updated_at       *time.Time
+	ntype            *notification.Ntype
+	text             *string
+	clearedFields    map[string]struct{}
+	sender           *uuid.UUID
+	clearedsender    bool
+	receivers        map[uuid.UUID]struct{}
+	removedreceivers map[uuid.UUID]struct{}
+	clearedreceivers bool
+	post             *uuid.UUID
+	clearedpost      bool
+	comment          *uuid.UUID
+	clearedcomment   bool
+	reply            *uuid.UUID
+	clearedreply     bool
+	read_by          map[uuid.UUID]struct{}
+	removedread_by   map[uuid.UUID]struct{}
+	clearedread_by   bool
+	done             bool
+	oldValue         func(context.Context) (*Notification, error)
+	predicates       []predicate.Notification
+}
+
+var _ ent.Mutation = (*NotificationMutation)(nil)
+
+// notificationOption allows management of the mutation configuration using functional options.
+type notificationOption func(*NotificationMutation)
+
+// newNotificationMutation creates new mutation for the Notification entity.
+func newNotificationMutation(c config, op Op, opts ...notificationOption) *NotificationMutation {
+	m := &NotificationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNotification,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNotificationID sets the ID field of the mutation.
+func withNotificationID(id uuid.UUID) notificationOption {
+	return func(m *NotificationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Notification
+		)
+		m.oldValue = func(ctx context.Context) (*Notification, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Notification.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNotification sets the old Notification of the mutation.
+func withNotification(node *Notification) notificationOption {
+	return func(m *NotificationMutation) {
+		m.oldValue = func(context.Context) (*Notification, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NotificationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NotificationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Notification entities.
+func (m *NotificationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NotificationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NotificationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Notification.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *NotificationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *NotificationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *NotificationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *NotificationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *NotificationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *NotificationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetSenderID sets the "sender_id" field.
+func (m *NotificationMutation) SetSenderID(u uuid.UUID) {
+	m.sender = &u
+}
+
+// SenderID returns the value of the "sender_id" field in the mutation.
+func (m *NotificationMutation) SenderID() (r uuid.UUID, exists bool) {
+	v := m.sender
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSenderID returns the old "sender_id" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldSenderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSenderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSenderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSenderID: %w", err)
+	}
+	return oldValue.SenderID, nil
+}
+
+// ResetSenderID resets all changes to the "sender_id" field.
+func (m *NotificationMutation) ResetSenderID() {
+	m.sender = nil
+}
+
+// SetNtype sets the "ntype" field.
+func (m *NotificationMutation) SetNtype(n notification.Ntype) {
+	m.ntype = &n
+}
+
+// Ntype returns the value of the "ntype" field in the mutation.
+func (m *NotificationMutation) Ntype() (r notification.Ntype, exists bool) {
+	v := m.ntype
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNtype returns the old "ntype" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldNtype(ctx context.Context) (v notification.Ntype, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNtype is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNtype requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNtype: %w", err)
+	}
+	return oldValue.Ntype, nil
+}
+
+// ResetNtype resets all changes to the "ntype" field.
+func (m *NotificationMutation) ResetNtype() {
+	m.ntype = nil
+}
+
+// SetPostID sets the "post_id" field.
+func (m *NotificationMutation) SetPostID(u uuid.UUID) {
+	m.post = &u
+}
+
+// PostID returns the value of the "post_id" field in the mutation.
+func (m *NotificationMutation) PostID() (r uuid.UUID, exists bool) {
+	v := m.post
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostID returns the old "post_id" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldPostID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostID: %w", err)
+	}
+	return oldValue.PostID, nil
+}
+
+// ClearPostID clears the value of the "post_id" field.
+func (m *NotificationMutation) ClearPostID() {
+	m.post = nil
+	m.clearedFields[notification.FieldPostID] = struct{}{}
+}
+
+// PostIDCleared returns if the "post_id" field was cleared in this mutation.
+func (m *NotificationMutation) PostIDCleared() bool {
+	_, ok := m.clearedFields[notification.FieldPostID]
+	return ok
+}
+
+// ResetPostID resets all changes to the "post_id" field.
+func (m *NotificationMutation) ResetPostID() {
+	m.post = nil
+	delete(m.clearedFields, notification.FieldPostID)
+}
+
+// SetCommentID sets the "comment_id" field.
+func (m *NotificationMutation) SetCommentID(u uuid.UUID) {
+	m.comment = &u
+}
+
+// CommentID returns the value of the "comment_id" field in the mutation.
+func (m *NotificationMutation) CommentID() (r uuid.UUID, exists bool) {
+	v := m.comment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCommentID returns the old "comment_id" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldCommentID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCommentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCommentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCommentID: %w", err)
+	}
+	return oldValue.CommentID, nil
+}
+
+// ClearCommentID clears the value of the "comment_id" field.
+func (m *NotificationMutation) ClearCommentID() {
+	m.comment = nil
+	m.clearedFields[notification.FieldCommentID] = struct{}{}
+}
+
+// CommentIDCleared returns if the "comment_id" field was cleared in this mutation.
+func (m *NotificationMutation) CommentIDCleared() bool {
+	_, ok := m.clearedFields[notification.FieldCommentID]
+	return ok
+}
+
+// ResetCommentID resets all changes to the "comment_id" field.
+func (m *NotificationMutation) ResetCommentID() {
+	m.comment = nil
+	delete(m.clearedFields, notification.FieldCommentID)
+}
+
+// SetReplyID sets the "reply_id" field.
+func (m *NotificationMutation) SetReplyID(u uuid.UUID) {
+	m.reply = &u
+}
+
+// ReplyID returns the value of the "reply_id" field in the mutation.
+func (m *NotificationMutation) ReplyID() (r uuid.UUID, exists bool) {
+	v := m.reply
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReplyID returns the old "reply_id" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldReplyID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReplyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReplyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReplyID: %w", err)
+	}
+	return oldValue.ReplyID, nil
+}
+
+// ClearReplyID clears the value of the "reply_id" field.
+func (m *NotificationMutation) ClearReplyID() {
+	m.reply = nil
+	m.clearedFields[notification.FieldReplyID] = struct{}{}
+}
+
+// ReplyIDCleared returns if the "reply_id" field was cleared in this mutation.
+func (m *NotificationMutation) ReplyIDCleared() bool {
+	_, ok := m.clearedFields[notification.FieldReplyID]
+	return ok
+}
+
+// ResetReplyID resets all changes to the "reply_id" field.
+func (m *NotificationMutation) ResetReplyID() {
+	m.reply = nil
+	delete(m.clearedFields, notification.FieldReplyID)
+}
+
+// SetText sets the "text" field.
+func (m *NotificationMutation) SetText(s string) {
+	m.text = &s
+}
+
+// Text returns the value of the "text" field in the mutation.
+func (m *NotificationMutation) Text() (r string, exists bool) {
+	v := m.text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldText returns the old "text" field's value of the Notification entity.
+// If the Notification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationMutation) OldText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldText: %w", err)
+	}
+	return oldValue.Text, nil
+}
+
+// ClearText clears the value of the "text" field.
+func (m *NotificationMutation) ClearText() {
+	m.text = nil
+	m.clearedFields[notification.FieldText] = struct{}{}
+}
+
+// TextCleared returns if the "text" field was cleared in this mutation.
+func (m *NotificationMutation) TextCleared() bool {
+	_, ok := m.clearedFields[notification.FieldText]
+	return ok
+}
+
+// ResetText resets all changes to the "text" field.
+func (m *NotificationMutation) ResetText() {
+	m.text = nil
+	delete(m.clearedFields, notification.FieldText)
+}
+
+// ClearSender clears the "sender" edge to the User entity.
+func (m *NotificationMutation) ClearSender() {
+	m.clearedsender = true
+	m.clearedFields[notification.FieldSenderID] = struct{}{}
+}
+
+// SenderCleared reports if the "sender" edge to the User entity was cleared.
+func (m *NotificationMutation) SenderCleared() bool {
+	return m.clearedsender
+}
+
+// SenderIDs returns the "sender" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SenderID instead. It exists only for internal usage by the builders.
+func (m *NotificationMutation) SenderIDs() (ids []uuid.UUID) {
+	if id := m.sender; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSender resets all changes to the "sender" edge.
+func (m *NotificationMutation) ResetSender() {
+	m.sender = nil
+	m.clearedsender = false
+}
+
+// AddReceiverIDs adds the "receivers" edge to the User entity by ids.
+func (m *NotificationMutation) AddReceiverIDs(ids ...uuid.UUID) {
+	if m.receivers == nil {
+		m.receivers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.receivers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReceivers clears the "receivers" edge to the User entity.
+func (m *NotificationMutation) ClearReceivers() {
+	m.clearedreceivers = true
+}
+
+// ReceiversCleared reports if the "receivers" edge to the User entity was cleared.
+func (m *NotificationMutation) ReceiversCleared() bool {
+	return m.clearedreceivers
+}
+
+// RemoveReceiverIDs removes the "receivers" edge to the User entity by IDs.
+func (m *NotificationMutation) RemoveReceiverIDs(ids ...uuid.UUID) {
+	if m.removedreceivers == nil {
+		m.removedreceivers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.receivers, ids[i])
+		m.removedreceivers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReceivers returns the removed IDs of the "receivers" edge to the User entity.
+func (m *NotificationMutation) RemovedReceiversIDs() (ids []uuid.UUID) {
+	for id := range m.removedreceivers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReceiversIDs returns the "receivers" edge IDs in the mutation.
+func (m *NotificationMutation) ReceiversIDs() (ids []uuid.UUID) {
+	for id := range m.receivers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReceivers resets all changes to the "receivers" edge.
+func (m *NotificationMutation) ResetReceivers() {
+	m.receivers = nil
+	m.clearedreceivers = false
+	m.removedreceivers = nil
+}
+
+// ClearPost clears the "post" edge to the Post entity.
+func (m *NotificationMutation) ClearPost() {
+	m.clearedpost = true
+	m.clearedFields[notification.FieldPostID] = struct{}{}
+}
+
+// PostCleared reports if the "post" edge to the Post entity was cleared.
+func (m *NotificationMutation) PostCleared() bool {
+	return m.PostIDCleared() || m.clearedpost
+}
+
+// PostIDs returns the "post" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PostID instead. It exists only for internal usage by the builders.
+func (m *NotificationMutation) PostIDs() (ids []uuid.UUID) {
+	if id := m.post; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPost resets all changes to the "post" edge.
+func (m *NotificationMutation) ResetPost() {
+	m.post = nil
+	m.clearedpost = false
+}
+
+// ClearComment clears the "comment" edge to the Comment entity.
+func (m *NotificationMutation) ClearComment() {
+	m.clearedcomment = true
+	m.clearedFields[notification.FieldCommentID] = struct{}{}
+}
+
+// CommentCleared reports if the "comment" edge to the Comment entity was cleared.
+func (m *NotificationMutation) CommentCleared() bool {
+	return m.CommentIDCleared() || m.clearedcomment
+}
+
+// CommentIDs returns the "comment" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CommentID instead. It exists only for internal usage by the builders.
+func (m *NotificationMutation) CommentIDs() (ids []uuid.UUID) {
+	if id := m.comment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetComment resets all changes to the "comment" edge.
+func (m *NotificationMutation) ResetComment() {
+	m.comment = nil
+	m.clearedcomment = false
+}
+
+// ClearReply clears the "reply" edge to the Reply entity.
+func (m *NotificationMutation) ClearReply() {
+	m.clearedreply = true
+	m.clearedFields[notification.FieldReplyID] = struct{}{}
+}
+
+// ReplyCleared reports if the "reply" edge to the Reply entity was cleared.
+func (m *NotificationMutation) ReplyCleared() bool {
+	return m.ReplyIDCleared() || m.clearedreply
+}
+
+// ReplyIDs returns the "reply" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ReplyID instead. It exists only for internal usage by the builders.
+func (m *NotificationMutation) ReplyIDs() (ids []uuid.UUID) {
+	if id := m.reply; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetReply resets all changes to the "reply" edge.
+func (m *NotificationMutation) ResetReply() {
+	m.reply = nil
+	m.clearedreply = false
+}
+
+// AddReadByIDs adds the "read_by" edge to the User entity by ids.
+func (m *NotificationMutation) AddReadByIDs(ids ...uuid.UUID) {
+	if m.read_by == nil {
+		m.read_by = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.read_by[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReadBy clears the "read_by" edge to the User entity.
+func (m *NotificationMutation) ClearReadBy() {
+	m.clearedread_by = true
+}
+
+// ReadByCleared reports if the "read_by" edge to the User entity was cleared.
+func (m *NotificationMutation) ReadByCleared() bool {
+	return m.clearedread_by
+}
+
+// RemoveReadByIDs removes the "read_by" edge to the User entity by IDs.
+func (m *NotificationMutation) RemoveReadByIDs(ids ...uuid.UUID) {
+	if m.removedread_by == nil {
+		m.removedread_by = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.read_by, ids[i])
+		m.removedread_by[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReadBy returns the removed IDs of the "read_by" edge to the User entity.
+func (m *NotificationMutation) RemovedReadByIDs() (ids []uuid.UUID) {
+	for id := range m.removedread_by {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReadByIDs returns the "read_by" edge IDs in the mutation.
+func (m *NotificationMutation) ReadByIDs() (ids []uuid.UUID) {
+	for id := range m.read_by {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReadBy resets all changes to the "read_by" edge.
+func (m *NotificationMutation) ResetReadBy() {
+	m.read_by = nil
+	m.clearedread_by = false
+	m.removedread_by = nil
+}
+
+// Where appends a list predicates to the NotificationMutation builder.
+func (m *NotificationMutation) Where(ps ...predicate.Notification) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NotificationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NotificationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Notification, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NotificationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NotificationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Notification).
+func (m *NotificationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NotificationMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.created_at != nil {
+		fields = append(fields, notification.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, notification.FieldUpdatedAt)
+	}
+	if m.sender != nil {
+		fields = append(fields, notification.FieldSenderID)
+	}
+	if m.ntype != nil {
+		fields = append(fields, notification.FieldNtype)
+	}
+	if m.post != nil {
+		fields = append(fields, notification.FieldPostID)
+	}
+	if m.comment != nil {
+		fields = append(fields, notification.FieldCommentID)
+	}
+	if m.reply != nil {
+		fields = append(fields, notification.FieldReplyID)
+	}
+	if m.text != nil {
+		fields = append(fields, notification.FieldText)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NotificationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case notification.FieldCreatedAt:
+		return m.CreatedAt()
+	case notification.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case notification.FieldSenderID:
+		return m.SenderID()
+	case notification.FieldNtype:
+		return m.Ntype()
+	case notification.FieldPostID:
+		return m.PostID()
+	case notification.FieldCommentID:
+		return m.CommentID()
+	case notification.FieldReplyID:
+		return m.ReplyID()
+	case notification.FieldText:
+		return m.Text()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NotificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case notification.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case notification.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case notification.FieldSenderID:
+		return m.OldSenderID(ctx)
+	case notification.FieldNtype:
+		return m.OldNtype(ctx)
+	case notification.FieldPostID:
+		return m.OldPostID(ctx)
+	case notification.FieldCommentID:
+		return m.OldCommentID(ctx)
+	case notification.FieldReplyID:
+		return m.OldReplyID(ctx)
+	case notification.FieldText:
+		return m.OldText(ctx)
+	}
+	return nil, fmt.Errorf("unknown Notification field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case notification.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case notification.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case notification.FieldSenderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSenderID(v)
+		return nil
+	case notification.FieldNtype:
+		v, ok := value.(notification.Ntype)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNtype(v)
+		return nil
+	case notification.FieldPostID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostID(v)
+		return nil
+	case notification.FieldCommentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCommentID(v)
+		return nil
+	case notification.FieldReplyID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReplyID(v)
+		return nil
+	case notification.FieldText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetText(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Notification field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NotificationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NotificationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Notification numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NotificationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(notification.FieldPostID) {
+		fields = append(fields, notification.FieldPostID)
+	}
+	if m.FieldCleared(notification.FieldCommentID) {
+		fields = append(fields, notification.FieldCommentID)
+	}
+	if m.FieldCleared(notification.FieldReplyID) {
+		fields = append(fields, notification.FieldReplyID)
+	}
+	if m.FieldCleared(notification.FieldText) {
+		fields = append(fields, notification.FieldText)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NotificationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NotificationMutation) ClearField(name string) error {
+	switch name {
+	case notification.FieldPostID:
+		m.ClearPostID()
+		return nil
+	case notification.FieldCommentID:
+		m.ClearCommentID()
+		return nil
+	case notification.FieldReplyID:
+		m.ClearReplyID()
+		return nil
+	case notification.FieldText:
+		m.ClearText()
+		return nil
+	}
+	return fmt.Errorf("unknown Notification nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NotificationMutation) ResetField(name string) error {
+	switch name {
+	case notification.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case notification.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case notification.FieldSenderID:
+		m.ResetSenderID()
+		return nil
+	case notification.FieldNtype:
+		m.ResetNtype()
+		return nil
+	case notification.FieldPostID:
+		m.ResetPostID()
+		return nil
+	case notification.FieldCommentID:
+		m.ResetCommentID()
+		return nil
+	case notification.FieldReplyID:
+		m.ResetReplyID()
+		return nil
+	case notification.FieldText:
+		m.ResetText()
+		return nil
+	}
+	return fmt.Errorf("unknown Notification field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NotificationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.sender != nil {
+		edges = append(edges, notification.EdgeSender)
+	}
+	if m.receivers != nil {
+		edges = append(edges, notification.EdgeReceivers)
+	}
+	if m.post != nil {
+		edges = append(edges, notification.EdgePost)
+	}
+	if m.comment != nil {
+		edges = append(edges, notification.EdgeComment)
+	}
+	if m.reply != nil {
+		edges = append(edges, notification.EdgeReply)
+	}
+	if m.read_by != nil {
+		edges = append(edges, notification.EdgeReadBy)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NotificationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case notification.EdgeSender:
+		if id := m.sender; id != nil {
+			return []ent.Value{*id}
+		}
+	case notification.EdgeReceivers:
+		ids := make([]ent.Value, 0, len(m.receivers))
+		for id := range m.receivers {
+			ids = append(ids, id)
+		}
+		return ids
+	case notification.EdgePost:
+		if id := m.post; id != nil {
+			return []ent.Value{*id}
+		}
+	case notification.EdgeComment:
+		if id := m.comment; id != nil {
+			return []ent.Value{*id}
+		}
+	case notification.EdgeReply:
+		if id := m.reply; id != nil {
+			return []ent.Value{*id}
+		}
+	case notification.EdgeReadBy:
+		ids := make([]ent.Value, 0, len(m.read_by))
+		for id := range m.read_by {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NotificationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.removedreceivers != nil {
+		edges = append(edges, notification.EdgeReceivers)
+	}
+	if m.removedread_by != nil {
+		edges = append(edges, notification.EdgeReadBy)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NotificationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case notification.EdgeReceivers:
+		ids := make([]ent.Value, 0, len(m.removedreceivers))
+		for id := range m.removedreceivers {
+			ids = append(ids, id)
+		}
+		return ids
+	case notification.EdgeReadBy:
+		ids := make([]ent.Value, 0, len(m.removedread_by))
+		for id := range m.removedread_by {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NotificationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.clearedsender {
+		edges = append(edges, notification.EdgeSender)
+	}
+	if m.clearedreceivers {
+		edges = append(edges, notification.EdgeReceivers)
+	}
+	if m.clearedpost {
+		edges = append(edges, notification.EdgePost)
+	}
+	if m.clearedcomment {
+		edges = append(edges, notification.EdgeComment)
+	}
+	if m.clearedreply {
+		edges = append(edges, notification.EdgeReply)
+	}
+	if m.clearedread_by {
+		edges = append(edges, notification.EdgeReadBy)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NotificationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case notification.EdgeSender:
+		return m.clearedsender
+	case notification.EdgeReceivers:
+		return m.clearedreceivers
+	case notification.EdgePost:
+		return m.clearedpost
+	case notification.EdgeComment:
+		return m.clearedcomment
+	case notification.EdgeReply:
+		return m.clearedreply
+	case notification.EdgeReadBy:
+		return m.clearedread_by
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NotificationMutation) ClearEdge(name string) error {
+	switch name {
+	case notification.EdgeSender:
+		m.ClearSender()
+		return nil
+	case notification.EdgePost:
+		m.ClearPost()
+		return nil
+	case notification.EdgeComment:
+		m.ClearComment()
+		return nil
+	case notification.EdgeReply:
+		m.ClearReply()
+		return nil
+	}
+	return fmt.Errorf("unknown Notification unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NotificationMutation) ResetEdge(name string) error {
+	switch name {
+	case notification.EdgeSender:
+		m.ResetSender()
+		return nil
+	case notification.EdgeReceivers:
+		m.ResetReceivers()
+		return nil
+	case notification.EdgePost:
+		m.ResetPost()
+		return nil
+	case notification.EdgeComment:
+		m.ResetComment()
+		return nil
+	case notification.EdgeReply:
+		m.ResetReply()
+		return nil
+	case notification.EdgeReadBy:
+		m.ResetReadBy()
+		return nil
+	}
+	return fmt.Errorf("unknown Notification edge %s", name)
+}
+
 // OtpMutation represents an operation that mutates the Otp nodes in the graph.
 type OtpMutation struct {
 	config
@@ -2650,27 +5430,30 @@ func (m *OtpMutation) ResetEdge(name string) error {
 // PostMutation represents an operation that mutates the Post nodes in the graph.
 type PostMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	created_at       *time.Time
-	updated_at       *time.Time
-	text             *string
-	slug             *string
-	clearedFields    map[string]struct{}
-	reactions        map[uuid.UUID]struct{}
-	removedreactions map[uuid.UUID]struct{}
-	clearedreactions bool
-	author           *uuid.UUID
-	clearedauthor    bool
-	image            *uuid.UUID
-	clearedimage     bool
-	comments         map[uuid.UUID]struct{}
-	removedcomments  map[uuid.UUID]struct{}
-	clearedcomments  bool
-	done             bool
-	oldValue         func(context.Context) (*Post, error)
-	predicates       []predicate.Post
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	created_at           *time.Time
+	updated_at           *time.Time
+	text                 *string
+	slug                 *string
+	clearedFields        map[string]struct{}
+	reactions            map[uuid.UUID]struct{}
+	removedreactions     map[uuid.UUID]struct{}
+	clearedreactions     bool
+	author               *uuid.UUID
+	clearedauthor        bool
+	image                *uuid.UUID
+	clearedimage         bool
+	comments             map[uuid.UUID]struct{}
+	removedcomments      map[uuid.UUID]struct{}
+	clearedcomments      bool
+	notifications        map[uuid.UUID]struct{}
+	removednotifications map[uuid.UUID]struct{}
+	clearednotifications bool
+	done                 bool
+	oldValue             func(context.Context) (*Post, error)
+	predicates           []predicate.Post
 }
 
 var _ ent.Mutation = (*PostMutation)(nil)
@@ -3168,6 +5951,60 @@ func (m *PostMutation) ResetComments() {
 	m.removedcomments = nil
 }
 
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by ids.
+func (m *PostMutation) AddNotificationIDs(ids ...uuid.UUID) {
+	if m.notifications == nil {
+		m.notifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.notifications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNotifications clears the "notifications" edge to the Notification entity.
+func (m *PostMutation) ClearNotifications() {
+	m.clearednotifications = true
+}
+
+// NotificationsCleared reports if the "notifications" edge to the Notification entity was cleared.
+func (m *PostMutation) NotificationsCleared() bool {
+	return m.clearednotifications
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to the Notification entity by IDs.
+func (m *PostMutation) RemoveNotificationIDs(ids ...uuid.UUID) {
+	if m.removednotifications == nil {
+		m.removednotifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.notifications, ids[i])
+		m.removednotifications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNotifications returns the removed IDs of the "notifications" edge to the Notification entity.
+func (m *PostMutation) RemovedNotificationsIDs() (ids []uuid.UUID) {
+	for id := range m.removednotifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NotificationsIDs returns the "notifications" edge IDs in the mutation.
+func (m *PostMutation) NotificationsIDs() (ids []uuid.UUID) {
+	for id := range m.notifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNotifications resets all changes to the "notifications" edge.
+func (m *PostMutation) ResetNotifications() {
+	m.notifications = nil
+	m.clearednotifications = false
+	m.removednotifications = nil
+}
+
 // Where appends a list predicates to the PostMutation builder.
 func (m *PostMutation) Where(ps ...predicate.Post) {
 	m.predicates = append(m.predicates, ps...)
@@ -3395,7 +6232,7 @@ func (m *PostMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PostMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.reactions != nil {
 		edges = append(edges, post.EdgeReactions)
 	}
@@ -3407,6 +6244,9 @@ func (m *PostMutation) AddedEdges() []string {
 	}
 	if m.comments != nil {
 		edges = append(edges, post.EdgeComments)
+	}
+	if m.notifications != nil {
+		edges = append(edges, post.EdgeNotifications)
 	}
 	return edges
 }
@@ -3435,18 +6275,27 @@ func (m *PostMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case post.EdgeNotifications:
+		ids := make([]ent.Value, 0, len(m.notifications))
+		for id := range m.notifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PostMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedreactions != nil {
 		edges = append(edges, post.EdgeReactions)
 	}
 	if m.removedcomments != nil {
 		edges = append(edges, post.EdgeComments)
+	}
+	if m.removednotifications != nil {
+		edges = append(edges, post.EdgeNotifications)
 	}
 	return edges
 }
@@ -3467,13 +6316,19 @@ func (m *PostMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case post.EdgeNotifications:
+		ids := make([]ent.Value, 0, len(m.removednotifications))
+		for id := range m.removednotifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PostMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedreactions {
 		edges = append(edges, post.EdgeReactions)
 	}
@@ -3485,6 +6340,9 @@ func (m *PostMutation) ClearedEdges() []string {
 	}
 	if m.clearedcomments {
 		edges = append(edges, post.EdgeComments)
+	}
+	if m.clearednotifications {
+		edges = append(edges, post.EdgeNotifications)
 	}
 	return edges
 }
@@ -3501,6 +6359,8 @@ func (m *PostMutation) EdgeCleared(name string) bool {
 		return m.clearedimage
 	case post.EdgeComments:
 		return m.clearedcomments
+	case post.EdgeNotifications:
+		return m.clearednotifications
 	}
 	return false
 }
@@ -3534,6 +6394,9 @@ func (m *PostMutation) ResetEdge(name string) error {
 		return nil
 	case post.EdgeComments:
 		m.ResetComments()
+		return nil
+	case post.EdgeNotifications:
+		m.ResetNotifications()
 		return nil
 	}
 	return fmt.Errorf("unknown Post edge %s", name)
@@ -4447,27 +7310,663 @@ func (m *ReactionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Reaction edge %s", name)
 }
 
+// RegionMutation represents an operation that mutates the Region nodes in the graph.
+type RegionMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	created_at     *time.Time
+	updated_at     *time.Time
+	name           *string
+	clearedFields  map[string]struct{}
+	country        *uuid.UUID
+	clearedcountry bool
+	cities         map[uuid.UUID]struct{}
+	removedcities  map[uuid.UUID]struct{}
+	clearedcities  bool
+	done           bool
+	oldValue       func(context.Context) (*Region, error)
+	predicates     []predicate.Region
+}
+
+var _ ent.Mutation = (*RegionMutation)(nil)
+
+// regionOption allows management of the mutation configuration using functional options.
+type regionOption func(*RegionMutation)
+
+// newRegionMutation creates new mutation for the Region entity.
+func newRegionMutation(c config, op Op, opts ...regionOption) *RegionMutation {
+	m := &RegionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRegion,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRegionID sets the ID field of the mutation.
+func withRegionID(id uuid.UUID) regionOption {
+	return func(m *RegionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Region
+		)
+		m.oldValue = func(ctx context.Context) (*Region, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Region.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRegion sets the old Region of the mutation.
+func withRegion(node *Region) regionOption {
+	return func(m *RegionMutation) {
+		m.oldValue = func(context.Context) (*Region, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RegionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RegionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Region entities.
+func (m *RegionMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RegionMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RegionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Region.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *RegionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *RegionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Region entity.
+// If the Region object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RegionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *RegionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *RegionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *RegionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Region entity.
+// If the Region object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RegionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *RegionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetName sets the "name" field.
+func (m *RegionMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *RegionMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Region entity.
+// If the Region object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RegionMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *RegionMutation) ResetName() {
+	m.name = nil
+}
+
+// SetCountryID sets the "country_id" field.
+func (m *RegionMutation) SetCountryID(u uuid.UUID) {
+	m.country = &u
+}
+
+// CountryID returns the value of the "country_id" field in the mutation.
+func (m *RegionMutation) CountryID() (r uuid.UUID, exists bool) {
+	v := m.country
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryID returns the old "country_id" field's value of the Region entity.
+// If the Region object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RegionMutation) OldCountryID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryID: %w", err)
+	}
+	return oldValue.CountryID, nil
+}
+
+// ResetCountryID resets all changes to the "country_id" field.
+func (m *RegionMutation) ResetCountryID() {
+	m.country = nil
+}
+
+// ClearCountry clears the "country" edge to the Country entity.
+func (m *RegionMutation) ClearCountry() {
+	m.clearedcountry = true
+	m.clearedFields[region.FieldCountryID] = struct{}{}
+}
+
+// CountryCleared reports if the "country" edge to the Country entity was cleared.
+func (m *RegionMutation) CountryCleared() bool {
+	return m.clearedcountry
+}
+
+// CountryIDs returns the "country" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CountryID instead. It exists only for internal usage by the builders.
+func (m *RegionMutation) CountryIDs() (ids []uuid.UUID) {
+	if id := m.country; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCountry resets all changes to the "country" edge.
+func (m *RegionMutation) ResetCountry() {
+	m.country = nil
+	m.clearedcountry = false
+}
+
+// AddCityIDs adds the "cities" edge to the City entity by ids.
+func (m *RegionMutation) AddCityIDs(ids ...uuid.UUID) {
+	if m.cities == nil {
+		m.cities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.cities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCities clears the "cities" edge to the City entity.
+func (m *RegionMutation) ClearCities() {
+	m.clearedcities = true
+}
+
+// CitiesCleared reports if the "cities" edge to the City entity was cleared.
+func (m *RegionMutation) CitiesCleared() bool {
+	return m.clearedcities
+}
+
+// RemoveCityIDs removes the "cities" edge to the City entity by IDs.
+func (m *RegionMutation) RemoveCityIDs(ids ...uuid.UUID) {
+	if m.removedcities == nil {
+		m.removedcities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.cities, ids[i])
+		m.removedcities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCities returns the removed IDs of the "cities" edge to the City entity.
+func (m *RegionMutation) RemovedCitiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CitiesIDs returns the "cities" edge IDs in the mutation.
+func (m *RegionMutation) CitiesIDs() (ids []uuid.UUID) {
+	for id := range m.cities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCities resets all changes to the "cities" edge.
+func (m *RegionMutation) ResetCities() {
+	m.cities = nil
+	m.clearedcities = false
+	m.removedcities = nil
+}
+
+// Where appends a list predicates to the RegionMutation builder.
+func (m *RegionMutation) Where(ps ...predicate.Region) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the RegionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RegionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Region, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *RegionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RegionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Region).
+func (m *RegionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RegionMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, region.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, region.FieldUpdatedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, region.FieldName)
+	}
+	if m.country != nil {
+		fields = append(fields, region.FieldCountryID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RegionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case region.FieldCreatedAt:
+		return m.CreatedAt()
+	case region.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case region.FieldName:
+		return m.Name()
+	case region.FieldCountryID:
+		return m.CountryID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RegionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case region.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case region.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case region.FieldName:
+		return m.OldName(ctx)
+	case region.FieldCountryID:
+		return m.OldCountryID(ctx)
+	}
+	return nil, fmt.Errorf("unknown Region field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RegionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case region.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case region.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case region.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case region.FieldCountryID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Region field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RegionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RegionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RegionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Region numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RegionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RegionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RegionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Region nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RegionMutation) ResetField(name string) error {
+	switch name {
+	case region.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case region.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case region.FieldName:
+		m.ResetName()
+		return nil
+	case region.FieldCountryID:
+		m.ResetCountryID()
+		return nil
+	}
+	return fmt.Errorf("unknown Region field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RegionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.country != nil {
+		edges = append(edges, region.EdgeCountry)
+	}
+	if m.cities != nil {
+		edges = append(edges, region.EdgeCities)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RegionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case region.EdgeCountry:
+		if id := m.country; id != nil {
+			return []ent.Value{*id}
+		}
+	case region.EdgeCities:
+		ids := make([]ent.Value, 0, len(m.cities))
+		for id := range m.cities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RegionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedcities != nil {
+		edges = append(edges, region.EdgeCities)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RegionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case region.EdgeCities:
+		ids := make([]ent.Value, 0, len(m.removedcities))
+		for id := range m.removedcities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RegionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedcountry {
+		edges = append(edges, region.EdgeCountry)
+	}
+	if m.clearedcities {
+		edges = append(edges, region.EdgeCities)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RegionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case region.EdgeCountry:
+		return m.clearedcountry
+	case region.EdgeCities:
+		return m.clearedcities
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RegionMutation) ClearEdge(name string) error {
+	switch name {
+	case region.EdgeCountry:
+		m.ClearCountry()
+		return nil
+	}
+	return fmt.Errorf("unknown Region unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RegionMutation) ResetEdge(name string) error {
+	switch name {
+	case region.EdgeCountry:
+		m.ResetCountry()
+		return nil
+	case region.EdgeCities:
+		m.ResetCities()
+		return nil
+	}
+	return fmt.Errorf("unknown Region edge %s", name)
+}
+
 // ReplyMutation represents an operation that mutates the Reply nodes in the graph.
 type ReplyMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	created_at       *time.Time
-	updated_at       *time.Time
-	text             *string
-	slug             *string
-	clearedFields    map[string]struct{}
-	reactions        map[uuid.UUID]struct{}
-	removedreactions map[uuid.UUID]struct{}
-	clearedreactions bool
-	author           *uuid.UUID
-	clearedauthor    bool
-	comment          *uuid.UUID
-	clearedcomment   bool
-	done             bool
-	oldValue         func(context.Context) (*Reply, error)
-	predicates       []predicate.Reply
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	created_at           *time.Time
+	updated_at           *time.Time
+	text                 *string
+	slug                 *string
+	clearedFields        map[string]struct{}
+	reactions            map[uuid.UUID]struct{}
+	removedreactions     map[uuid.UUID]struct{}
+	clearedreactions     bool
+	author               *uuid.UUID
+	clearedauthor        bool
+	comment              *uuid.UUID
+	clearedcomment       bool
+	notifications        map[uuid.UUID]struct{}
+	removednotifications map[uuid.UUID]struct{}
+	clearednotifications bool
+	done                 bool
+	oldValue             func(context.Context) (*Reply, error)
+	predicates           []predicate.Reply
 }
 
 var _ ent.Mutation = (*ReplyMutation)(nil)
@@ -4898,6 +8397,60 @@ func (m *ReplyMutation) ResetComment() {
 	m.clearedcomment = false
 }
 
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by ids.
+func (m *ReplyMutation) AddNotificationIDs(ids ...uuid.UUID) {
+	if m.notifications == nil {
+		m.notifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.notifications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNotifications clears the "notifications" edge to the Notification entity.
+func (m *ReplyMutation) ClearNotifications() {
+	m.clearednotifications = true
+}
+
+// NotificationsCleared reports if the "notifications" edge to the Notification entity was cleared.
+func (m *ReplyMutation) NotificationsCleared() bool {
+	return m.clearednotifications
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to the Notification entity by IDs.
+func (m *ReplyMutation) RemoveNotificationIDs(ids ...uuid.UUID) {
+	if m.removednotifications == nil {
+		m.removednotifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.notifications, ids[i])
+		m.removednotifications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNotifications returns the removed IDs of the "notifications" edge to the Notification entity.
+func (m *ReplyMutation) RemovedNotificationsIDs() (ids []uuid.UUID) {
+	for id := range m.removednotifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NotificationsIDs returns the "notifications" edge IDs in the mutation.
+func (m *ReplyMutation) NotificationsIDs() (ids []uuid.UUID) {
+	for id := range m.notifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNotifications resets all changes to the "notifications" edge.
+func (m *ReplyMutation) ResetNotifications() {
+	m.notifications = nil
+	m.clearednotifications = false
+	m.removednotifications = nil
+}
+
 // Where appends a list predicates to the ReplyMutation builder.
 func (m *ReplyMutation) Where(ps ...predicate.Reply) {
 	m.predicates = append(m.predicates, ps...)
@@ -5116,7 +8669,7 @@ func (m *ReplyMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ReplyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.reactions != nil {
 		edges = append(edges, reply.EdgeReactions)
 	}
@@ -5125,6 +8678,9 @@ func (m *ReplyMutation) AddedEdges() []string {
 	}
 	if m.comment != nil {
 		edges = append(edges, reply.EdgeComment)
+	}
+	if m.notifications != nil {
+		edges = append(edges, reply.EdgeNotifications)
 	}
 	return edges
 }
@@ -5147,15 +8703,24 @@ func (m *ReplyMutation) AddedIDs(name string) []ent.Value {
 		if id := m.comment; id != nil {
 			return []ent.Value{*id}
 		}
+	case reply.EdgeNotifications:
+		ids := make([]ent.Value, 0, len(m.notifications))
+		for id := range m.notifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ReplyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedreactions != nil {
 		edges = append(edges, reply.EdgeReactions)
+	}
+	if m.removednotifications != nil {
+		edges = append(edges, reply.EdgeNotifications)
 	}
 	return edges
 }
@@ -5170,13 +8735,19 @@ func (m *ReplyMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case reply.EdgeNotifications:
+		ids := make([]ent.Value, 0, len(m.removednotifications))
+		for id := range m.removednotifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ReplyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedreactions {
 		edges = append(edges, reply.EdgeReactions)
 	}
@@ -5185,6 +8756,9 @@ func (m *ReplyMutation) ClearedEdges() []string {
 	}
 	if m.clearedcomment {
 		edges = append(edges, reply.EdgeComment)
+	}
+	if m.clearednotifications {
+		edges = append(edges, reply.EdgeNotifications)
 	}
 	return edges
 }
@@ -5199,6 +8773,8 @@ func (m *ReplyMutation) EdgeCleared(name string) bool {
 		return m.clearedauthor
 	case reply.EdgeComment:
 		return m.clearedcomment
+	case reply.EdgeNotifications:
+		return m.clearednotifications
 	}
 	return false
 }
@@ -5229,6 +8805,9 @@ func (m *ReplyMutation) ResetEdge(name string) error {
 		return nil
 	case reply.EdgeComment:
 		m.ResetComment()
+		return nil
+	case reply.EdgeNotifications:
+		m.ResetNotifications()
 		return nil
 	}
 	return fmt.Errorf("unknown Reply edge %s", name)
@@ -6055,46 +9634,61 @@ func (m *SiteDetailMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *uuid.UUID
-	created_at        *time.Time
-	updated_at        *time.Time
-	first_name        *string
-	last_name         *string
-	username          *string
-	email             *string
-	password          *string
-	terms_agreement   *bool
-	is_email_verified *bool
-	is_staff          *bool
-	is_active         *bool
-	bio               *string
-	dob               *time.Time
-	access            *string
-	refresh           *string
-	clearedFields     map[string]struct{}
-	city              *uuid.UUID
-	clearedcity       bool
-	avatar            *uuid.UUID
-	clearedavatar     bool
-	otp               *uuid.UUID
-	clearedotp        bool
-	posts             map[uuid.UUID]struct{}
-	removedposts      map[uuid.UUID]struct{}
-	clearedposts      bool
-	reactions         map[uuid.UUID]struct{}
-	removedreactions  map[uuid.UUID]struct{}
-	clearedreactions  bool
-	comments          map[uuid.UUID]struct{}
-	removedcomments   map[uuid.UUID]struct{}
-	clearedcomments   bool
-	replies           map[uuid.UUID]struct{}
-	removedreplies    map[uuid.UUID]struct{}
-	clearedreplies    bool
-	done              bool
-	oldValue          func(context.Context) (*User, error)
-	predicates        []predicate.User
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	first_name                *string
+	last_name                 *string
+	username                  *string
+	email                     *string
+	password                  *string
+	terms_agreement           *bool
+	is_email_verified         *bool
+	is_staff                  *bool
+	is_active                 *bool
+	bio                       *string
+	dob                       *time.Time
+	access                    *string
+	refresh                   *string
+	clearedFields             map[string]struct{}
+	city                      *uuid.UUID
+	clearedcity               bool
+	avatar                    *uuid.UUID
+	clearedavatar             bool
+	otp                       *uuid.UUID
+	clearedotp                bool
+	posts                     map[uuid.UUID]struct{}
+	removedposts              map[uuid.UUID]struct{}
+	clearedposts              bool
+	reactions                 map[uuid.UUID]struct{}
+	removedreactions          map[uuid.UUID]struct{}
+	clearedreactions          bool
+	comments                  map[uuid.UUID]struct{}
+	removedcomments           map[uuid.UUID]struct{}
+	clearedcomments           bool
+	replies                   map[uuid.UUID]struct{}
+	removedreplies            map[uuid.UUID]struct{}
+	clearedreplies            bool
+	requester_friends         map[uuid.UUID]struct{}
+	removedrequester_friends  map[uuid.UUID]struct{}
+	clearedrequester_friends  bool
+	requestee_friends         map[uuid.UUID]struct{}
+	removedrequestee_friends  map[uuid.UUID]struct{}
+	clearedrequestee_friends  bool
+	notifications_from        map[uuid.UUID]struct{}
+	removednotifications_from map[uuid.UUID]struct{}
+	clearednotifications_from bool
+	notifications             map[uuid.UUID]struct{}
+	removednotifications      map[uuid.UUID]struct{}
+	clearednotifications      bool
+	notifications_read        map[uuid.UUID]struct{}
+	removednotifications_read map[uuid.UUID]struct{}
+	clearednotifications_read bool
+	done                      bool
+	oldValue                  func(context.Context) (*User, error)
+	predicates                []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -7200,6 +10794,276 @@ func (m *UserMutation) ResetReplies() {
 	m.removedreplies = nil
 }
 
+// AddRequesterFriendIDs adds the "requester_friends" edge to the Friend entity by ids.
+func (m *UserMutation) AddRequesterFriendIDs(ids ...uuid.UUID) {
+	if m.requester_friends == nil {
+		m.requester_friends = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.requester_friends[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRequesterFriends clears the "requester_friends" edge to the Friend entity.
+func (m *UserMutation) ClearRequesterFriends() {
+	m.clearedrequester_friends = true
+}
+
+// RequesterFriendsCleared reports if the "requester_friends" edge to the Friend entity was cleared.
+func (m *UserMutation) RequesterFriendsCleared() bool {
+	return m.clearedrequester_friends
+}
+
+// RemoveRequesterFriendIDs removes the "requester_friends" edge to the Friend entity by IDs.
+func (m *UserMutation) RemoveRequesterFriendIDs(ids ...uuid.UUID) {
+	if m.removedrequester_friends == nil {
+		m.removedrequester_friends = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.requester_friends, ids[i])
+		m.removedrequester_friends[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRequesterFriends returns the removed IDs of the "requester_friends" edge to the Friend entity.
+func (m *UserMutation) RemovedRequesterFriendsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrequester_friends {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RequesterFriendsIDs returns the "requester_friends" edge IDs in the mutation.
+func (m *UserMutation) RequesterFriendsIDs() (ids []uuid.UUID) {
+	for id := range m.requester_friends {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRequesterFriends resets all changes to the "requester_friends" edge.
+func (m *UserMutation) ResetRequesterFriends() {
+	m.requester_friends = nil
+	m.clearedrequester_friends = false
+	m.removedrequester_friends = nil
+}
+
+// AddRequesteeFriendIDs adds the "requestee_friends" edge to the Friend entity by ids.
+func (m *UserMutation) AddRequesteeFriendIDs(ids ...uuid.UUID) {
+	if m.requestee_friends == nil {
+		m.requestee_friends = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.requestee_friends[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRequesteeFriends clears the "requestee_friends" edge to the Friend entity.
+func (m *UserMutation) ClearRequesteeFriends() {
+	m.clearedrequestee_friends = true
+}
+
+// RequesteeFriendsCleared reports if the "requestee_friends" edge to the Friend entity was cleared.
+func (m *UserMutation) RequesteeFriendsCleared() bool {
+	return m.clearedrequestee_friends
+}
+
+// RemoveRequesteeFriendIDs removes the "requestee_friends" edge to the Friend entity by IDs.
+func (m *UserMutation) RemoveRequesteeFriendIDs(ids ...uuid.UUID) {
+	if m.removedrequestee_friends == nil {
+		m.removedrequestee_friends = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.requestee_friends, ids[i])
+		m.removedrequestee_friends[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRequesteeFriends returns the removed IDs of the "requestee_friends" edge to the Friend entity.
+func (m *UserMutation) RemovedRequesteeFriendsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrequestee_friends {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RequesteeFriendsIDs returns the "requestee_friends" edge IDs in the mutation.
+func (m *UserMutation) RequesteeFriendsIDs() (ids []uuid.UUID) {
+	for id := range m.requestee_friends {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRequesteeFriends resets all changes to the "requestee_friends" edge.
+func (m *UserMutation) ResetRequesteeFriends() {
+	m.requestee_friends = nil
+	m.clearedrequestee_friends = false
+	m.removedrequestee_friends = nil
+}
+
+// AddNotificationsFromIDs adds the "notifications_from" edge to the Notification entity by ids.
+func (m *UserMutation) AddNotificationsFromIDs(ids ...uuid.UUID) {
+	if m.notifications_from == nil {
+		m.notifications_from = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.notifications_from[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNotificationsFrom clears the "notifications_from" edge to the Notification entity.
+func (m *UserMutation) ClearNotificationsFrom() {
+	m.clearednotifications_from = true
+}
+
+// NotificationsFromCleared reports if the "notifications_from" edge to the Notification entity was cleared.
+func (m *UserMutation) NotificationsFromCleared() bool {
+	return m.clearednotifications_from
+}
+
+// RemoveNotificationsFromIDs removes the "notifications_from" edge to the Notification entity by IDs.
+func (m *UserMutation) RemoveNotificationsFromIDs(ids ...uuid.UUID) {
+	if m.removednotifications_from == nil {
+		m.removednotifications_from = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.notifications_from, ids[i])
+		m.removednotifications_from[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNotificationsFrom returns the removed IDs of the "notifications_from" edge to the Notification entity.
+func (m *UserMutation) RemovedNotificationsFromIDs() (ids []uuid.UUID) {
+	for id := range m.removednotifications_from {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NotificationsFromIDs returns the "notifications_from" edge IDs in the mutation.
+func (m *UserMutation) NotificationsFromIDs() (ids []uuid.UUID) {
+	for id := range m.notifications_from {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNotificationsFrom resets all changes to the "notifications_from" edge.
+func (m *UserMutation) ResetNotificationsFrom() {
+	m.notifications_from = nil
+	m.clearednotifications_from = false
+	m.removednotifications_from = nil
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by ids.
+func (m *UserMutation) AddNotificationIDs(ids ...uuid.UUID) {
+	if m.notifications == nil {
+		m.notifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.notifications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNotifications clears the "notifications" edge to the Notification entity.
+func (m *UserMutation) ClearNotifications() {
+	m.clearednotifications = true
+}
+
+// NotificationsCleared reports if the "notifications" edge to the Notification entity was cleared.
+func (m *UserMutation) NotificationsCleared() bool {
+	return m.clearednotifications
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to the Notification entity by IDs.
+func (m *UserMutation) RemoveNotificationIDs(ids ...uuid.UUID) {
+	if m.removednotifications == nil {
+		m.removednotifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.notifications, ids[i])
+		m.removednotifications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNotifications returns the removed IDs of the "notifications" edge to the Notification entity.
+func (m *UserMutation) RemovedNotificationsIDs() (ids []uuid.UUID) {
+	for id := range m.removednotifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NotificationsIDs returns the "notifications" edge IDs in the mutation.
+func (m *UserMutation) NotificationsIDs() (ids []uuid.UUID) {
+	for id := range m.notifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNotifications resets all changes to the "notifications" edge.
+func (m *UserMutation) ResetNotifications() {
+	m.notifications = nil
+	m.clearednotifications = false
+	m.removednotifications = nil
+}
+
+// AddNotificationsReadIDs adds the "notifications_read" edge to the Notification entity by ids.
+func (m *UserMutation) AddNotificationsReadIDs(ids ...uuid.UUID) {
+	if m.notifications_read == nil {
+		m.notifications_read = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.notifications_read[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNotificationsRead clears the "notifications_read" edge to the Notification entity.
+func (m *UserMutation) ClearNotificationsRead() {
+	m.clearednotifications_read = true
+}
+
+// NotificationsReadCleared reports if the "notifications_read" edge to the Notification entity was cleared.
+func (m *UserMutation) NotificationsReadCleared() bool {
+	return m.clearednotifications_read
+}
+
+// RemoveNotificationsReadIDs removes the "notifications_read" edge to the Notification entity by IDs.
+func (m *UserMutation) RemoveNotificationsReadIDs(ids ...uuid.UUID) {
+	if m.removednotifications_read == nil {
+		m.removednotifications_read = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.notifications_read, ids[i])
+		m.removednotifications_read[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNotificationsRead returns the removed IDs of the "notifications_read" edge to the Notification entity.
+func (m *UserMutation) RemovedNotificationsReadIDs() (ids []uuid.UUID) {
+	for id := range m.removednotifications_read {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NotificationsReadIDs returns the "notifications_read" edge IDs in the mutation.
+func (m *UserMutation) NotificationsReadIDs() (ids []uuid.UUID) {
+	for id := range m.notifications_read {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNotificationsRead resets all changes to the "notifications_read" edge.
+func (m *UserMutation) ResetNotificationsRead() {
+	m.notifications_read = nil
+	m.clearednotifications_read = false
+	m.removednotifications_read = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -7644,7 +11508,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 12)
 	if m.city != nil {
 		edges = append(edges, user.EdgeCity)
 	}
@@ -7665,6 +11529,21 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.replies != nil {
 		edges = append(edges, user.EdgeReplies)
+	}
+	if m.requester_friends != nil {
+		edges = append(edges, user.EdgeRequesterFriends)
+	}
+	if m.requestee_friends != nil {
+		edges = append(edges, user.EdgeRequesteeFriends)
+	}
+	if m.notifications_from != nil {
+		edges = append(edges, user.EdgeNotificationsFrom)
+	}
+	if m.notifications != nil {
+		edges = append(edges, user.EdgeNotifications)
+	}
+	if m.notifications_read != nil {
+		edges = append(edges, user.EdgeNotificationsRead)
 	}
 	return edges
 }
@@ -7709,13 +11588,43 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeRequesterFriends:
+		ids := make([]ent.Value, 0, len(m.requester_friends))
+		for id := range m.requester_friends {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeRequesteeFriends:
+		ids := make([]ent.Value, 0, len(m.requestee_friends))
+		for id := range m.requestee_friends {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNotificationsFrom:
+		ids := make([]ent.Value, 0, len(m.notifications_from))
+		for id := range m.notifications_from {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNotifications:
+		ids := make([]ent.Value, 0, len(m.notifications))
+		for id := range m.notifications {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNotificationsRead:
+		ids := make([]ent.Value, 0, len(m.notifications_read))
+		for id := range m.notifications_read {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 12)
 	if m.removedposts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -7727,6 +11636,21 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedreplies != nil {
 		edges = append(edges, user.EdgeReplies)
+	}
+	if m.removedrequester_friends != nil {
+		edges = append(edges, user.EdgeRequesterFriends)
+	}
+	if m.removedrequestee_friends != nil {
+		edges = append(edges, user.EdgeRequesteeFriends)
+	}
+	if m.removednotifications_from != nil {
+		edges = append(edges, user.EdgeNotificationsFrom)
+	}
+	if m.removednotifications != nil {
+		edges = append(edges, user.EdgeNotifications)
+	}
+	if m.removednotifications_read != nil {
+		edges = append(edges, user.EdgeNotificationsRead)
 	}
 	return edges
 }
@@ -7759,13 +11683,43 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeRequesterFriends:
+		ids := make([]ent.Value, 0, len(m.removedrequester_friends))
+		for id := range m.removedrequester_friends {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeRequesteeFriends:
+		ids := make([]ent.Value, 0, len(m.removedrequestee_friends))
+		for id := range m.removedrequestee_friends {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNotificationsFrom:
+		ids := make([]ent.Value, 0, len(m.removednotifications_from))
+		for id := range m.removednotifications_from {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNotifications:
+		ids := make([]ent.Value, 0, len(m.removednotifications))
+		for id := range m.removednotifications {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNotificationsRead:
+		ids := make([]ent.Value, 0, len(m.removednotifications_read))
+		for id := range m.removednotifications_read {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 12)
 	if m.clearedcity {
 		edges = append(edges, user.EdgeCity)
 	}
@@ -7786,6 +11740,21 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedreplies {
 		edges = append(edges, user.EdgeReplies)
+	}
+	if m.clearedrequester_friends {
+		edges = append(edges, user.EdgeRequesterFriends)
+	}
+	if m.clearedrequestee_friends {
+		edges = append(edges, user.EdgeRequesteeFriends)
+	}
+	if m.clearednotifications_from {
+		edges = append(edges, user.EdgeNotificationsFrom)
+	}
+	if m.clearednotifications {
+		edges = append(edges, user.EdgeNotifications)
+	}
+	if m.clearednotifications_read {
+		edges = append(edges, user.EdgeNotificationsRead)
 	}
 	return edges
 }
@@ -7808,6 +11777,16 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcomments
 	case user.EdgeReplies:
 		return m.clearedreplies
+	case user.EdgeRequesterFriends:
+		return m.clearedrequester_friends
+	case user.EdgeRequesteeFriends:
+		return m.clearedrequestee_friends
+	case user.EdgeNotificationsFrom:
+		return m.clearednotifications_from
+	case user.EdgeNotifications:
+		return m.clearednotifications
+	case user.EdgeNotificationsRead:
+		return m.clearednotifications_read
 	}
 	return false
 }
@@ -7853,6 +11832,21 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeReplies:
 		m.ResetReplies()
+		return nil
+	case user.EdgeRequesterFriends:
+		m.ResetRequesterFriends()
+		return nil
+	case user.EdgeRequesteeFriends:
+		m.ResetRequesteeFriends()
+		return nil
+	case user.EdgeNotificationsFrom:
+		m.ResetNotificationsFrom()
+		return nil
+	case user.EdgeNotifications:
+		m.ResetNotifications()
+		return nil
+	case user.EdgeNotificationsRead:
+		m.ResetNotificationsRead()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

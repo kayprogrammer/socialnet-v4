@@ -42,6 +42,7 @@ func (Post) Edges() []ent.Edge {
 		edge.From("author", User.Type).Ref("posts").Field("author_id").Required().Unique().Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.From("image", File.Type).Ref("posts").Field("image_id").Unique().Annotations(entsql.OnDelete(entsql.SetNull)),
 		edge.To("comments", Comment.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("notifications", Notification.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	)
 }
 
@@ -67,6 +68,7 @@ func (Comment) Edges() []ent.Edge {
 		edge.From("author", User.Type).Ref("comments").Field("author_id").Required().Unique(),
 		edge.From("post", Post.Type).Ref("comments").Field("post_id").Required().Unique(),
 		edge.To("replies", Reply.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("notifications", Notification.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	)
 }
 
@@ -91,6 +93,7 @@ func (Reply) Edges() []ent.Edge {
 		CommonFeedEdges,
 		edge.From("author", User.Type).Ref("replies").Field("author_id").Required().Unique(),
 		edge.From("comment", Comment.Type).Ref("replies").Field("comment_id").Required().Unique(),
+		edge.To("notifications", Notification.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	)
 }
 

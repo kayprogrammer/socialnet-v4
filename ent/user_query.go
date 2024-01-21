@@ -15,6 +15,8 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
@@ -26,17 +28,22 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx           *QueryContext
-	order         []user.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.User
-	withCity      *CityQuery
-	withAvatar    *FileQuery
-	withOtp       *OtpQuery
-	withPosts     *PostQuery
-	withReactions *ReactionQuery
-	withComments  *CommentQuery
-	withReplies   *ReplyQuery
+	ctx                   *QueryContext
+	order                 []user.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.User
+	withCity              *CityQuery
+	withAvatar            *FileQuery
+	withOtp               *OtpQuery
+	withPosts             *PostQuery
+	withReactions         *ReactionQuery
+	withComments          *CommentQuery
+	withReplies           *ReplyQuery
+	withRequesterFriends  *FriendQuery
+	withRequesteeFriends  *FriendQuery
+	withNotificationsFrom *NotificationQuery
+	withNotifications     *NotificationQuery
+	withNotificationsRead *NotificationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -220,6 +227,116 @@ func (uq *UserQuery) QueryReplies() *ReplyQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(reply.Table, reply.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.RepliesTable, user.RepliesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRequesterFriends chains the current query on the "requester_friends" edge.
+func (uq *UserQuery) QueryRequesterFriends() *FriendQuery {
+	query := (&FriendClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(friend.Table, friend.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RequesterFriendsTable, user.RequesterFriendsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRequesteeFriends chains the current query on the "requestee_friends" edge.
+func (uq *UserQuery) QueryRequesteeFriends() *FriendQuery {
+	query := (&FriendClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(friend.Table, friend.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RequesteeFriendsTable, user.RequesteeFriendsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotificationsFrom chains the current query on the "notifications_from" edge.
+func (uq *UserQuery) QueryNotificationsFrom() *NotificationQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NotificationsFromTable, user.NotificationsFromColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotifications chains the current query on the "notifications" edge.
+func (uq *UserQuery) QueryNotifications() *NotificationQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.NotificationsTable, user.NotificationsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotificationsRead chains the current query on the "notifications_read" edge.
+func (uq *UserQuery) QueryNotificationsRead() *NotificationQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.NotificationsReadTable, user.NotificationsReadPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -414,18 +531,23 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:        uq.config,
-		ctx:           uq.ctx.Clone(),
-		order:         append([]user.OrderOption{}, uq.order...),
-		inters:        append([]Interceptor{}, uq.inters...),
-		predicates:    append([]predicate.User{}, uq.predicates...),
-		withCity:      uq.withCity.Clone(),
-		withAvatar:    uq.withAvatar.Clone(),
-		withOtp:       uq.withOtp.Clone(),
-		withPosts:     uq.withPosts.Clone(),
-		withReactions: uq.withReactions.Clone(),
-		withComments:  uq.withComments.Clone(),
-		withReplies:   uq.withReplies.Clone(),
+		config:                uq.config,
+		ctx:                   uq.ctx.Clone(),
+		order:                 append([]user.OrderOption{}, uq.order...),
+		inters:                append([]Interceptor{}, uq.inters...),
+		predicates:            append([]predicate.User{}, uq.predicates...),
+		withCity:              uq.withCity.Clone(),
+		withAvatar:            uq.withAvatar.Clone(),
+		withOtp:               uq.withOtp.Clone(),
+		withPosts:             uq.withPosts.Clone(),
+		withReactions:         uq.withReactions.Clone(),
+		withComments:          uq.withComments.Clone(),
+		withReplies:           uq.withReplies.Clone(),
+		withRequesterFriends:  uq.withRequesterFriends.Clone(),
+		withRequesteeFriends:  uq.withRequesteeFriends.Clone(),
+		withNotificationsFrom: uq.withNotificationsFrom.Clone(),
+		withNotifications:     uq.withNotifications.Clone(),
+		withNotificationsRead: uq.withNotificationsRead.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -509,6 +631,61 @@ func (uq *UserQuery) WithReplies(opts ...func(*ReplyQuery)) *UserQuery {
 	return uq
 }
 
+// WithRequesterFriends tells the query-builder to eager-load the nodes that are connected to
+// the "requester_friends" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithRequesterFriends(opts ...func(*FriendQuery)) *UserQuery {
+	query := (&FriendClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withRequesterFriends = query
+	return uq
+}
+
+// WithRequesteeFriends tells the query-builder to eager-load the nodes that are connected to
+// the "requestee_friends" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithRequesteeFriends(opts ...func(*FriendQuery)) *UserQuery {
+	query := (&FriendClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withRequesteeFriends = query
+	return uq
+}
+
+// WithNotificationsFrom tells the query-builder to eager-load the nodes that are connected to
+// the "notifications_from" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNotificationsFrom(opts ...func(*NotificationQuery)) *UserQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withNotificationsFrom = query
+	return uq
+}
+
+// WithNotifications tells the query-builder to eager-load the nodes that are connected to
+// the "notifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNotifications(opts ...func(*NotificationQuery)) *UserQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withNotifications = query
+	return uq
+}
+
+// WithNotificationsRead tells the query-builder to eager-load the nodes that are connected to
+// the "notifications_read" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNotificationsRead(opts ...func(*NotificationQuery)) *UserQuery {
+	query := (&NotificationClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withNotificationsRead = query
+	return uq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -587,7 +764,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [12]bool{
 			uq.withCity != nil,
 			uq.withAvatar != nil,
 			uq.withOtp != nil,
@@ -595,6 +772,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withReactions != nil,
 			uq.withComments != nil,
 			uq.withReplies != nil,
+			uq.withRequesterFriends != nil,
+			uq.withRequesteeFriends != nil,
+			uq.withNotificationsFrom != nil,
+			uq.withNotifications != nil,
+			uq.withNotificationsRead != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -658,6 +840,41 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadReplies(ctx, query, nodes,
 			func(n *User) { n.Edges.Replies = []*Reply{} },
 			func(n *User, e *Reply) { n.Edges.Replies = append(n.Edges.Replies, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withRequesterFriends; query != nil {
+		if err := uq.loadRequesterFriends(ctx, query, nodes,
+			func(n *User) { n.Edges.RequesterFriends = []*Friend{} },
+			func(n *User, e *Friend) { n.Edges.RequesterFriends = append(n.Edges.RequesterFriends, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withRequesteeFriends; query != nil {
+		if err := uq.loadRequesteeFriends(ctx, query, nodes,
+			func(n *User) { n.Edges.RequesteeFriends = []*Friend{} },
+			func(n *User, e *Friend) { n.Edges.RequesteeFriends = append(n.Edges.RequesteeFriends, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withNotificationsFrom; query != nil {
+		if err := uq.loadNotificationsFrom(ctx, query, nodes,
+			func(n *User) { n.Edges.NotificationsFrom = []*Notification{} },
+			func(n *User, e *Notification) { n.Edges.NotificationsFrom = append(n.Edges.NotificationsFrom, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withNotifications; query != nil {
+		if err := uq.loadNotifications(ctx, query, nodes,
+			func(n *User) { n.Edges.Notifications = []*Notification{} },
+			func(n *User, e *Notification) { n.Edges.Notifications = append(n.Edges.Notifications, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withNotificationsRead; query != nil {
+		if err := uq.loadNotificationsRead(ctx, query, nodes,
+			func(n *User) { n.Edges.NotificationsRead = []*Notification{} },
+			func(n *User, e *Notification) { n.Edges.NotificationsRead = append(n.Edges.NotificationsRead, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -872,6 +1089,218 @@ func (uq *UserQuery) loadReplies(ctx context.Context, query *ReplyQuery, nodes [
 			return fmt.Errorf(`unexpected referenced foreign-key "author_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadRequesterFriends(ctx context.Context, query *FriendQuery, nodes []*User, init func(*User), assign func(*User, *Friend)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(friend.FieldRequesterID)
+	}
+	query.Where(predicate.Friend(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RequesterFriendsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RequesterID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "requester_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadRequesteeFriends(ctx context.Context, query *FriendQuery, nodes []*User, init func(*User), assign func(*User, *Friend)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(friend.FieldRequesteeID)
+	}
+	query.Where(predicate.Friend(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RequesteeFriendsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RequesteeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "requestee_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadNotificationsFrom(ctx context.Context, query *NotificationQuery, nodes []*User, init func(*User), assign func(*User, *Notification)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(notification.FieldSenderID)
+	}
+	query.Where(predicate.Notification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.NotificationsFromColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SenderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "sender_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadNotifications(ctx context.Context, query *NotificationQuery, nodes []*User, init func(*User), assign func(*User, *Notification)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*User)
+	nids := make(map[uuid.UUID]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.NotificationsTable)
+		s.Join(joinT).On(s.C(notification.FieldID), joinT.C(user.NotificationsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.NotificationsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.NotificationsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Notification](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "notifications" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadNotificationsRead(ctx context.Context, query *NotificationQuery, nodes []*User, init func(*User), assign func(*User, *Notification)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*User)
+	nids := make(map[uuid.UUID]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.NotificationsReadTable)
+		s.Join(joinT).On(s.C(notification.FieldID), joinT.C(user.NotificationsReadPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.NotificationsReadPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.NotificationsReadPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Notification](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "notifications_read" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

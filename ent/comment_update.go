@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
@@ -149,6 +150,21 @@ func (cu *CommentUpdate) AddReplies(r ...*Reply) *CommentUpdate {
 	return cu.AddReplyIDs(ids...)
 }
 
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (cu *CommentUpdate) AddNotificationIDs(ids ...uuid.UUID) *CommentUpdate {
+	cu.mutation.AddNotificationIDs(ids...)
+	return cu
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (cu *CommentUpdate) AddNotifications(n ...*Notification) *CommentUpdate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return cu.AddNotificationIDs(ids...)
+}
+
 // Mutation returns the CommentMutation object of the builder.
 func (cu *CommentUpdate) Mutation() *CommentMutation {
 	return cu.mutation
@@ -206,6 +222,27 @@ func (cu *CommentUpdate) RemoveReplies(r ...*Reply) *CommentUpdate {
 		ids[i] = r[i].ID
 	}
 	return cu.RemoveReplyIDs(ids...)
+}
+
+// ClearNotifications clears all "notifications" edges to the Notification entity.
+func (cu *CommentUpdate) ClearNotifications() *CommentUpdate {
+	cu.mutation.ClearNotifications()
+	return cu
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
+func (cu *CommentUpdate) RemoveNotificationIDs(ids ...uuid.UUID) *CommentUpdate {
+	cu.mutation.RemoveNotificationIDs(ids...)
+	return cu
+}
+
+// RemoveNotifications removes "notifications" edges to Notification entities.
+func (cu *CommentUpdate) RemoveNotifications(n ...*Notification) *CommentUpdate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return cu.RemoveNotificationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -437,6 +474,51 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.NotificationsTable,
+			Columns: []string{comment.NotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !cu.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.NotificationsTable,
+			Columns: []string{comment.NotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.NotificationsTable,
+			Columns: []string{comment.NotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{comment.Label}
@@ -573,6 +655,21 @@ func (cuo *CommentUpdateOne) AddReplies(r ...*Reply) *CommentUpdateOne {
 	return cuo.AddReplyIDs(ids...)
 }
 
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (cuo *CommentUpdateOne) AddNotificationIDs(ids ...uuid.UUID) *CommentUpdateOne {
+	cuo.mutation.AddNotificationIDs(ids...)
+	return cuo
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (cuo *CommentUpdateOne) AddNotifications(n ...*Notification) *CommentUpdateOne {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return cuo.AddNotificationIDs(ids...)
+}
+
 // Mutation returns the CommentMutation object of the builder.
 func (cuo *CommentUpdateOne) Mutation() *CommentMutation {
 	return cuo.mutation
@@ -630,6 +727,27 @@ func (cuo *CommentUpdateOne) RemoveReplies(r ...*Reply) *CommentUpdateOne {
 		ids[i] = r[i].ID
 	}
 	return cuo.RemoveReplyIDs(ids...)
+}
+
+// ClearNotifications clears all "notifications" edges to the Notification entity.
+func (cuo *CommentUpdateOne) ClearNotifications() *CommentUpdateOne {
+	cuo.mutation.ClearNotifications()
+	return cuo
+}
+
+// RemoveNotificationIDs removes the "notifications" edge to Notification entities by IDs.
+func (cuo *CommentUpdateOne) RemoveNotificationIDs(ids ...uuid.UUID) *CommentUpdateOne {
+	cuo.mutation.RemoveNotificationIDs(ids...)
+	return cuo
+}
+
+// RemoveNotifications removes "notifications" edges to Notification entities.
+func (cuo *CommentUpdateOne) RemoveNotifications(n ...*Notification) *CommentUpdateOne {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return cuo.RemoveNotificationIDs(ids...)
 }
 
 // Where appends a list predicates to the CommentUpdate builder.
@@ -884,6 +1002,51 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.NotificationsTable,
+			Columns: []string{comment.NotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedNotificationsIDs(); len(nodes) > 0 && !cuo.mutation.NotificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.NotificationsTable,
+			Columns: []string{comment.NotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.NotificationsTable,
+			Columns: []string{comment.NotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

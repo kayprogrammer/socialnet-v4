@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/country"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
+	"github.com/kayprogrammer/socialnet-v4/ent/region"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
@@ -64,6 +66,50 @@ func (cu *CityUpdate) SetNillableName(s *string) *CityUpdate {
 	return cu
 }
 
+// SetRegionID sets the "region_id" field.
+func (cu *CityUpdate) SetRegionID(u uuid.UUID) *CityUpdate {
+	cu.mutation.SetRegionID(u)
+	return cu
+}
+
+// SetNillableRegionID sets the "region_id" field if the given value is not nil.
+func (cu *CityUpdate) SetNillableRegionID(u *uuid.UUID) *CityUpdate {
+	if u != nil {
+		cu.SetRegionID(*u)
+	}
+	return cu
+}
+
+// ClearRegionID clears the value of the "region_id" field.
+func (cu *CityUpdate) ClearRegionID() *CityUpdate {
+	cu.mutation.ClearRegionID()
+	return cu
+}
+
+// SetCountryID sets the "country_id" field.
+func (cu *CityUpdate) SetCountryID(u uuid.UUID) *CityUpdate {
+	cu.mutation.SetCountryID(u)
+	return cu
+}
+
+// SetNillableCountryID sets the "country_id" field if the given value is not nil.
+func (cu *CityUpdate) SetNillableCountryID(u *uuid.UUID) *CityUpdate {
+	if u != nil {
+		cu.SetCountryID(*u)
+	}
+	return cu
+}
+
+// SetRegion sets the "region" edge to the Region entity.
+func (cu *CityUpdate) SetRegion(r *Region) *CityUpdate {
+	return cu.SetRegionID(r.ID)
+}
+
+// SetCountry sets the "country" edge to the Country entity.
+func (cu *CityUpdate) SetCountry(c *Country) *CityUpdate {
+	return cu.SetCountryID(c.ID)
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (cu *CityUpdate) AddUserIDs(ids ...uuid.UUID) *CityUpdate {
 	cu.mutation.AddUserIDs(ids...)
@@ -82,6 +128,18 @@ func (cu *CityUpdate) AddUsers(u ...*User) *CityUpdate {
 // Mutation returns the CityMutation object of the builder.
 func (cu *CityUpdate) Mutation() *CityMutation {
 	return cu.mutation
+}
+
+// ClearRegion clears the "region" edge to the Region entity.
+func (cu *CityUpdate) ClearRegion() *CityUpdate {
+	cu.mutation.ClearRegion()
+	return cu
+}
+
+// ClearCountry clears the "country" edge to the Country entity.
+func (cu *CityUpdate) ClearCountry() *CityUpdate {
+	cu.mutation.ClearCountry()
+	return cu
 }
 
 // ClearUsers clears all "users" edges to the User entity.
@@ -148,6 +206,9 @@ func (cu *CityUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "City.name": %w`, err)}
 		}
 	}
+	if _, ok := cu.mutation.CountryID(); cu.mutation.CountryCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "City.country"`)
+	}
 	return nil
 }
 
@@ -171,6 +232,64 @@ func (cu *CityUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := cu.mutation.Name(); ok {
 		_spec.SetField(city.FieldName, field.TypeString, value)
+	}
+	if cu.mutation.RegionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.RegionTable,
+			Columns: []string{city.RegionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(region.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RegionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.RegionTable,
+			Columns: []string{city.RegionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(region.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.CountryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.CountryTable,
+			Columns: []string{city.CountryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(country.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CountryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.CountryTable,
+			Columns: []string{city.CountryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(country.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if cu.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -271,6 +390,50 @@ func (cuo *CityUpdateOne) SetNillableName(s *string) *CityUpdateOne {
 	return cuo
 }
 
+// SetRegionID sets the "region_id" field.
+func (cuo *CityUpdateOne) SetRegionID(u uuid.UUID) *CityUpdateOne {
+	cuo.mutation.SetRegionID(u)
+	return cuo
+}
+
+// SetNillableRegionID sets the "region_id" field if the given value is not nil.
+func (cuo *CityUpdateOne) SetNillableRegionID(u *uuid.UUID) *CityUpdateOne {
+	if u != nil {
+		cuo.SetRegionID(*u)
+	}
+	return cuo
+}
+
+// ClearRegionID clears the value of the "region_id" field.
+func (cuo *CityUpdateOne) ClearRegionID() *CityUpdateOne {
+	cuo.mutation.ClearRegionID()
+	return cuo
+}
+
+// SetCountryID sets the "country_id" field.
+func (cuo *CityUpdateOne) SetCountryID(u uuid.UUID) *CityUpdateOne {
+	cuo.mutation.SetCountryID(u)
+	return cuo
+}
+
+// SetNillableCountryID sets the "country_id" field if the given value is not nil.
+func (cuo *CityUpdateOne) SetNillableCountryID(u *uuid.UUID) *CityUpdateOne {
+	if u != nil {
+		cuo.SetCountryID(*u)
+	}
+	return cuo
+}
+
+// SetRegion sets the "region" edge to the Region entity.
+func (cuo *CityUpdateOne) SetRegion(r *Region) *CityUpdateOne {
+	return cuo.SetRegionID(r.ID)
+}
+
+// SetCountry sets the "country" edge to the Country entity.
+func (cuo *CityUpdateOne) SetCountry(c *Country) *CityUpdateOne {
+	return cuo.SetCountryID(c.ID)
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (cuo *CityUpdateOne) AddUserIDs(ids ...uuid.UUID) *CityUpdateOne {
 	cuo.mutation.AddUserIDs(ids...)
@@ -289,6 +452,18 @@ func (cuo *CityUpdateOne) AddUsers(u ...*User) *CityUpdateOne {
 // Mutation returns the CityMutation object of the builder.
 func (cuo *CityUpdateOne) Mutation() *CityMutation {
 	return cuo.mutation
+}
+
+// ClearRegion clears the "region" edge to the Region entity.
+func (cuo *CityUpdateOne) ClearRegion() *CityUpdateOne {
+	cuo.mutation.ClearRegion()
+	return cuo
+}
+
+// ClearCountry clears the "country" edge to the Country entity.
+func (cuo *CityUpdateOne) ClearCountry() *CityUpdateOne {
+	cuo.mutation.ClearCountry()
+	return cuo
 }
 
 // ClearUsers clears all "users" edges to the User entity.
@@ -368,6 +543,9 @@ func (cuo *CityUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "City.name": %w`, err)}
 		}
 	}
+	if _, ok := cuo.mutation.CountryID(); cuo.mutation.CountryCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "City.country"`)
+	}
 	return nil
 }
 
@@ -408,6 +586,64 @@ func (cuo *CityUpdateOne) sqlSave(ctx context.Context) (_node *City, err error) 
 	}
 	if value, ok := cuo.mutation.Name(); ok {
 		_spec.SetField(city.FieldName, field.TypeString, value)
+	}
+	if cuo.mutation.RegionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.RegionTable,
+			Columns: []string{city.RegionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(region.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RegionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.RegionTable,
+			Columns: []string{city.RegionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(region.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CountryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.CountryTable,
+			Columns: []string{city.CountryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(country.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CountryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   city.CountryTable,
+			Columns: []string{city.CountryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(country.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if cuo.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

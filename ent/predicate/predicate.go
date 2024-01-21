@@ -12,8 +12,17 @@ type City func(*sql.Selector)
 // Comment is the predicate function for comment builders.
 type Comment func(*sql.Selector)
 
+// Country is the predicate function for country builders.
+type Country func(*sql.Selector)
+
 // File is the predicate function for file builders.
 type File func(*sql.Selector)
+
+// Friend is the predicate function for friend builders.
+type Friend func(*sql.Selector)
+
+// Notification is the predicate function for notification builders.
+type Notification func(*sql.Selector)
 
 // Otp is the predicate function for otp builders.
 type Otp func(*sql.Selector)
@@ -23,6 +32,9 @@ type Post func(*sql.Selector)
 
 // Reaction is the predicate function for reaction builders.
 type Reaction func(*sql.Selector)
+
+// Region is the predicate function for region builders.
+type Region func(*sql.Selector)
 
 // Reply is the predicate function for reply builders.
 type Reply func(*sql.Selector)

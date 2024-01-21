@@ -8,6 +8,51 @@ import (
 	"github.com/google/uuid"
 )
 
+type Country struct {
+	ent.Schema
+}
+
+// Fields of the Country.
+func (Country) Fields() []ent.Field {
+	return append(
+		CommonFields,
+		field.String("name").
+			NotEmpty(),
+		field.String("code").
+			NotEmpty(),
+	)
+}
+
+// Edges of the Country.
+func (Country) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("cities", City.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("regions", Region.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+	}
+}
+
+type Region struct {
+	ent.Schema
+}
+
+// Fields of the Region.
+func (Region) Fields() []ent.Field {
+	return append(
+		CommonFields,
+		field.String("name").
+			NotEmpty(),
+		field.UUID("country_id", uuid.UUID{}),
+	)
+}
+
+// Edges of the Region.
+func (Region) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("country", Country.Type).Ref("regions").Field("country_id").Unique().Required(),
+		edge.To("cities", City.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
+	}
+}
+
 type City struct {
 	ent.Schema
 }
@@ -18,12 +63,16 @@ func (City) Fields() []ent.Field {
 		CommonFields,
 		field.String("name").
 			NotEmpty(),
+		field.UUID("region_id", uuid.UUID{}).Nillable().Optional(),
+		field.UUID("country_id", uuid.UUID{}),
 	)
 }
 
 // Edges of the City.
 func (City) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("region", Region.Type).Ref("cities").Field("region_id").Unique(),
+		edge.From("country", Country.Type).Ref("cities").Field("country_id").Unique().Required(),
 		edge.To("users", User.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
 	}
 }
@@ -73,10 +122,15 @@ func (User) Edges() []ent.Edge {
 		edge.From("city", City.Type).Ref("users").Field("city_id").Unique().Annotations(entsql.OnDelete(entsql.SetNull)),
 		edge.From("avatar", File.Type).Ref("users").Field("avatar_id").Unique().Annotations(entsql.OnDelete(entsql.SetNull)),
 		edge.To("otp", Otp.Type).Unique().Annotations(entsql.OnDelete(entsql.Cascade)),
-        edge.To("posts", Post.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
-        edge.To("reactions", Reaction.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
-        edge.To("comments", Comment.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
-        edge.To("replies", Reply.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("posts", Post.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("reactions", Reaction.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("comments", Comment.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("replies", Reply.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("requester_friends", Friend.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("requestee_friends", Friend.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("notifications_from", Notification.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("notifications", Notification.Type),
+		edge.To("notifications_read", Notification.Type),
 	}
 }
 

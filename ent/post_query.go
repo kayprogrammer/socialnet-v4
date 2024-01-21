@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
@@ -23,14 +24,15 @@ import (
 // PostQuery is the builder for querying Post entities.
 type PostQuery struct {
 	config
-	ctx           *QueryContext
-	order         []post.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Post
-	withReactions *ReactionQuery
-	withAuthor    *UserQuery
-	withImage     *FileQuery
-	withComments  *CommentQuery
+	ctx               *QueryContext
+	order             []post.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Post
+	withReactions     *ReactionQuery
+	withAuthor        *UserQuery
+	withImage         *FileQuery
+	withComments      *CommentQuery
+	withNotifications *NotificationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -148,6 +150,28 @@ func (pq *PostQuery) QueryComments() *CommentQuery {
 			sqlgraph.From(post.Table, post.FieldID, selector),
 			sqlgraph.To(comment.Table, comment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, post.CommentsTable, post.CommentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotifications chains the current query on the "notifications" edge.
+func (pq *PostQuery) QueryNotifications() *NotificationQuery {
+	query := (&NotificationClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(post.Table, post.FieldID, selector),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, post.NotificationsTable, post.NotificationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -342,15 +366,16 @@ func (pq *PostQuery) Clone() *PostQuery {
 		return nil
 	}
 	return &PostQuery{
-		config:        pq.config,
-		ctx:           pq.ctx.Clone(),
-		order:         append([]post.OrderOption{}, pq.order...),
-		inters:        append([]Interceptor{}, pq.inters...),
-		predicates:    append([]predicate.Post{}, pq.predicates...),
-		withReactions: pq.withReactions.Clone(),
-		withAuthor:    pq.withAuthor.Clone(),
-		withImage:     pq.withImage.Clone(),
-		withComments:  pq.withComments.Clone(),
+		config:            pq.config,
+		ctx:               pq.ctx.Clone(),
+		order:             append([]post.OrderOption{}, pq.order...),
+		inters:            append([]Interceptor{}, pq.inters...),
+		predicates:        append([]predicate.Post{}, pq.predicates...),
+		withReactions:     pq.withReactions.Clone(),
+		withAuthor:        pq.withAuthor.Clone(),
+		withImage:         pq.withImage.Clone(),
+		withComments:      pq.withComments.Clone(),
+		withNotifications: pq.withNotifications.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -398,6 +423,17 @@ func (pq *PostQuery) WithComments(opts ...func(*CommentQuery)) *PostQuery {
 		opt(query)
 	}
 	pq.withComments = query
+	return pq
+}
+
+// WithNotifications tells the query-builder to eager-load the nodes that are connected to
+// the "notifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PostQuery) WithNotifications(opts ...func(*NotificationQuery)) *PostQuery {
+	query := (&NotificationClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withNotifications = query
 	return pq
 }
 
@@ -479,11 +515,12 @@ func (pq *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 	var (
 		nodes       = []*Post{}
 		_spec       = pq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			pq.withReactions != nil,
 			pq.withAuthor != nil,
 			pq.withImage != nil,
 			pq.withComments != nil,
+			pq.withNotifications != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -527,6 +564,13 @@ func (pq *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 		if err := pq.loadComments(ctx, query, nodes,
 			func(n *Post) { n.Edges.Comments = []*Comment{} },
 			func(n *Post, e *Comment) { n.Edges.Comments = append(n.Edges.Comments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withNotifications; query != nil {
+		if err := pq.loadNotifications(ctx, query, nodes,
+			func(n *Post) { n.Edges.Notifications = []*Notification{} },
+			func(n *Post, e *Notification) { n.Edges.Notifications = append(n.Edges.Notifications, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -652,6 +696,39 @@ func (pq *PostQuery) loadComments(ctx context.Context, query *CommentQuery, node
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "post_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *PostQuery) loadNotifications(ctx context.Context, query *NotificationQuery, nodes []*Post, init func(*Post), assign func(*Post, *Notification)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Post)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(notification.FieldPostID)
+	}
+	query.Where(predicate.Notification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(post.NotificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PostID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "post_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "post_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

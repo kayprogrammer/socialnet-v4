@@ -71,6 +71,16 @@ func Name(v string) predicate.City {
 	return predicate.City(sql.FieldEQ(FieldName, v))
 }
 
+// RegionID applies equality check predicate on the "region_id" field. It's identical to RegionIDEQ.
+func RegionID(v uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldEQ(FieldRegionID, v))
+}
+
+// CountryID applies equality check predicate on the "country_id" field. It's identical to CountryIDEQ.
+func CountryID(v uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldEQ(FieldCountryID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.City {
 	return predicate.City(sql.FieldEQ(FieldCreatedAt, v))
@@ -214,6 +224,102 @@ func NameEqualFold(v string) predicate.City {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.City {
 	return predicate.City(sql.FieldContainsFold(FieldName, v))
+}
+
+// RegionIDEQ applies the EQ predicate on the "region_id" field.
+func RegionIDEQ(v uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldEQ(FieldRegionID, v))
+}
+
+// RegionIDNEQ applies the NEQ predicate on the "region_id" field.
+func RegionIDNEQ(v uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldNEQ(FieldRegionID, v))
+}
+
+// RegionIDIn applies the In predicate on the "region_id" field.
+func RegionIDIn(vs ...uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldIn(FieldRegionID, vs...))
+}
+
+// RegionIDNotIn applies the NotIn predicate on the "region_id" field.
+func RegionIDNotIn(vs ...uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldNotIn(FieldRegionID, vs...))
+}
+
+// RegionIDIsNil applies the IsNil predicate on the "region_id" field.
+func RegionIDIsNil() predicate.City {
+	return predicate.City(sql.FieldIsNull(FieldRegionID))
+}
+
+// RegionIDNotNil applies the NotNil predicate on the "region_id" field.
+func RegionIDNotNil() predicate.City {
+	return predicate.City(sql.FieldNotNull(FieldRegionID))
+}
+
+// CountryIDEQ applies the EQ predicate on the "country_id" field.
+func CountryIDEQ(v uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldEQ(FieldCountryID, v))
+}
+
+// CountryIDNEQ applies the NEQ predicate on the "country_id" field.
+func CountryIDNEQ(v uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldNEQ(FieldCountryID, v))
+}
+
+// CountryIDIn applies the In predicate on the "country_id" field.
+func CountryIDIn(vs ...uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldIn(FieldCountryID, vs...))
+}
+
+// CountryIDNotIn applies the NotIn predicate on the "country_id" field.
+func CountryIDNotIn(vs ...uuid.UUID) predicate.City {
+	return predicate.City(sql.FieldNotIn(FieldCountryID, vs...))
+}
+
+// HasRegion applies the HasEdge predicate on the "region" edge.
+func HasRegion() predicate.City {
+	return predicate.City(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RegionTable, RegionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRegionWith applies the HasEdge predicate on the "region" edge with a given conditions (other predicates).
+func HasRegionWith(preds ...predicate.Region) predicate.City {
+	return predicate.City(func(s *sql.Selector) {
+		step := newRegionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCountry applies the HasEdge predicate on the "country" edge.
+func HasCountry() predicate.City {
+	return predicate.City(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CountryTable, CountryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCountryWith applies the HasEdge predicate on the "country" edge with a given conditions (other predicates).
+func HasCountryWith(preds ...predicate.Country) predicate.City {
+	return predicate.City(func(s *sql.Selector) {
+		step := newCountryStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasUsers applies the HasEdge predicate on the "users" edge.

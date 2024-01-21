@@ -63,6 +63,16 @@ const (
 	EdgeComments = "comments"
 	// EdgeReplies holds the string denoting the replies edge name in mutations.
 	EdgeReplies = "replies"
+	// EdgeRequesterFriends holds the string denoting the requester_friends edge name in mutations.
+	EdgeRequesterFriends = "requester_friends"
+	// EdgeRequesteeFriends holds the string denoting the requestee_friends edge name in mutations.
+	EdgeRequesteeFriends = "requestee_friends"
+	// EdgeNotificationsFrom holds the string denoting the notifications_from edge name in mutations.
+	EdgeNotificationsFrom = "notifications_from"
+	// EdgeNotifications holds the string denoting the notifications edge name in mutations.
+	EdgeNotifications = "notifications"
+	// EdgeNotificationsRead holds the string denoting the notifications_read edge name in mutations.
+	EdgeNotificationsRead = "notifications_read"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// CityTable is the table that holds the city relation/edge.
@@ -114,6 +124,37 @@ const (
 	RepliesInverseTable = "replies"
 	// RepliesColumn is the table column denoting the replies relation/edge.
 	RepliesColumn = "author_id"
+	// RequesterFriendsTable is the table that holds the requester_friends relation/edge.
+	RequesterFriendsTable = "friends"
+	// RequesterFriendsInverseTable is the table name for the Friend entity.
+	// It exists in this package in order to avoid circular dependency with the "friend" package.
+	RequesterFriendsInverseTable = "friends"
+	// RequesterFriendsColumn is the table column denoting the requester_friends relation/edge.
+	RequesterFriendsColumn = "requester_id"
+	// RequesteeFriendsTable is the table that holds the requestee_friends relation/edge.
+	RequesteeFriendsTable = "friends"
+	// RequesteeFriendsInverseTable is the table name for the Friend entity.
+	// It exists in this package in order to avoid circular dependency with the "friend" package.
+	RequesteeFriendsInverseTable = "friends"
+	// RequesteeFriendsColumn is the table column denoting the requestee_friends relation/edge.
+	RequesteeFriendsColumn = "requestee_id"
+	// NotificationsFromTable is the table that holds the notifications_from relation/edge.
+	NotificationsFromTable = "notifications"
+	// NotificationsFromInverseTable is the table name for the Notification entity.
+	// It exists in this package in order to avoid circular dependency with the "notification" package.
+	NotificationsFromInverseTable = "notifications"
+	// NotificationsFromColumn is the table column denoting the notifications_from relation/edge.
+	NotificationsFromColumn = "sender_id"
+	// NotificationsTable is the table that holds the notifications relation/edge. The primary key declared below.
+	NotificationsTable = "user_notifications"
+	// NotificationsInverseTable is the table name for the Notification entity.
+	// It exists in this package in order to avoid circular dependency with the "notification" package.
+	NotificationsInverseTable = "notifications"
+	// NotificationsReadTable is the table that holds the notifications_read relation/edge. The primary key declared below.
+	NotificationsReadTable = "user_notifications_read"
+	// NotificationsReadInverseTable is the table name for the Notification entity.
+	// It exists in this package in order to avoid circular dependency with the "notification" package.
+	NotificationsReadInverseTable = "notifications"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -137,6 +178,15 @@ var Columns = []string{
 	FieldCityID,
 	FieldAvatarID,
 }
+
+var (
+	// NotificationsPrimaryKey and NotificationsColumn2 are the table columns denoting the
+	// primary key for the notifications relation (M2M).
+	NotificationsPrimaryKey = []string{"user_id", "notification_id"}
+	// NotificationsReadPrimaryKey and NotificationsReadColumn2 are the table columns denoting the
+	// primary key for the notifications_read relation (M2M).
+	NotificationsReadPrimaryKey = []string{"user_id", "notification_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -346,6 +396,76 @@ func ByReplies(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRepliesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByRequesterFriendsCount orders the results by requester_friends count.
+func ByRequesterFriendsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRequesterFriendsStep(), opts...)
+	}
+}
+
+// ByRequesterFriends orders the results by requester_friends terms.
+func ByRequesterFriends(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRequesterFriendsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRequesteeFriendsCount orders the results by requestee_friends count.
+func ByRequesteeFriendsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRequesteeFriendsStep(), opts...)
+	}
+}
+
+// ByRequesteeFriends orders the results by requestee_friends terms.
+func ByRequesteeFriends(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRequesteeFriendsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNotificationsFromCount orders the results by notifications_from count.
+func ByNotificationsFromCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNotificationsFromStep(), opts...)
+	}
+}
+
+// ByNotificationsFrom orders the results by notifications_from terms.
+func ByNotificationsFrom(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNotificationsFromStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNotificationsCount orders the results by notifications count.
+func ByNotificationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNotificationsStep(), opts...)
+	}
+}
+
+// ByNotifications orders the results by notifications terms.
+func ByNotifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNotificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNotificationsReadCount orders the results by notifications_read count.
+func ByNotificationsReadCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNotificationsReadStep(), opts...)
+	}
+}
+
+// ByNotificationsRead orders the results by notifications_read terms.
+func ByNotificationsRead(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNotificationsReadStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCityStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -393,5 +513,40 @@ func newRepliesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RepliesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RepliesTable, RepliesColumn),
+	)
+}
+func newRequesterFriendsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RequesterFriendsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RequesterFriendsTable, RequesterFriendsColumn),
+	)
+}
+func newRequesteeFriendsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RequesteeFriendsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RequesteeFriendsTable, RequesteeFriendsColumn),
+	)
+}
+func newNotificationsFromStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NotificationsFromInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NotificationsFromTable, NotificationsFromColumn),
+	)
+}
+func newNotificationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NotificationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, NotificationsTable, NotificationsPrimaryKey...),
+	)
+}
+func newNotificationsReadStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NotificationsReadInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, NotificationsReadTable, NotificationsReadPrimaryKey...),
 	)
 }

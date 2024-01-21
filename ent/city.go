@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/country"
+	"github.com/kayprogrammer/socialnet-v4/ent/region"
 )
 
 // City is the model entity for the City schema.
@@ -24,6 +26,10 @@ type City struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// RegionID holds the value of the "region_id" field.
+	RegionID *uuid.UUID `json:"region_id,omitempty"`
+	// CountryID holds the value of the "country_id" field.
+	CountryID uuid.UUID `json:"country_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CityQuery when eager-loading is set.
 	Edges        CityEdges `json:"edges"`
@@ -32,17 +38,47 @@ type City struct {
 
 // CityEdges holds the relations/edges for other nodes in the graph.
 type CityEdges struct {
+	// Region holds the value of the region edge.
+	Region *Region `json:"region,omitempty"`
+	// Country holds the value of the country edge.
+	Country *Country `json:"country,omitempty"`
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
+}
+
+// RegionOrErr returns the Region value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CityEdges) RegionOrErr() (*Region, error) {
+	if e.loadedTypes[0] {
+		if e.Region == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: region.Label}
+		}
+		return e.Region, nil
+	}
+	return nil, &NotLoadedError{edge: "region"}
+}
+
+// CountryOrErr returns the Country value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CityEdges) CountryOrErr() (*Country, error) {
+	if e.loadedTypes[1] {
+		if e.Country == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: country.Label}
+		}
+		return e.Country, nil
+	}
+	return nil, &NotLoadedError{edge: "country"}
 }
 
 // UsersOrErr returns the Users value or an error if the edge
 // was not loaded in eager-loading.
 func (e CityEdges) UsersOrErr() ([]*User, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[2] {
 		return e.Users, nil
 	}
 	return nil, &NotLoadedError{edge: "users"}
@@ -53,11 +89,13 @@ func (*City) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case city.FieldRegionID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case city.FieldName:
 			values[i] = new(sql.NullString)
 		case city.FieldCreatedAt, city.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case city.FieldID:
+		case city.FieldID, city.FieldCountryID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -98,6 +136,19 @@ func (c *City) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.Name = value.String
 			}
+		case city.FieldRegionID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field region_id", values[i])
+			} else if value.Valid {
+				c.RegionID = new(uuid.UUID)
+				*c.RegionID = *value.S.(*uuid.UUID)
+			}
+		case city.FieldCountryID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field country_id", values[i])
+			} else if value != nil {
+				c.CountryID = *value
+			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
 		}
@@ -109,6 +160,16 @@ func (c *City) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (c *City) Value(name string) (ent.Value, error) {
 	return c.selectValues.Get(name)
+}
+
+// QueryRegion queries the "region" edge of the City entity.
+func (c *City) QueryRegion() *RegionQuery {
+	return NewCityClient(c.config).QueryRegion(c)
+}
+
+// QueryCountry queries the "country" edge of the City entity.
+func (c *City) QueryCountry() *CountryQuery {
+	return NewCityClient(c.config).QueryCountry(c)
 }
 
 // QueryUsers queries the "users" edge of the City entity.
@@ -147,6 +208,14 @@ func (c *City) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(c.Name)
+	builder.WriteString(", ")
+	if v := c.RegionID; v != nil {
+		builder.WriteString("region_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("country_id=")
+	builder.WriteString(fmt.Sprintf("%v", c.CountryID))
 	builder.WriteByte(')')
 	return builder.String()
 }

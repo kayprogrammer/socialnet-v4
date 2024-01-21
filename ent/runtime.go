@@ -8,10 +8,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
+	"github.com/kayprogrammer/socialnet-v4/ent/country"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
+	"github.com/kayprogrammer/socialnet-v4/ent/region"
 	"github.com/kayprogrammer/socialnet-v4/ent/reply"
 	"github.com/kayprogrammer/socialnet-v4/ent/schema"
 	"github.com/kayprogrammer/socialnet-v4/ent/sitedetail"
@@ -66,6 +70,30 @@ func init() {
 	commentDescID := commentFields[0].Descriptor()
 	// comment.DefaultID holds the default value on creation for the id field.
 	comment.DefaultID = commentDescID.Default.(func() uuid.UUID)
+	countryFields := schema.Country{}.Fields()
+	_ = countryFields
+	// countryDescCreatedAt is the schema descriptor for created_at field.
+	countryDescCreatedAt := countryFields[1].Descriptor()
+	// country.DefaultCreatedAt holds the default value on creation for the created_at field.
+	country.DefaultCreatedAt = countryDescCreatedAt.Default.(func() time.Time)
+	// countryDescUpdatedAt is the schema descriptor for updated_at field.
+	countryDescUpdatedAt := countryFields[2].Descriptor()
+	// country.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	country.DefaultUpdatedAt = countryDescUpdatedAt.Default.(func() time.Time)
+	// country.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	country.UpdateDefaultUpdatedAt = countryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// countryDescName is the schema descriptor for name field.
+	countryDescName := countryFields[3].Descriptor()
+	// country.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	country.NameValidator = countryDescName.Validators[0].(func(string) error)
+	// countryDescCode is the schema descriptor for code field.
+	countryDescCode := countryFields[4].Descriptor()
+	// country.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	country.CodeValidator = countryDescCode.Validators[0].(func(string) error)
+	// countryDescID is the schema descriptor for id field.
+	countryDescID := countryFields[0].Descriptor()
+	// country.DefaultID holds the default value on creation for the id field.
+	country.DefaultID = countryDescID.Default.(func() uuid.UUID)
 	fileFields := schema.File{}.Fields()
 	_ = fileFields
 	// fileDescCreatedAt is the schema descriptor for created_at field.
@@ -86,6 +114,38 @@ func init() {
 	fileDescID := fileFields[0].Descriptor()
 	// file.DefaultID holds the default value on creation for the id field.
 	file.DefaultID = fileDescID.Default.(func() uuid.UUID)
+	friendFields := schema.Friend{}.Fields()
+	_ = friendFields
+	// friendDescCreatedAt is the schema descriptor for created_at field.
+	friendDescCreatedAt := friendFields[1].Descriptor()
+	// friend.DefaultCreatedAt holds the default value on creation for the created_at field.
+	friend.DefaultCreatedAt = friendDescCreatedAt.Default.(func() time.Time)
+	// friendDescUpdatedAt is the schema descriptor for updated_at field.
+	friendDescUpdatedAt := friendFields[2].Descriptor()
+	// friend.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	friend.DefaultUpdatedAt = friendDescUpdatedAt.Default.(func() time.Time)
+	// friend.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	friend.UpdateDefaultUpdatedAt = friendDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// friendDescID is the schema descriptor for id field.
+	friendDescID := friendFields[0].Descriptor()
+	// friend.DefaultID holds the default value on creation for the id field.
+	friend.DefaultID = friendDescID.Default.(func() uuid.UUID)
+	notificationFields := schema.Notification{}.Fields()
+	_ = notificationFields
+	// notificationDescCreatedAt is the schema descriptor for created_at field.
+	notificationDescCreatedAt := notificationFields[1].Descriptor()
+	// notification.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notification.DefaultCreatedAt = notificationDescCreatedAt.Default.(func() time.Time)
+	// notificationDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationDescUpdatedAt := notificationFields[2].Descriptor()
+	// notification.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notification.DefaultUpdatedAt = notificationDescUpdatedAt.Default.(func() time.Time)
+	// notification.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notification.UpdateDefaultUpdatedAt = notificationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationDescID is the schema descriptor for id field.
+	notificationDescID := notificationFields[0].Descriptor()
+	// notification.DefaultID holds the default value on creation for the id field.
+	notification.DefaultID = notificationDescID.Default.(func() uuid.UUID)
 	otpFields := schema.Otp{}.Fields()
 	_ = otpFields
 	// otpDescCreatedAt is the schema descriptor for created_at field.
@@ -142,6 +202,26 @@ func init() {
 	reactionDescID := reactionFields[0].Descriptor()
 	// reaction.DefaultID holds the default value on creation for the id field.
 	reaction.DefaultID = reactionDescID.Default.(func() uuid.UUID)
+	regionFields := schema.Region{}.Fields()
+	_ = regionFields
+	// regionDescCreatedAt is the schema descriptor for created_at field.
+	regionDescCreatedAt := regionFields[1].Descriptor()
+	// region.DefaultCreatedAt holds the default value on creation for the created_at field.
+	region.DefaultCreatedAt = regionDescCreatedAt.Default.(func() time.Time)
+	// regionDescUpdatedAt is the schema descriptor for updated_at field.
+	regionDescUpdatedAt := regionFields[2].Descriptor()
+	// region.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	region.DefaultUpdatedAt = regionDescUpdatedAt.Default.(func() time.Time)
+	// region.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	region.UpdateDefaultUpdatedAt = regionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// regionDescName is the schema descriptor for name field.
+	regionDescName := regionFields[3].Descriptor()
+	// region.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	region.NameValidator = regionDescName.Validators[0].(func(string) error)
+	// regionDescID is the schema descriptor for id field.
+	regionDescID := regionFields[0].Descriptor()
+	// region.DefaultID holds the default value on creation for the id field.
+	region.DefaultID = regionDescID.Default.(func() uuid.UUID)
 	replyFields := schema.Reply{}.Fields()
 	_ = replyFields
 	// replyDescCreatedAt is the schema descriptor for created_at field.

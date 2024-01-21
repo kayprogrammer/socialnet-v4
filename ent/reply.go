@@ -46,9 +46,11 @@ type ReplyEdges struct {
 	Author *User `json:"author,omitempty"`
 	// Comment holds the value of the comment edge.
 	Comment *Comment `json:"comment,omitempty"`
+	// Notifications holds the value of the notifications edge.
+	Notifications []*Notification `json:"notifications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // ReactionsOrErr returns the Reactions value or an error if the edge
@@ -84,6 +86,15 @@ func (e ReplyEdges) CommentOrErr() (*Comment, error) {
 		return e.Comment, nil
 	}
 	return nil, &NotLoadedError{edge: "comment"}
+}
+
+// NotificationsOrErr returns the Notifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e ReplyEdges) NotificationsOrErr() ([]*Notification, error) {
+	if e.loadedTypes[3] {
+		return e.Notifications, nil
+	}
+	return nil, &NotLoadedError{edge: "notifications"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -180,6 +191,11 @@ func (r *Reply) QueryAuthor() *UserQuery {
 // QueryComment queries the "comment" edge of the Reply entity.
 func (r *Reply) QueryComment() *CommentQuery {
 	return NewReplyClient(r.config).QueryComment(r)
+}
+
+// QueryNotifications queries the "notifications" edge of the Reply entity.
+func (r *Reply) QueryNotifications() *NotificationQuery {
+	return NewReplyClient(r.config).QueryNotifications(r)
 }
 
 // Update returns a builder for updating this Reply.

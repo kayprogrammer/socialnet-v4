@@ -13,18 +13,22 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/country"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
+	"github.com/kayprogrammer/socialnet-v4/ent/region"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
 // CityQuery is the builder for querying City entities.
 type CityQuery struct {
 	config
-	ctx        *QueryContext
-	order      []city.OrderOption
-	inters     []Interceptor
-	predicates []predicate.City
-	withUsers  *UserQuery
+	ctx         *QueryContext
+	order       []city.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.City
+	withRegion  *RegionQuery
+	withCountry *CountryQuery
+	withUsers   *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +63,50 @@ func (cq *CityQuery) Unique(unique bool) *CityQuery {
 func (cq *CityQuery) Order(o ...city.OrderOption) *CityQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QueryRegion chains the current query on the "region" edge.
+func (cq *CityQuery) QueryRegion() *RegionQuery {
+	query := (&RegionClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(city.Table, city.FieldID, selector),
+			sqlgraph.To(region.Table, region.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, city.RegionTable, city.RegionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCountry chains the current query on the "country" edge.
+func (cq *CityQuery) QueryCountry() *CountryQuery {
+	query := (&CountryClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(city.Table, city.FieldID, selector),
+			sqlgraph.To(country.Table, country.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, city.CountryTable, city.CountryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryUsers chains the current query on the "users" edge.
@@ -270,16 +318,40 @@ func (cq *CityQuery) Clone() *CityQuery {
 		return nil
 	}
 	return &CityQuery{
-		config:     cq.config,
-		ctx:        cq.ctx.Clone(),
-		order:      append([]city.OrderOption{}, cq.order...),
-		inters:     append([]Interceptor{}, cq.inters...),
-		predicates: append([]predicate.City{}, cq.predicates...),
-		withUsers:  cq.withUsers.Clone(),
+		config:      cq.config,
+		ctx:         cq.ctx.Clone(),
+		order:       append([]city.OrderOption{}, cq.order...),
+		inters:      append([]Interceptor{}, cq.inters...),
+		predicates:  append([]predicate.City{}, cq.predicates...),
+		withRegion:  cq.withRegion.Clone(),
+		withCountry: cq.withCountry.Clone(),
+		withUsers:   cq.withUsers.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
 	}
+}
+
+// WithRegion tells the query-builder to eager-load the nodes that are connected to
+// the "region" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CityQuery) WithRegion(opts ...func(*RegionQuery)) *CityQuery {
+	query := (&RegionClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withRegion = query
+	return cq
+}
+
+// WithCountry tells the query-builder to eager-load the nodes that are connected to
+// the "country" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CityQuery) WithCountry(opts ...func(*CountryQuery)) *CityQuery {
+	query := (&CountryClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withCountry = query
+	return cq
 }
 
 // WithUsers tells the query-builder to eager-load the nodes that are connected to
@@ -371,7 +443,9 @@ func (cq *CityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*City, e
 	var (
 		nodes       = []*City{}
 		_spec       = cq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
+			cq.withRegion != nil,
+			cq.withCountry != nil,
 			cq.withUsers != nil,
 		}
 	)
@@ -393,6 +467,18 @@ func (cq *CityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*City, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := cq.withRegion; query != nil {
+		if err := cq.loadRegion(ctx, query, nodes, nil,
+			func(n *City, e *Region) { n.Edges.Region = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withCountry; query != nil {
+		if err := cq.loadCountry(ctx, query, nodes, nil,
+			func(n *City, e *Country) { n.Edges.Country = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := cq.withUsers; query != nil {
 		if err := cq.loadUsers(ctx, query, nodes,
 			func(n *City) { n.Edges.Users = []*User{} },
@@ -403,6 +489,67 @@ func (cq *CityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*City, e
 	return nodes, nil
 }
 
+func (cq *CityQuery) loadRegion(ctx context.Context, query *RegionQuery, nodes []*City, init func(*City), assign func(*City, *Region)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*City)
+	for i := range nodes {
+		if nodes[i].RegionID == nil {
+			continue
+		}
+		fk := *nodes[i].RegionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(region.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "region_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (cq *CityQuery) loadCountry(ctx context.Context, query *CountryQuery, nodes []*City, init func(*City), assign func(*City, *Country)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*City)
+	for i := range nodes {
+		fk := nodes[i].CountryID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(country.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "country_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (cq *CityQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*City, init func(*City), assign func(*City, *User)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*City)
@@ -461,6 +608,12 @@ func (cq *CityQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != city.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if cq.withRegion != nil {
+			_spec.Node.AddColumnOnce(city.FieldRegionID)
+		}
+		if cq.withCountry != nil {
+			_spec.Node.AddColumnOnce(city.FieldCountryID)
 		}
 	}
 	if ps := cq.predicates; len(ps) > 0 {

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
 	"github.com/kayprogrammer/socialnet-v4/ent/reply"
@@ -129,6 +130,21 @@ func (cc *CommentCreate) AddReplies(r ...*Reply) *CommentCreate {
 		ids[i] = r[i].ID
 	}
 	return cc.AddReplyIDs(ids...)
+}
+
+// AddNotificationIDs adds the "notifications" edge to the Notification entity by IDs.
+func (cc *CommentCreate) AddNotificationIDs(ids ...uuid.UUID) *CommentCreate {
+	cc.mutation.AddNotificationIDs(ids...)
+	return cc
+}
+
+// AddNotifications adds the "notifications" edges to the Notification entity.
+func (cc *CommentCreate) AddNotifications(n ...*Notification) *CommentCreate {
+	ids := make([]uuid.UUID, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return cc.AddNotificationIDs(ids...)
 }
 
 // Mutation returns the CommentMutation object of the builder.
@@ -326,6 +342,22 @@ func (cc *CommentCreate) createSpec() (*Comment, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reply.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.NotificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   comment.NotificationsTable,
+			Columns: []string{comment.NotificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

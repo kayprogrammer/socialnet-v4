@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
@@ -23,14 +24,15 @@ import (
 // CommentQuery is the builder for querying Comment entities.
 type CommentQuery struct {
 	config
-	ctx           *QueryContext
-	order         []comment.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Comment
-	withReactions *ReactionQuery
-	withAuthor    *UserQuery
-	withPost      *PostQuery
-	withReplies   *ReplyQuery
+	ctx               *QueryContext
+	order             []comment.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Comment
+	withReactions     *ReactionQuery
+	withAuthor        *UserQuery
+	withPost          *PostQuery
+	withReplies       *ReplyQuery
+	withNotifications *NotificationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -148,6 +150,28 @@ func (cq *CommentQuery) QueryReplies() *ReplyQuery {
 			sqlgraph.From(comment.Table, comment.FieldID, selector),
 			sqlgraph.To(reply.Table, reply.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, comment.RepliesTable, comment.RepliesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotifications chains the current query on the "notifications" edge.
+func (cq *CommentQuery) QueryNotifications() *NotificationQuery {
+	query := (&NotificationClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(comment.Table, comment.FieldID, selector),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, comment.NotificationsTable, comment.NotificationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -342,15 +366,16 @@ func (cq *CommentQuery) Clone() *CommentQuery {
 		return nil
 	}
 	return &CommentQuery{
-		config:        cq.config,
-		ctx:           cq.ctx.Clone(),
-		order:         append([]comment.OrderOption{}, cq.order...),
-		inters:        append([]Interceptor{}, cq.inters...),
-		predicates:    append([]predicate.Comment{}, cq.predicates...),
-		withReactions: cq.withReactions.Clone(),
-		withAuthor:    cq.withAuthor.Clone(),
-		withPost:      cq.withPost.Clone(),
-		withReplies:   cq.withReplies.Clone(),
+		config:            cq.config,
+		ctx:               cq.ctx.Clone(),
+		order:             append([]comment.OrderOption{}, cq.order...),
+		inters:            append([]Interceptor{}, cq.inters...),
+		predicates:        append([]predicate.Comment{}, cq.predicates...),
+		withReactions:     cq.withReactions.Clone(),
+		withAuthor:        cq.withAuthor.Clone(),
+		withPost:          cq.withPost.Clone(),
+		withReplies:       cq.withReplies.Clone(),
+		withNotifications: cq.withNotifications.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -398,6 +423,17 @@ func (cq *CommentQuery) WithReplies(opts ...func(*ReplyQuery)) *CommentQuery {
 		opt(query)
 	}
 	cq.withReplies = query
+	return cq
+}
+
+// WithNotifications tells the query-builder to eager-load the nodes that are connected to
+// the "notifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CommentQuery) WithNotifications(opts ...func(*NotificationQuery)) *CommentQuery {
+	query := (&NotificationClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withNotifications = query
 	return cq
 }
 
@@ -479,11 +515,12 @@ func (cq *CommentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Comm
 	var (
 		nodes       = []*Comment{}
 		_spec       = cq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			cq.withReactions != nil,
 			cq.withAuthor != nil,
 			cq.withPost != nil,
 			cq.withReplies != nil,
+			cq.withNotifications != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -527,6 +564,13 @@ func (cq *CommentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Comm
 		if err := cq.loadReplies(ctx, query, nodes,
 			func(n *Comment) { n.Edges.Replies = []*Reply{} },
 			func(n *Comment, e *Reply) { n.Edges.Replies = append(n.Edges.Replies, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withNotifications; query != nil {
+		if err := cq.loadNotifications(ctx, query, nodes,
+			func(n *Comment) { n.Edges.Notifications = []*Notification{} },
+			func(n *Comment, e *Notification) { n.Edges.Notifications = append(n.Edges.Notifications, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -649,6 +693,39 @@ func (cq *CommentQuery) loadReplies(ctx context.Context, query *ReplyQuery, node
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "comment_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *CommentQuery) loadNotifications(ctx context.Context, query *NotificationQuery, nodes []*Comment, init func(*Comment), assign func(*Comment, *Notification)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Comment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(notification.FieldCommentID)
+	}
+	query.Where(predicate.Notification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(comment.NotificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CommentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "comment_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "comment_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
 	"github.com/kayprogrammer/socialnet-v4/ent/reply"
@@ -22,13 +23,14 @@ import (
 // ReplyQuery is the builder for querying Reply entities.
 type ReplyQuery struct {
 	config
-	ctx           *QueryContext
-	order         []reply.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Reply
-	withReactions *ReactionQuery
-	withAuthor    *UserQuery
-	withComment   *CommentQuery
+	ctx               *QueryContext
+	order             []reply.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Reply
+	withReactions     *ReactionQuery
+	withAuthor        *UserQuery
+	withComment       *CommentQuery
+	withNotifications *NotificationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +126,28 @@ func (rq *ReplyQuery) QueryComment() *CommentQuery {
 			sqlgraph.From(reply.Table, reply.FieldID, selector),
 			sqlgraph.To(comment.Table, comment.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reply.CommentTable, reply.CommentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotifications chains the current query on the "notifications" edge.
+func (rq *ReplyQuery) QueryNotifications() *NotificationQuery {
+	query := (&NotificationClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reply.Table, reply.FieldID, selector),
+			sqlgraph.To(notification.Table, notification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reply.NotificationsTable, reply.NotificationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -318,14 +342,15 @@ func (rq *ReplyQuery) Clone() *ReplyQuery {
 		return nil
 	}
 	return &ReplyQuery{
-		config:        rq.config,
-		ctx:           rq.ctx.Clone(),
-		order:         append([]reply.OrderOption{}, rq.order...),
-		inters:        append([]Interceptor{}, rq.inters...),
-		predicates:    append([]predicate.Reply{}, rq.predicates...),
-		withReactions: rq.withReactions.Clone(),
-		withAuthor:    rq.withAuthor.Clone(),
-		withComment:   rq.withComment.Clone(),
+		config:            rq.config,
+		ctx:               rq.ctx.Clone(),
+		order:             append([]reply.OrderOption{}, rq.order...),
+		inters:            append([]Interceptor{}, rq.inters...),
+		predicates:        append([]predicate.Reply{}, rq.predicates...),
+		withReactions:     rq.withReactions.Clone(),
+		withAuthor:        rq.withAuthor.Clone(),
+		withComment:       rq.withComment.Clone(),
+		withNotifications: rq.withNotifications.Clone(),
 		// clone intermediate query.
 		sql:  rq.sql.Clone(),
 		path: rq.path,
@@ -362,6 +387,17 @@ func (rq *ReplyQuery) WithComment(opts ...func(*CommentQuery)) *ReplyQuery {
 		opt(query)
 	}
 	rq.withComment = query
+	return rq
+}
+
+// WithNotifications tells the query-builder to eager-load the nodes that are connected to
+// the "notifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *ReplyQuery) WithNotifications(opts ...func(*NotificationQuery)) *ReplyQuery {
+	query := (&NotificationClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withNotifications = query
 	return rq
 }
 
@@ -443,10 +479,11 @@ func (rq *ReplyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Reply,
 	var (
 		nodes       = []*Reply{}
 		_spec       = rq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			rq.withReactions != nil,
 			rq.withAuthor != nil,
 			rq.withComment != nil,
+			rq.withNotifications != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -483,6 +520,13 @@ func (rq *ReplyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Reply,
 	if query := rq.withComment; query != nil {
 		if err := rq.loadComment(ctx, query, nodes, nil,
 			func(n *Reply, e *Comment) { n.Edges.Comment = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withNotifications; query != nil {
+		if err := rq.loadNotifications(ctx, query, nodes,
+			func(n *Reply) { n.Edges.Notifications = []*Notification{} },
+			func(n *Reply, e *Notification) { n.Edges.Notifications = append(n.Edges.Notifications, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -577,6 +621,39 @@ func (rq *ReplyQuery) loadComment(ctx context.Context, query *CommentQuery, node
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (rq *ReplyQuery) loadNotifications(ctx context.Context, query *NotificationQuery, nodes []*Reply, init func(*Reply), assign func(*Reply, *Notification)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Reply)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(notification.FieldReplyID)
+	}
+	query.Where(predicate.Notification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(reply.NotificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ReplyID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "reply_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "reply_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

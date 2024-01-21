@@ -16,14 +16,22 @@ type Tx struct {
 	City *CityClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
+	// Country is the client for interacting with the Country builders.
+	Country *CountryClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
+	// Friend is the client for interacting with the Friend builders.
+	Friend *FriendClient
+	// Notification is the client for interacting with the Notification builders.
+	Notification *NotificationClient
 	// Otp is the client for interacting with the Otp builders.
 	Otp *OtpClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
 	// Reaction is the client for interacting with the Reaction builders.
 	Reaction *ReactionClient
+	// Region is the client for interacting with the Region builders.
+	Region *RegionClient
 	// Reply is the client for interacting with the Reply builders.
 	Reply *ReplyClient
 	// SiteDetail is the client for interacting with the SiteDetail builders.
@@ -163,10 +171,14 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.City = NewCityClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
+	tx.Country = NewCountryClient(tx.config)
 	tx.File = NewFileClient(tx.config)
+	tx.Friend = NewFriendClient(tx.config)
+	tx.Notification = NewNotificationClient(tx.config)
 	tx.Otp = NewOtpClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
 	tx.Reaction = NewReactionClient(tx.config)
+	tx.Region = NewRegionClient(tx.config)
 	tx.Reply = NewReplyClient(tx.config)
 	tx.SiteDetail = NewSiteDetailClient(tx.config)
 	tx.User = NewUserClient(tx.config)
