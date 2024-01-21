@@ -149,6 +149,14 @@ definitions:
         example: success
         type: string
     type: object
+  schemas.DeleteUserSchema:
+    properties:
+      password:
+        example: password
+        type: string
+    required:
+    - password
+    type: object
   schemas.EmailRequestSchema:
     properties:
       email:
@@ -1269,6 +1277,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Update User Profile
+      tags:
+      - Profiles
+    post:
+      description: This endpoint deletes a particular user's account (irreversible)
+      parameters:
+      - description: Password
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.DeleteUserSchema'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Delete User's Account
       tags:
       - Profiles
   /profiles/profile/{username}:

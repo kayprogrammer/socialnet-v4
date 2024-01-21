@@ -67,6 +67,10 @@ type ProfileUpdateSchema struct {
 	City		   *ent.City	`json:"-"`
 }
 
+type DeleteUserSchema struct {
+	Password 		string		`json:"password" validate:"required" example:"password"`
+}
+
 // RESPONSE SCHEMAS
 // CITIES
 type CitiesResponseSchema struct {

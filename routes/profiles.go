@@ -126,7 +126,7 @@ func UpdateProfile(c *fiber.Ctx) error {
 			data := map[string]string{
 				"city_id": "No city with that ID",
 			}
-			return c.Status(404).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid Entry", data))
+			return c.Status(422).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid Entry", data))
 		}
 		profileData.City = city
 	}
@@ -139,5 +139,40 @@ func UpdateProfile(c *fiber.Ctx) error {
 		ResponseSchema: schemas.ResponseSchema{Message: "User updated fetched"}.Init(),
 		Data:           convertedProfile.Init(profileData.FileType),
 	}
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Delete User's Account
+// @Description This endpoint deletes a particular user's account (irreversible)
+// @Tags Profiles
+// @Param password body schemas.DeleteUserSchema true "Password"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /profiles/profile [post]
+// @Security BearerAuth
+func DeleteUser(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	deleteUserData := schemas.DeleteUserSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &deleteUserData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(deleteUserData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	// Check if password is valid
+	if !utils.CheckPasswordHash(deleteUserData.Password, user.Password) {
+		data := map[string]string{
+			"password": "Incorrect password",
+		}
+		return c.Status(422).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid Entry", data))
+	}
+
+	// Delete User
+	db.User.DeleteOne(user).Exec(managers.Ctx)
+	response := schemas.ResponseSchema{Message: "User deleted"}.Init()
 	return c.Status(200).JSON(response)
 }
