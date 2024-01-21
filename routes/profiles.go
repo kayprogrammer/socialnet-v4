@@ -206,3 +206,32 @@ func RetrieveFriends(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Retrieve Friend Requests
+// @Description This endpoint retrieves friend requests of a user
+// @Tags Profiles
+// @Param page query int false "Current Page" default(1)
+// @Success 200 {object} schemas.ProfilesResponseSchema
+// @Router /profiles/friends/requests [get]
+// @Security BearerAuth
+func RetrieveFriendRequests(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	friends := friendManager.GetFriendRequests(db, user)
+
+	// Paginate, Convert type and return Friends Requests
+	paginatedData, paginatedFriendRequests, err := PaginateQueryset(friends, c, 20)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	convertedFriends := utils.ConvertStructData(paginatedFriendRequests, []schemas.ProfileSchema{}).(*[]schemas.ProfileSchema)
+	response := schemas.ProfilesResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Friend Requests fetched"}.Init(),
+		Data: schemas.ProfilesResponseDataSchema{
+			PaginatedResponseDataSchema: *paginatedData,
+			Items:                       *convertedFriends,
+		}.Init(),
+	}
+	return c.Status(200).JSON(response)
+}

@@ -54,4 +54,5 @@ func SetupRoutes(app *fiber.App) {
 	profilesRouter.Patch("/profile", midw.AuthMiddleware, UpdateProfile)
 	profilesRouter.Post("/profile", midw.AuthMiddleware, DeleteUser)
 	profilesRouter.Get("/friends", midw.AuthMiddleware, RetrieveFriends)
+	profilesRouter.Get("/friends/requests", midw.AuthMiddleware, RetrieveFriendRequests)
 }

@@ -134,3 +134,23 @@ func (obj FriendManager) GetFriends(client *ent.Client, userObj *ent.User) []*en
 		All(Ctx)
 	return friends
 }
+
+func (obj FriendManager) GetFriendRequests(client *ent.Client, userObj *ent.User) []*ent.User {
+	friendObjects, _ := client.Friend.Query().
+		Where(
+			friend.RequesteeIDEQ(userObj.ID),
+			friend.StatusEQ("PENDING"),
+		).
+		All(Ctx)
+	var friendIDs []uuid.UUID
+	for i := range friendObjects {
+		friendIDs = append(friendIDs, friendObjects[i].RequesterID)
+	}
+
+	friends, _ := client.User.Query().
+		Where(user.IDIn(friendIDs...)).
+		WithCity().
+		WithAvatar().
+		All(Ctx)
+	return friends
+}
