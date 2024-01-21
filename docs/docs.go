@@ -1047,6 +1047,37 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint sends or delete friend requests",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Send Or Delete Friend Request",
+                "parameters": [
+                    {
+                        "description": "Friend Request object",
+                        "name": "friend_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.SendFriendRequestSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    }
+                }
             }
         },
         "/profiles/profile": {
@@ -1880,6 +1911,18 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "success"
+                }
+            }
+        },
+        "schemas.SendFriendRequestSchema": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "example": "john-doe"
                 }
             }
         },

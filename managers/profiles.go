@@ -154,3 +154,42 @@ func (obj FriendManager) GetFriendRequests(client *ent.Client, userObj *ent.User
 		All(Ctx)
 	return friends
 }
+
+func (obj FriendManager) GetRequesteeAndFriendObj(client *ent.Client, userObj *ent.User, username string, statusOpts ...string) (*ent.User, *ent.Friend, *utils.ErrorResponse) {
+	requestee, _ := client.User.Query().
+		Where(user.Username(username)).
+		Only(Ctx)
+	
+	if requestee == nil {
+		errData := utils.RequestErr(utils.ERR_NON_EXISTENT, "User does not exist!")
+		return nil, nil, &errData
+	}
+	fq := client.Friend.Query().
+		Where(
+			friend.Or(
+				friend.And(
+					friend.RequesterIDEQ(userObj.ID),
+					friend.RequesteeIDEQ(requestee.ID),
+				),
+				friend.And(
+					friend.RequesterIDEQ(requestee.ID),
+					friend.RequesteeIDEQ(userObj.ID),
+				),
+			),
+		) 
+	if len(statusOpts) > 0 {
+		// If status param is provided
+		fq = fq.Where(friend.StatusEQ(friend.Status(statusOpts[0])))
+	}
+
+	friend, _ := fq.Only(Ctx)
+	return requestee, friend, nil
+}
+
+func (obj FriendManager) Create(client *ent.Client, requesterID uuid.UUID, requesteeID uuid.UUID) {
+	client.Friend.
+		Create().
+		SetRequesterID(requesterID).
+		SetRequesteeID(requesteeID).
+		Save(Ctx)
+}

@@ -218,20 +218,69 @@ func RetrieveFriendRequests(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
 	user := c.Locals("user").(*ent.User)
 
-	friends := friendManager.GetFriendRequests(db, user)
+	friendsRequests := friendManager.GetFriendRequests(db, user)
 
 	// Paginate, Convert type and return Friends Requests
-	paginatedData, paginatedFriendRequests, err := PaginateQueryset(friends, c, 20)
+	paginatedData, paginatedFriendRequests, err := PaginateQueryset(friendsRequests, c, 20)
 	if err != nil {
 		return c.Status(400).JSON(err)
 	}
-	convertedFriends := utils.ConvertStructData(paginatedFriendRequests, []schemas.ProfileSchema{}).(*[]schemas.ProfileSchema)
+	convertedFriendRequests := utils.ConvertStructData(paginatedFriendRequests, []schemas.ProfileSchema{}).(*[]schemas.ProfileSchema)
 	response := schemas.ProfilesResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Friend Requests fetched"}.Init(),
 		Data: schemas.ProfilesResponseDataSchema{
 			PaginatedResponseDataSchema: *paginatedData,
-			Items:                       *convertedFriends,
+			Items:                       *convertedFriendRequests,
 		}.Init(),
 	}
 	return c.Status(200).JSON(response)
+}
+
+// @Summary Send Or Delete Friend Request
+// @Description This endpoint sends or delete friend requests
+// @Tags Profiles
+// @Param friend_request body schemas.SendFriendRequestSchema true "Friend Request object"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /profiles/friends/requests [post]
+// @Security BearerAuth
+func SendOrDeleteFriendRequest(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	friendRequestData := schemas.SendFriendRequestSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &friendRequestData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(friendRequestData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	requestee, friend, errData := friendManager.GetRequesteeAndFriendObj(db, user, friendRequestData.Username)
+	if errData != nil {
+		return c.Status(404).JSON(errData)
+	}
+	message := "Friend Request sent"
+	statusCode := 201
+
+	if friend != nil {
+		statusCode = 200
+		message = "Friend Request removed"
+		if friend.Status == "ACCEPTED" {
+			message = "This user is already your friend"
+		} else if user.ID != friend.RequesterID {
+			return c.Status(403).JSON(utils.RequestErr(utils.ERR_NOT_ALLOWED, "The user already sent you a friend request!"))
+		} else {
+			// Delete friend successfully
+			db.Friend.DeleteOne(friend).Exec(managers.Ctx)
+		}
+		
+	} else {
+		// Create Friend Object
+		friendManager.Create(db, user.ID, requestee.ID)
+	}
+
+	response := schemas.ResponseSchema{Message: message}.Init()
+	return c.Status(statusCode).JSON(response)
 }

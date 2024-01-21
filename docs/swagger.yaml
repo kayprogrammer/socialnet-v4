@@ -524,6 +524,14 @@ definitions:
         example: success
         type: string
     type: object
+  schemas.SendFriendRequestSchema:
+    properties:
+      username:
+        example: john-doe
+        type: string
+    required:
+    - username
+    type: object
   schemas.SetNewPasswordSchema:
     properties:
       email:
@@ -1295,6 +1303,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Retrieve Friend Requests
+      tags:
+      - Profiles
+    post:
+      description: This endpoint sends or delete friend requests
+      parameters:
+      - description: Friend Request object
+        in: body
+        name: friend_request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.SendFriendRequestSchema'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Send Or Delete Friend Request
       tags:
       - Profiles
   /profiles/profile:

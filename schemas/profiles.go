@@ -71,6 +71,10 @@ type DeleteUserSchema struct {
 	Password 		string		`json:"password" validate:"required" example:"password"`
 }
 
+type SendFriendRequestSchema struct {
+	Username		string		`json:"username" validate:"required" example:"john-doe"`
+}
+
 // RESPONSE SCHEMAS
 // CITIES
 type CitiesResponseSchema struct {
