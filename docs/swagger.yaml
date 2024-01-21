@@ -284,6 +284,63 @@ definitions:
         example: success
         type: string
     type: object
+  schemas.ProfileSchema:
+    properties:
+      avatar:
+        example: https://img.com
+        type: string
+      bio:
+        example: Software Engineer | Django Ninja Developer
+        type: string
+      city:
+        example: Lekki
+        type: string
+      created_at:
+        type: string
+      dob:
+        type: string
+      email:
+        example: johndoe@email.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      updated_at:
+        type: string
+      username:
+        example: john-doe
+        type: string
+    type: object
+  schemas.ProfilesResponseDataSchema:
+    properties:
+      current_page:
+        example: 1
+        type: integer
+      last_page:
+        example: 100
+        type: integer
+      per_page:
+        example: 100
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/schemas.ProfileSchema'
+        type: array
+    type: object
+  schemas.ProfilesResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.ProfilesResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.ReactionInputSchema:
     properties:
       rtype:
@@ -1121,6 +1178,25 @@ paths:
       summary: HealthCheck
       tags:
       - HealthCheck
+  /profiles:
+    get:
+      description: This endpoint retrieves a paginated list of users
+      parameters:
+      - default: 1
+        description: Current Page
+        in: query
+        name: page
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ProfilesResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Retrieve Users
+      tags:
+      - Profiles
   /profiles/cities:
     get:
       description: This endpoint retrieves the first 10 cities that matches the query

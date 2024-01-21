@@ -931,6 +931,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/profiles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint retrieves a paginated list of users",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Retrieve Users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Current Page",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ProfilesResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/profiles/cities": {
             "get": {
                 "description": "This endpoint retrieves the first 10 cities that matches the query params",
@@ -1347,6 +1378,87 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/schemas.PostsResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "schemas.ProfileSchema": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "https://img.com"
+                },
+                "bio": {
+                    "type": "string",
+                    "example": "Software Engineer | Django Ninja Developer"
+                },
+                "city": {
+                    "type": "string",
+                    "example": "Lekki"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "johndoe@email.com"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "John"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Doe"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john-doe"
+                }
+            }
+        },
+        "schemas.ProfilesResponseDataSchema": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "last_page": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "per_page": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.ProfileSchema"
+                    }
+                }
+            }
+        },
+        "schemas.ProfilesResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.ProfilesResponseDataSchema"
                 },
                 "message": {
                     "type": "string",

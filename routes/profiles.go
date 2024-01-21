@@ -40,3 +40,34 @@ func RetrieveCities(c *fiber.Ctx) error {
 	}.Init()
 	return c.Status(200).JSON(response)
 }
+
+var userProfileManager = managers.UserProfileManager{}
+
+// @Summary Retrieve Users
+// @Description This endpoint retrieves a paginated list of users
+// @Tags Profiles
+// @Param page query int false "Current Page" default(1)
+// @Success 200 {object} schemas.ProfilesResponseSchema
+// @Router /profiles [get]
+// @Security BearerAuth
+func RetrieveUsers(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	users := userProfileManager.GetUsers(db, user)
+
+	// Paginate, Convert type and return Users
+	paginatedData, paginatedUsers, err := PaginateQueryset(users, c)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	convertedProfiles := utils.ConvertStructData(paginatedUsers, []schemas.ProfileSchema{}).(*[]schemas.ProfileSchema)
+	response := schemas.ProfilesResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Users fetched"}.Init(),
+		Data: schemas.ProfilesResponseDataSchema{
+			PaginatedResponseDataSchema: *paginatedData,
+			Items:                       *convertedProfiles,
+		}.Init(),
+	}
+	return c.Status(200).JSON(response)
+}

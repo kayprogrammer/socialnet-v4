@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
 
 // ----------------------------------
@@ -27,4 +28,22 @@ func (obj CityManager) GetByID(client *ent.Client, cityID uuid.UUID) *ent.City {
 		Where(city.ID(cityID)).
 		Only(Ctx)
 	return c
+}
+
+// ----------------------------------
+// USER PROFILE MANAGEMENT
+// --------------------------------
+type UserProfileManager struct {
+}
+
+func (obj UserProfileManager) GetUsers(client *ent.Client, userObj *ent.User) []*ent.User {
+	uq := client.User.Query().
+		WithAvatar().
+		WithCity()
+	if userObj != nil {
+		// Exclude yourself
+		uq = uq.Where(user.Not(user.ID(userObj.ID)))
+	}
+	users, _ := uq.All(Ctx)
+	return users
 }

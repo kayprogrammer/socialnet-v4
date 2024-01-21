@@ -35,3 +35,18 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	c.Locals("user", user)
 	return c.Next()
 }
+
+func GuestMiddleware(c *fiber.Ctx) error {
+	token := c.Get("Authorization")
+	db := c.Locals("db").(*ent.Client)
+	var user *ent.User
+	if len(token) > 0 {
+		userObj, err := getUser(c, token, db)
+		if err != nil {
+			return c.Status(401).JSON(utils.RequestErr(utils.ERR_INVALID_TOKEN, *err))
+		}
+		user = userObj
+	}
+	c.Locals("user", user)
+	return c.Next()
+}
