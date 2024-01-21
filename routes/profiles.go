@@ -176,3 +176,33 @@ func DeleteUser(c *fiber.Ctx) error {
 	response := schemas.ResponseSchema{Message: "User deleted"}.Init()
 	return c.Status(200).JSON(response)
 }
+
+var friendManager = managers.FriendManager{}
+// @Summary Retrieve Friends
+// @Description This endpoint retrieves friends of a user
+// @Tags Profiles
+// @Param page query int false "Current Page" default(1)
+// @Success 200 {object} schemas.ProfilesResponseSchema
+// @Router /profiles/friends [get]
+// @Security BearerAuth
+func RetrieveFriends(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	friends := friendManager.GetFriends(db, user)
+
+	// Paginate, Convert type and return Friends
+	paginatedData, paginatedFriends, err := PaginateQueryset(friends, c, 20)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	convertedFriends := utils.ConvertStructData(paginatedFriends, []schemas.ProfileSchema{}).(*[]schemas.ProfileSchema)
+	response := schemas.ProfilesResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Friends fetched"}.Init(),
+		Data: schemas.ProfilesResponseDataSchema{
+			PaginatedResponseDataSchema: *paginatedData,
+			Items:                       *convertedFriends,
+		}.Init(),
+	}
+	return c.Status(200).JSON(response)
+}

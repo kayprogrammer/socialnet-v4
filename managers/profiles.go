@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
+	"github.com/kayprogrammer/socialnet-v4/ent/friend"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
@@ -97,4 +98,39 @@ func (obj UserProfileManager) Update(client *ent.Client, profile *ent.User, prof
 	u.Edges.City = city
 	u.Edges.Avatar = avatar
 	return u
+}
+
+// ----------------------------------
+// FRIEND MANAGEMENT
+// --------------------------------
+type FriendManager struct {
+}
+
+func (obj FriendManager) GetFriends(client *ent.Client, userObj *ent.User) []*ent.User {
+	friendObjects, _ := client.Friend.Query().
+		Where(
+			friend.Or(
+				friend.RequesterIDEQ(userObj.ID),
+				friend.RequesteeIDEQ(userObj.ID),
+			),
+			friend.StatusEQ("ACCEPTED"),
+		).
+		All(Ctx)
+	var friendIDs []uuid.UUID
+	for i := range friendObjects {
+		requesterID := friendObjects[i].RequesterID
+		requesteeID := friendObjects[i].RequesteeID
+		if userObj.ID == requesterID{
+			friendIDs = append(friendIDs, requesteeID)
+		} else {
+			friendIDs = append(friendIDs, requesterID)
+		}
+	}
+
+	friends, _ := client.User.Query().
+		Where(user.IDIn(friendIDs...)).
+		WithCity().
+		WithAvatar().
+		All(Ctx)
+	return friends
 }
