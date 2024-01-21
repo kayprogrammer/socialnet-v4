@@ -51,5 +51,6 @@ func SetupRoutes(app *fiber.App) {
 	profilesRouter.Get("/cities", RetrieveCities)
 	profilesRouter.Get("", midw.GuestMiddleware, RetrieveUsers)
 	profilesRouter.Get("/profile/:username", RetrieveUserProfile)
+	profilesRouter.Patch("/profile", midw.AuthMiddleware, UpdateProfile)
 
 }

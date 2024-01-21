@@ -35,7 +35,7 @@ type ProfileSchema struct {
     Username 		string				`json:"username" example:"john-doe"`
     Email 			string				`json:"email" example:"johndoe@email.com"`
     Avatar 			*string				`json:"avatar" example:"https://img.com"`
-    Bio 			*string				`json:"bio" example:"Software Engineer | Django Ninja Developer"`
+    Bio 			*string				`json:"bio" example:"Software Engineer | Go Fiber Developer"`
     Dob 			*time.Time			`json:"dob"`
     City 			*string				`json:"city" example:"Lekki"`
     CreatedAt 		*time.Time			`json:"created_at"`
@@ -55,6 +55,16 @@ func (user ProfileSchema) Init () ProfileSchema {
 	}
 	user.Edges = nil // Omit edges
 	return user
+}
+
+type ProfileUpdateSchema struct {
+	FirstName      *string 		`json:"first_name" validate:"omitempty,max=50,min=1" example:"John"`
+	LastName       *string 		`json:"last_name" validate:"omitempty,max=50,min=1" example:"Doe"`
+	Bio			   *string 		`json:"bio" validate:"omitempty,max=200" example:"Software Engineer | Go Fiber Developer"`
+	Dob			   *time.Time 	`json:"dob" validate:"omitempty" example:"2001-01-16T00:00:00.106416+01:00"`
+	CityID		   *uuid.UUID	`json:"city_id" validate:"omitempty" example:"d10dde64-a242-4ed0-bd75-4c759644b3a6"`
+	FileType	   *string		`json:"file_type" example:"image/jpeg" validate:"omitempty,file_type_validator"`
+	City		   *ent.City	`json:"-"`
 }
 
 // RESPONSE SCHEMAS
@@ -99,4 +109,24 @@ type ProfilesResponseSchema struct {
 type ProfileResponseSchema struct {
 	ResponseSchema
 	Data			ProfileSchema		`json:"data"`
+}
+
+type ProfileUpdateResponseDataSchema struct {
+	ProfileSchema
+	FileUploadData 		*utils.SignatureFormat 	`json:"file_upload_data"`
+}
+
+func (profileData ProfileUpdateResponseDataSchema) Init(fileType *string) ProfileUpdateResponseDataSchema {
+	image := profileData.ProfileSchema.Edges.Avatar
+	if fileType != nil && image != nil { // Generate data when file is being uploaded
+		fuData := utils.GenerateFileSignature(image.ID.String(), "avatars")
+		profileData.FileUploadData = &fuData
+	}
+	profileData.ProfileSchema = profileData.ProfileSchema.Init()
+	return profileData	
+}
+
+type ProfileUpdateResponseSchema struct {
+	ResponseSchema
+	Data				ProfileUpdateResponseDataSchema			`json:"data"`
 }

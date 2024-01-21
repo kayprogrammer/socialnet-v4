@@ -11,6 +11,7 @@ import (
 )
 
 var cityManager = managers.CityManager{}
+
 // @Summary Retrieve cities based on query params
 // @Description This endpoint retrieves the first 10 cities that matches the query params
 // @Tags Profiles
@@ -19,7 +20,7 @@ var cityManager = managers.CityManager{}
 // @Router /profiles/cities [get]
 func RetrieveCities(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
-    message := "Cities Fetched"
+	message := "Cities Fetched"
 	name := c.Query("name")
 
 	// Define a regular expression to match non-word characters (excluding spaces).
@@ -36,7 +37,7 @@ func RetrieveCities(c *fiber.Ctx) error {
 	}
 	response := schemas.CitiesResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: message}.Init(),
-		Data: *convertedCities,
+		Data:           *convertedCities,
 	}.Init()
 	return c.Status(200).JSON(response)
 }
@@ -91,8 +92,52 @@ func RetrieveUserProfile(c *fiber.Ctx) error {
 	convertedProfile := utils.ConvertStructData(user, schemas.ProfileSchema{}).(*schemas.ProfileSchema)
 	response := schemas.ProfileResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "User details fetched"}.Init(),
-		Data: convertedProfile.Init(),
+		Data:           convertedProfile.Init(),
 	}
 	return c.Status(200).JSON(response)
 }
 
+// @Summary Update User Profile
+// @Description This endpoint updates a user profile
+// @Tags Profiles
+// @Param profile body schemas.ProfileUpdateSchema true "Profile object"
+// @Success 200 {object} schemas.ProfileResponseSchema
+// @Router /profiles/profile [patch]
+// @Security BearerAuth
+func UpdateProfile(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	profileData := schemas.ProfileUpdateSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &profileData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(profileData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	// Validate City Value
+	cityID := profileData.CityID
+	if cityID != nil {
+		city := cityManager.GetByID(db, *cityID)
+		if city == nil {
+			data := map[string]string{
+				"city_id": "No city with that ID",
+			}
+			return c.Status(404).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid Entry", data))
+		}
+		profileData.City = city
+	}
+
+	updatedProfile := userProfileManager.Update(db, user, profileData)
+
+	// Convert type and return User
+	convertedProfile := utils.ConvertStructData(updatedProfile, schemas.ProfileUpdateResponseDataSchema{}).(*schemas.ProfileUpdateResponseDataSchema)
+	response := schemas.ProfileUpdateResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "User updated fetched"}.Init(),
+		Data:           convertedProfile.Init(profileData.FileType),
+	}
+	return c.Status(200).JSON(response)
+}

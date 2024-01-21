@@ -5,6 +5,7 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
+	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
@@ -61,4 +62,39 @@ func (obj UserProfileManager) GetByUsername(client *ent.Client, username string)
 		return nil, &errData
 	}
 	return u, nil
+}
+
+func (obj UserProfileManager) Update(client *ent.Client, profile *ent.User, profileData schemas.ProfileUpdateSchema) *ent.User {
+	var avatarId *uuid.UUID
+	avatar := profile.Edges.Avatar
+	fileM := FileManager{}
+	if profileData.FileType != nil {
+		// Create or Update Image Object
+		if avatar == nil {
+			avatar, _ = FileManager{}.Create(client, profileData.FileType)
+		} else {
+			avatar = fileM.Update(client, avatar, *profileData.FileType)
+
+		}
+		avatarId = &avatar.ID
+	}
+
+	u, _ := profile.
+		Update().
+		SetNillableFirstName(profileData.FirstName).
+		SetNillableLastName(profileData.LastName).
+		SetNillableBio(profileData.Bio).
+		SetNillableDob(profileData.Dob).
+		SetNillableCityID(profileData.CityID).
+		SetNillableAvatarID(avatarId).
+		Save(Ctx)
+
+	// Set related values
+	city := profileData.City
+	if city == nil {
+		city = profile.Edges.City
+	}
+	u.Edges.City = city
+	u.Edges.Avatar = avatar
+	return u
 }
