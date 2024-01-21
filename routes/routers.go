@@ -45,4 +45,8 @@ func SetupRoutes(app *fiber.App) {
 	feedRouter.Get("/replies/:slug", RetrieveReply)
 	feedRouter.Put("/replies/:slug", midw.AuthMiddleware, UpdateReply)
 	feedRouter.Delete("/replies/:slug", midw.AuthMiddleware, DeleteReply)
+
+	// Profiles Routes
+	profilesRouter := api.Group("/profiles")
+	profilesRouter.Get("/cities", RetrieveCities)
 }

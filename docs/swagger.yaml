@@ -26,6 +26,34 @@ definitions:
         example: pong
         type: string
     type: object
+  schemas.CitiesResponseSchema:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/schemas.CitySchema'
+        type: array
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  schemas.CitySchema:
+    properties:
+      country:
+        example: Nigeria
+        type: string
+      id:
+        example: d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      name:
+        example: Lekki
+        type: string
+      region:
+        example: Lagos
+        type: string
+    type: object
   schemas.CommentInputSchema:
     properties:
       text:
@@ -1093,6 +1121,23 @@ paths:
       summary: HealthCheck
       tags:
       - HealthCheck
+  /profiles/cities:
+    get:
+      description: This endpoint retrieves the first 10 cities that matches the query
+        params
+      parameters:
+      - description: City name
+        in: query
+        name: name
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.CitiesResponseSchema'
+      summary: Retrieve cities based on query params
+      tags:
+      - Profiles
 produces:
 - application/json
 securityDefinitions:
