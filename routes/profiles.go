@@ -71,3 +71,28 @@ func RetrieveUsers(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Retrieve User Profile
+// @Description This endpoint retrieves a user profile
+// @Tags Profiles
+// @Param username path string true "Username of user"
+// @Success 200 {object} schemas.ProfileResponseSchema
+// @Router /profiles/profile/{username} [get]
+func RetrieveUserProfile(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	username := c.Params("username")
+
+	user, errData := userProfileManager.GetByUsername(db, username)
+	if errData != nil {
+		return c.Status(404).JSON(errData)
+	}
+
+	// Convert type and return User
+	convertedProfile := utils.ConvertStructData(user, schemas.ProfileSchema{}).(*schemas.ProfileSchema)
+	response := schemas.ProfileResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "User details fetched"}.Init(),
+		Data: convertedProfile.Init(),
+	}
+	return c.Status(200).JSON(response)
+}
+

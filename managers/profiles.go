@@ -5,6 +5,7 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
 // ----------------------------------
@@ -46,4 +47,18 @@ func (obj UserProfileManager) GetUsers(client *ent.Client, userObj *ent.User) []
 	}
 	users, _ := uq.All(Ctx)
 	return users
+}
+
+func (obj UserProfileManager) GetByUsername(client *ent.Client, username string) (*ent.User, *utils.ErrorResponse) {
+	u, err := client.User.
+		Query().
+		Where(user.Username(username)).
+		WithAvatar().
+		WithCity().
+		Only(Ctx)
+	if err != nil {
+		errData := utils.RequestErr(utils.ERR_NON_EXISTENT, "No user with that username")
+		return nil, &errData
+	}
+	return u, nil
 }

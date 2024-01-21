@@ -986,6 +986,32 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/profiles/profile/{username}": {
+            "get": {
+                "description": "This endpoint retrieves a user profile",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Retrieve User Profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username of user",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ProfileResponseSchema"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1378,6 +1404,22 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/schemas.PostsResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "schemas.ProfileResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.ProfileSchema"
                 },
                 "message": {
                     "type": "string",

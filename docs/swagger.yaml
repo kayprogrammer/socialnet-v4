@@ -284,6 +284,17 @@ definitions:
         example: success
         type: string
     type: object
+  schemas.ProfileResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.ProfileSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.ProfileSchema:
     properties:
       avatar:
@@ -1212,6 +1223,23 @@ paths:
           schema:
             $ref: '#/definitions/schemas.CitiesResponseSchema'
       summary: Retrieve cities based on query params
+      tags:
+      - Profiles
+  /profiles/profile/{username}:
+    get:
+      description: This endpoint retrieves a user profile
+      parameters:
+      - description: Username of user
+        in: path
+        name: username
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ProfileResponseSchema'
+      summary: Retrieve User Profile
       tags:
       - Profiles
 produces:

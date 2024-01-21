@@ -50,4 +50,6 @@ func SetupRoutes(app *fiber.App) {
 	profilesRouter := api.Group("/profiles")
 	profilesRouter.Get("/cities", RetrieveCities)
 	profilesRouter.Get("", midw.GuestMiddleware, RetrieveUsers)
+	profilesRouter.Get("/profile/:username", RetrieveUserProfile)
+
 }

@@ -95,3 +95,8 @@ type ProfilesResponseSchema struct {
 	ResponseSchema
 	Data			ProfilesResponseDataSchema		`json:"data"`
 }
+
+type ProfileResponseSchema struct {
+	ResponseSchema
+	Data			ProfileSchema		`json:"data"`
+}
