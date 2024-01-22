@@ -178,6 +178,7 @@ func DeleteUser(c *fiber.Ctx) error {
 }
 
 var friendManager = managers.FriendManager{}
+
 // @Summary Retrieve Friends
 // @Description This endpoint retrieves friends of a user
 // @Tags Profiles
@@ -275,7 +276,7 @@ func SendOrDeleteFriendRequest(c *fiber.Ctx) error {
 			// Delete friend successfully
 			db.Friend.DeleteOne(friend).Exec(managers.Ctx)
 		}
-		
+
 	} else {
 		// Create Friend Object
 		friendManager.Create(db, user.ID, requestee.ID)
@@ -283,4 +284,49 @@ func SendOrDeleteFriendRequest(c *fiber.Ctx) error {
 
 	response := schemas.ResponseSchema{Message: message}.Init()
 	return c.Status(statusCode).JSON(response)
+}
+
+// @Summary Accept Or Reject a Friend Request
+// @Description This endpoint accepts or reject a friend request
+// @Tags Profiles
+// @Param friend_request body schemas.AcceptFriendRequestSchema true "Friend Request object"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /profiles/friends/requests [put]
+// @Security BearerAuth
+func AcceptOrRejectFriendRequest(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	friendRequestData := schemas.AcceptFriendRequestSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &friendRequestData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(friendRequestData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	_, friend, errData := friendManager.GetRequesteeAndFriendObj(db, user, friendRequestData.Username, "PENDING")
+	if errData != nil {
+		return c.Status(404).JSON(errData)
+	}
+	if friend == nil {
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "No friend request exist between you and that user"))
+	}
+	if friend.RequesterID == user.ID {
+		return c.Status(403).JSON(utils.RequestErr(utils.ERR_NOT_ALLOWED, "You cannot accept or reject a friend request you sent"))
+	}
+	// Update or delete friend request based on status
+	message := "Accepted"
+	if friendRequestData.Accepted {
+		// Update Friend Request
+		friend.Update().SetStatus("ACCEPTED").Save(managers.Ctx)
+	} else {
+		// Delete Friend Request
+		message = "Rejected"
+		db.Friend.DeleteOne(friend).Exec(managers.Ctx)
+	}
+	response := schemas.ResponseSchema{Message: message}.Init()
+	return c.Status(200).JSON(response)
 }

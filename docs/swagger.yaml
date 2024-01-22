@@ -26,6 +26,17 @@ definitions:
         example: pong
         type: string
     type: object
+  schemas.AcceptFriendRequestSchema:
+    properties:
+      accepted:
+        example: true
+        type: boolean
+      username:
+        example: john-doe
+        type: string
+    required:
+    - username
+    type: object
   schemas.CitiesResponseSchema:
     properties:
       data:
@@ -1322,6 +1333,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Send Or Delete Friend Request
+      tags:
+      - Profiles
+    put:
+      description: This endpoint accepts or reject a friend request
+      parameters:
+      - description: Friend Request object
+        in: body
+        name: friend_request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.AcceptFriendRequestSchema'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Accept Or Reject a Friend Request
       tags:
       - Profiles
   /profiles/profile:

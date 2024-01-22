@@ -75,6 +75,10 @@ type SendFriendRequestSchema struct {
 	Username		string		`json:"username" validate:"required" example:"john-doe"`
 }
 
+type AcceptFriendRequestSchema struct {
+	Username		string		`json:"username" validate:"required" example:"john-doe"`
+	Accepted		bool		`json:"accepted" example:"true"`
+}
 // RESPONSE SCHEMAS
 // CITIES
 type CitiesResponseSchema struct {

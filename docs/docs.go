@@ -1048,6 +1048,37 @@ const docTemplate = `{
                     }
                 }
             },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint accepts or reject a friend request",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Accept Or Reject a Friend Request",
+                "parameters": [
+                    {
+                        "description": "Friend Request object",
+                        "name": "friend_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.AcceptFriendRequestSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1199,6 +1230,22 @@ const docTemplate = `{
                 "success": {
                     "type": "string",
                     "example": "pong"
+                }
+            }
+        },
+        "schemas.AcceptFriendRequestSchema": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "accepted": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john-doe"
                 }
             }
         },
