@@ -189,6 +189,58 @@ definitions:
     - email
     - password
     type: object
+  schemas.NotificationSchema:
+    properties:
+      comment_slug:
+        example: john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      id:
+        type: string
+      is_read:
+        example: true
+        type: boolean
+      message:
+        example: John Doe reacted to your post
+        type: string
+      ntype:
+        example: REACTION
+        type: string
+      post_slug:
+        example: john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      reply_slug:
+        example: john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      sender:
+        $ref: '#/definitions/schemas.UserDataSchema'
+    type: object
+  schemas.NotificationsResponseDataSchema:
+    properties:
+      current_page:
+        example: 1
+        type: integer
+      last_page:
+        example: 100
+        type: integer
+      notifications:
+        items:
+          $ref: '#/definitions/schemas.NotificationSchema'
+        type: array
+      per_page:
+        example: 100
+        type: integer
+    type: object
+  schemas.NotificationsResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.NotificationsResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.PostInputResponseDataSchema:
     properties:
       author:
@@ -1352,6 +1404,26 @@ paths:
       security:
       - BearerAuth: []
       summary: Accept Or Reject a Friend Request
+      tags:
+      - Profiles
+  /profiles/notifications:
+    get:
+      description: This endpoint retrieves a paginated list of auth user's notifications.
+        Use post, comment, reply slug to navigate to the post, comment or reply.
+      parameters:
+      - default: 1
+        description: Current Page
+        in: query
+        name: page
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.NotificationsResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Retrieve User Notifications
       tags:
       - Profiles
   /profiles/profile:

@@ -1,10 +1,12 @@
 package managers
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
@@ -192,4 +194,23 @@ func (obj FriendManager) Create(client *ent.Client, requesterID uuid.UUID, reque
 		SetRequesterID(requesterID).
 		SetRequesteeID(requesteeID).
 		Save(Ctx)
+}
+
+// ----------------------------------
+// NOTIFICATION MANAGEMENT
+// --------------------------------
+type NotificationManager struct {
+}
+
+func (obj NotificationManager) GetQueryset(client *ent.Client, userID uuid.UUID) []*ent.Notification {
+	notifications, _ := client.Notification.Query().
+		Where(notification.HasReceiversWith(user.ID(userID))).
+		WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).
+		WithPost().
+		WithComment().
+		WithReply().
+		WithReadBy().
+		Order(notification.ByCreatedAt(sql.OrderDesc())).
+		All(Ctx)
+	return notifications
 }

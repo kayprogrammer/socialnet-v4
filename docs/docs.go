@@ -1111,6 +1111,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/profiles/notifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint retrieves a paginated list of auth user's notifications. Use post, comment, reply slug to navigate to the post, comment or reply.",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Retrieve User Notifications",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Current Page",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.NotificationsResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/profiles/profile": {
             "post": {
                 "security": [
@@ -1466,6 +1497,80 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "password"
+                }
+            }
+        },
+        "schemas.NotificationSchema": {
+            "type": "object",
+            "properties": {
+                "comment_slug": {
+                    "type": "string",
+                    "example": "john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_read": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "message": {
+                    "type": "string",
+                    "example": "John Doe reacted to your post"
+                },
+                "ntype": {
+                    "type": "string",
+                    "example": "REACTION"
+                },
+                "post_slug": {
+                    "type": "string",
+                    "example": "john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6"
+                },
+                "reply_slug": {
+                    "type": "string",
+                    "example": "john-doe-d10dde64-a242-4ed0-bd75-4c759644b3a6"
+                },
+                "sender": {
+                    "$ref": "#/definitions/schemas.UserDataSchema"
+                }
+            }
+        },
+        "schemas.NotificationsResponseDataSchema": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "last_page": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "notifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.NotificationSchema"
+                    }
+                },
+                "per_page": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "schemas.NotificationsResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.NotificationsResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
                 }
             }
         },

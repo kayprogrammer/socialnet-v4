@@ -330,3 +330,33 @@ func AcceptOrRejectFriendRequest(c *fiber.Ctx) error {
 	response := schemas.ResponseSchema{Message: message}.Init()
 	return c.Status(200).JSON(response)
 }
+
+var notificationManager = managers.NotificationManager{}
+// @Summary Retrieve User Notifications
+// @Description This endpoint retrieves a paginated list of auth user's notifications. Use post, comment, reply slug to navigate to the post, comment or reply.
+// @Tags Profiles
+// @Param page query int false "Current Page" default(1)
+// @Success 200 {object} schemas.NotificationsResponseSchema
+// @Router /profiles/notifications [get]
+// @Security BearerAuth
+func RetrieveUserNotifications(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	notifications := notificationManager.GetQueryset(db, user.ID)
+
+	// Paginate, Convert type and return notifications
+	paginatedData, paginatedNotifications, err := PaginateQueryset(notifications, c)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	convertedNotifications := utils.ConvertStructData(paginatedNotifications, []schemas.NotificationSchema{}).(*[]schemas.NotificationSchema)
+	response := schemas.NotificationsResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Notifications fetched"}.Init(),
+		Data: schemas.NotificationsResponseDataSchema{
+			PaginatedResponseDataSchema: *paginatedData,
+			Items:                       *convertedNotifications,
+		}.Init(user.ID),
+	}
+	return c.Status(200).JSON(response)
+}
