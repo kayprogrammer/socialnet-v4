@@ -235,3 +235,23 @@ func (obj NotificationManager) ReadOne(client *ent.Client, userID uuid.UUID, not
 	n.Update().AddReadByIDs(userID).SaveX(Ctx)
 	return nil
 }
+
+func (obj NotificationManager) Create(client *ent.Client, sender *ent.User, ntype notification.Ntype, receivers []*ent.User, post *ent.Post, comment *ent.Comment, reply *ent.Reply) *ent.Notification {
+	// Create Notification
+	nc := client.Notification.Create().
+		SetSender(sender).
+		SetNtype(ntype).
+		AddReceivers(receivers...)
+	if post != nil {
+		nc = nc.SetPost(post)
+	} else if comment != nil {
+		nc = nc.SetComment(comment)
+	} else if reply != nil {
+		nc = nc.SetReply(reply)
+	}
+
+	notification := nc.SaveX(Ctx) 
+	return notification
+}
+
+// Create update next

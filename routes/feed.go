@@ -253,7 +253,7 @@ func CreateReaction(c *fiber.Ctx) error {
 		Data:           convertedReaction.Init(),
 	}
 
-	// Send Notifications here later
+	// Create & Send Notifications
 	return c.Status(201).JSON(response)
 }
 
