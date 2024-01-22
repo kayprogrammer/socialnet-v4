@@ -89,7 +89,12 @@ func (cv *CustomValidator) translateValidationErrors(errs validator.ValidationEr
     errData := make(map[string]string)
 	for _, err := range errs {
         registerTranslations(err.Param())
-		errData[err.Field()] = err.Translate(translator)
+        errMsg := err.Translate(translator)
+        if strings.Contains(errMsg, "ReadNotificationSchema.id") && strings.Contains(errMsg, "required_if") {
+            // Hack to change error message for read notification schema id required_if error.
+            errMsg = "Set ID or mark all as read as True"
+        }
+		errData[err.Field()] = errMsg
     }
     errResp := RequestErr(ERR_INVALID_ENTRY, "Invalid Entry", errData)
     return &errResp

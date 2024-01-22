@@ -360,3 +360,43 @@ func RetrieveUserNotifications(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Read Notifications
+// @Description This endpoint reads a notification
+// @Tags Profiles
+// @Param read_data body schemas.ReadNotificationSchema true "Read Notification Data"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /profiles/notifications [post]
+// @Security BearerAuth
+func ReadNotification(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	readNotificationData := schemas.ReadNotificationSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &readNotificationData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(readNotificationData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	notificationID := readNotificationData.ID
+	markAllAsRead := readNotificationData.MarkAllAsRead
+	
+	respMessage := "Notifications read"
+	if markAllAsRead {
+        // Mark all notifications as read
+		notificationManager.MarkAsRead(db, user.ID)
+	} else if notificationID != nil {
+        // Mark single notification as read
+		err := notificationManager.ReadOne(db, user.ID, *notificationID)
+		if err != nil {
+			return c.Status(404).JSON(err)
+		}
+		respMessage = "Notification read"
+	}
+	response := schemas.ResponseSchema{Message: respMessage}.Init()
+	return c.Status(200).JSON(response)
+}

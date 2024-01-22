@@ -193,7 +193,7 @@ func (obj FriendManager) Create(client *ent.Client, requesterID uuid.UUID, reque
 		Create().
 		SetRequesterID(requesterID).
 		SetRequesteeID(requesteeID).
-		Save(Ctx)
+		SaveX(Ctx)
 }
 
 // ----------------------------------
@@ -203,7 +203,7 @@ type NotificationManager struct {
 }
 
 func (obj NotificationManager) GetQueryset(client *ent.Client, userID uuid.UUID) []*ent.Notification {
-	notifications, _ := client.Notification.Query().
+	notifications := client.Notification.Query().
 		Where(notification.HasReceiversWith(user.ID(userID))).
 		WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).
 		WithPost().
@@ -211,6 +211,27 @@ func (obj NotificationManager) GetQueryset(client *ent.Client, userID uuid.UUID)
 		WithReply().
 		WithReadBy().
 		Order(notification.ByCreatedAt(sql.OrderDesc())).
-		All(Ctx)
+		AllX(Ctx)
 	return notifications
+}
+
+func (obj NotificationManager) MarkAsRead(client *ent.Client, userID uuid.UUID) {
+	client.Notification.
+		Update().
+		Where(notification.HasReceiversWith(user.ID(userID))).
+		AddReadByIDs(userID).
+		SaveX(Ctx)
+}
+
+func (obj NotificationManager) ReadOne(client *ent.Client, userID uuid.UUID, notificationID uuid.UUID) *utils.ErrorResponse {
+	n, _ := client.Notification.
+		Query().
+		Where(notification.HasReceiversWith(user.ID(userID)), notification.ID(notificationID)).
+		Only(Ctx)
+	if n == nil {
+		errData := utils.RequestErr(utils.ERR_NON_EXISTENT, "User has no notification with that ID")
+		return &errData
+	}
+	n.Update().AddReadByIDs(userID).SaveX(Ctx)
+	return nil
 }

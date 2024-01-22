@@ -36,3 +36,23 @@ func FileTypeValidator(fl validator.FieldLevel) bool {
 	}
 	return fileTypeFound
 }
+
+// func IDOrMarkAllAsReadValidator(fl validator.FieldLevel) bool {
+// 	// This is for reading notifications, by ensuring user enters an ID or mark all as read
+// 	id, ok := fl.Top().Interface().(uuid.UUID)
+// 	if !ok {
+// 		return false
+// 	}
+
+// 	markAllAsReadField, ok := fl.Parent().FieldByName("MarkAllAsRead")
+// 	if !ok {
+// 		return false
+// 	}
+// 	markAllAsRead := markAllAsReadField.Interface().(bool)
+
+// 	if id == 0 && !markAllAsRead {
+// 		return false
+// 	}
+
+// 	return true
+// }

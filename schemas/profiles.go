@@ -154,8 +154,8 @@ func (notification NotificationSchema) GetMessage() string {
 }
 
 type ReadNotificationSchema struct {
-	MarkAllAsRead		bool			`json:"mark_all_as_read" example:"true"`
-	ID					*uuid.UUID		`json:"id" validate:"omitempty" example:"d10dde64-a242-4ed0-bd75-4c759644b3a6"`
+	MarkAllAsRead		bool			`json:"mark_all_as_read" example:"false"`
+	ID					*uuid.UUID		`json:"id" validate:"required_if=MarkAllAsRead false,omitempty" example:"d10dde64-a242-4ed0-bd75-4c759644b3a6"`
 }
 
 // RESPONSE SCHEMAS

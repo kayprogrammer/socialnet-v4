@@ -1140,6 +1140,37 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint reads a notification",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Read Notifications",
+                "parameters": [
+                    {
+                        "description": "Read Notification Data",
+                        "name": "read_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ReadNotificationSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    }
+                }
             }
         },
         "/profiles/profile": {
@@ -1951,6 +1982,19 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "success"
+                }
+            }
+        },
+        "schemas.ReadNotificationSchema": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "d10dde64-a242-4ed0-bd75-4c759644b3a6"
+                },
+                "mark_all_as_read": {
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },

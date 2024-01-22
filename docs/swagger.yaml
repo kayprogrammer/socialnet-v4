@@ -507,6 +507,15 @@ definitions:
         example: success
         type: string
     type: object
+  schemas.ReadNotificationSchema:
+    properties:
+      id:
+        example: d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      mark_all_as_read:
+        example: false
+        type: boolean
+    type: object
   schemas.RefreshTokenSchema:
     properties:
       refresh:
@@ -1424,6 +1433,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Retrieve User Notifications
+      tags:
+      - Profiles
+    post:
+      description: This endpoint reads a notification
+      parameters:
+      - description: Read Notification Data
+        in: body
+        name: read_data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.ReadNotificationSchema'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Read Notifications
       tags:
       - Profiles
   /profiles/profile:
