@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/swagger"
+	"github.com/gofiber/contrib/swagger"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/database"
 	"github.com/kayprogrammer/socialnet-v4/routes"
@@ -48,8 +48,16 @@ func main() {
 		return c.Next()
 	})
 
+	// Swagger Config
+	swaggerCfg := swagger.Config{
+		FilePath: "./docs/swagger.json",
+		Path:     "/",
+		Title: "SOCIALNET API Documentation",
+	}
+	
+	app.Use(swagger.New(swaggerCfg))
+
 	// Register routes
 	routes.SetupRoutes(app)
-	app.Get("/*", swagger.HandlerDefault) // default
 	log.Fatal(app.Listen(":8000"))
 }
