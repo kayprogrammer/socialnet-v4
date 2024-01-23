@@ -254,4 +254,31 @@ func (obj NotificationManager) Create(client *ent.Client, sender *ent.User, ntyp
 	return notification
 }
 
-// Create update next
+func (obj NotificationManager) GetOrCreate(client *ent.Client, sender *ent.User, ntype notification.Ntype, receivers []*ent.User, post *ent.Post, comment *ent.Comment, reply *ent.Reply) (*ent.Notification, bool) {
+	created := false
+	nq := client.Notification.Query().
+		Where(
+			notification.SenderID(sender.ID),
+			notification.NtypeEQ(ntype),
+		)
+	if post != nil {
+		nq = nq.Where(notification.PostID(post.ID))
+	} else if comment != nil {
+		nq = nq.Where(notification.CommentID(comment.ID))
+	} else if reply != nil {
+		nq = nq.Where(notification.ReplyID(reply.ID))
+	}
+	n, _ := nq.Only(Ctx)
+	if n == nil {
+		created = true
+		// Create notification
+		n = obj.Create(client, sender, ntype, receivers, post, comment, reply)
+	}
+
+	// Set related data
+	n.Edges.Sender = sender
+	n.Edges.Post = post
+	n.Edges.Comment = comment
+	n.Edges.Reply = reply
+	return n, created		 
+}
