@@ -284,33 +284,44 @@ func (obj ReactionManager) Create(client *ent.Client, userID uuid.UUID, focus st
 	return reaction
 }
 
-func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, focus string, slug string, rtype reaction.Rtype) (*ent.Reaction, *int, *utils.ErrorResponse) {
+func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, focus string, slug string, rtype reaction.Rtype) (*ent.Reaction, *ent.User, *int, *utils.ErrorResponse) {
 	q := client.Reaction.Query()
 	var focusID *uuid.UUID
+	var targetedObjAuthor *ent.User
+
+	var postObj *ent.Post 
+	var commentObj *ent.Comment 
+	var replyObj *ent.Reply 
 	if focus == "POST" {
 		// Get Post Object and Query reactions for the post
 		post, errCode, errData := PostManager{}.GetBySlug(client, slug)
 		if errCode != nil {
-			return nil, errCode, errData
+			return nil, nil, errCode, errData
 		}
 		focusID = &post.ID
 		q = q.Where(reaction.PostID(*focusID))
+		targetedObjAuthor = post.Edges.Author
+		postObj = post
 	} else if focus == "COMMENT" {
 		// Get Comment Object and Query reactions for the comment
 		comment, errCode, errData := CommentManager{}.GetBySlug(client, slug)
 		if errCode != nil {
-			return nil, errCode, errData
+			return nil, nil, errCode, errData
 		}
 		focusID = &comment.ID
 		q = q.Where(reaction.CommentID(*focusID))
+		targetedObjAuthor = comment.Edges.Author
+		commentObj = comment
 	} else {
 		// Get Reply Object and Query reactions for the reply
 		reply, errCode, errData := ReplyManager{}.GetBySlug(client, slug)
 		if errCode != nil {
-			return nil, errCode, errData
+			return nil, nil, errCode, errData
 		}
 		focusID = &reply.ID
 		q = q.Where(reaction.ReplyID(*focusID))
+		targetedObjAuthor = reply.Edges.Author
+		replyObj = reply
 	}
 
 	reaction, _ := q.WithUser(func(uq *ent.UserQuery) { uq.WithAvatar() }).Only(Ctx)
@@ -324,11 +335,18 @@ func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, fo
 
 	// Set Related Data
 	reaction.Edges.User = user
-	return reaction, nil, nil
+	reaction.Edges.Post = postObj
+	reaction.Edges.Comment = commentObj
+	reaction.Edges.Reply = replyObj
+	return reaction, targetedObjAuthor, nil, nil
 }
 
 func (obj ReactionManager) GetByID(client *ent.Client, id uuid.UUID) (*ent.Reaction, *int, *utils.ErrorResponse) {
-	r, _ := client.Reaction.Query().Where(reaction.ID(id)).Only(Ctx)
+	r, _ := client.Reaction.Query().Where(reaction.ID(id)).
+		WithPost().
+		WithComment().
+		WithReply().
+		Only(Ctx)
 	if r == nil {
 		statusCode := 404
 		errData := utils.RequestErr(utils.ERR_NON_EXISTENT, "Reaction does not exist")

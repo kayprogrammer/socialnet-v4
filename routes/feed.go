@@ -241,7 +241,7 @@ func CreateReaction(c *fiber.Ctx) error {
 	}
 
 	// Update Or Create Reaction
-	reaction, errCode, errData := reactionManager.UpdateOrCreate(db, user, focus, slug, reactionData.Rtype)
+	reaction, targetedObjAuthor, errCode, errData := reactionManager.UpdateOrCreate(db, user, focus, slug, reactionData.Rtype)
 	if errCode != nil {
 		return c.Status(*errCode).JSON(errData)
 	}
@@ -254,6 +254,14 @@ func CreateReaction(c *fiber.Ctx) error {
 	}
 
 	// Create & Send Notifications
+	notificationManager.GetOrCreate(
+		db, user, "REACTION", 
+		[]*ent.User{targetedObjAuthor}, 
+		reaction.Edges.Post, 
+		reaction.Edges.Comment, 
+		reaction.Edges.Reply,
+	)
+
 	return c.Status(201).JSON(response)
 }
 
@@ -285,9 +293,17 @@ func DeleteReaction(c *fiber.Ctx) error {
 		return c.Status(400).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "This Reaction isn't yours"))
 	}
 
-	// Remove Reaction Notifications here later
+	// Remove Reaction Notifications
+	notification := notificationManager.Get(
+		db, user, "REACTION", 
+		reaction.Edges.Post, reaction.Edges.Comment, reaction.Edges.Reply,
+	)
+	if notification != nil {
+		// Send to websocket and delete notification
+		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
+	}
 
-	// Delete and return response
+	// Delete reaction and return response
 	db.Reaction.DeleteOne(reaction).Exec(managers.Ctx)
 	response := schemas.ResponseSchema{Message: "Reaction Deleted"}.Init()
 	return c.Status(200).JSON(response)
@@ -362,8 +378,10 @@ func CreateComment(c *fiber.Ctx) error {
 	// Create Comment
 	comment := commentManager.Create(db, user, post.ID, commentData.Text)
 
-	// Send Notifications here later
-
+	// Created & Send Notification
+	if user.ID != post.AuthorID {
+		notificationManager.Create(db, user, "COMMENT", []*ent.User{post.Edges.Author}, nil, comment, nil)
+	}
 	// Convert type and return comment
 	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
 	response := schemas.CommentResponseSchema{
@@ -443,7 +461,10 @@ func CreateReply(c *fiber.Ctx) error {
 	// Create reply
 	reply := replyManager.Create(db, user, comment.ID, replyData.Text)
 
-	// Send Notifications here later
+	// Created & Send Notification
+	if user.ID != comment.AuthorID {
+		notificationManager.Create(db, user, "REPLY", []*ent.User{comment.Edges.Author}, nil, nil, reply)
+	}
 
 	// Convert type and return reply
 	convertedReply := utils.ConvertStructData(reply, schemas.ReplySchema{}).(*schemas.ReplySchema)
@@ -520,7 +541,15 @@ func DeleteComment(c *fiber.Ctx) error {
 		return c.Status(400).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "Not yours to delete"))
 	}
 
-	// Remove Comment Notifications here later
+	// Remove Comment Notifications
+	notification := notificationManager.Get(
+		db, user, "COMMENT", 
+		nil, comment, nil,
+	)
+	if notification != nil {
+		// Send to websocket and delete notification
+		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
+	}
 
 	// Delete and return response
 	db.Comment.DeleteOne(comment).Exec(managers.Ctx)
@@ -587,8 +616,6 @@ func UpdateReply(c *fiber.Ctx) error {
 	// Update Reply
 	reply = replyManager.Update(reply, user, replyData.Text)
 
-	// Send Notifications here later
-
 	// Convert type and return reply
 	convertedReply := utils.ConvertStructData(reply, schemas.ReplySchema{}).(*schemas.ReplySchema)
 	response := schemas.ReplyResponseSchema{
@@ -619,7 +646,15 @@ func DeleteReply(c *fiber.Ctx) error {
 		return c.Status(400).JSON(utils.RequestErr(utils.ERR_INVALID_OWNER, "Not yours to delete"))
 	}
 
-	// Remove Reply Notifications here later
+	// Remove Reply Notifications
+	notification := notificationManager.Get(
+		db, user, "REPLY", 
+		nil, nil, reply,
+	)
+	if notification != nil {
+		// Send to websocket and delete notification
+		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
+	}
 
 	// Delete and return response
 	db.Reply.DeleteOne(reply).Exec(managers.Ctx)
