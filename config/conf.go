@@ -39,6 +39,7 @@ type Configuration struct {
 	MailSenderHost            string
 	MailSenderPort            int
 	CORSAllowedOrigins        string
+	SocketSecret			  string
 }
 
 var config *Configuration
@@ -89,6 +90,7 @@ func init() {
 		MailSenderHost:            os.Getenv("MAIL_SENDER_HOST"),
 		MailSenderPort:            mailSenderPort,
 		CORSAllowedOrigins:        os.Getenv("CORS_ALLOWED_ORIGINS"),
+		SocketSecret:			   os.Getenv("SOCKET_SECRET"),
 	}
 }
 

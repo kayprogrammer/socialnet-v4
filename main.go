@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/contrib/swagger"
 	"github.com/kayprogrammer/socialnet-v4/config"
@@ -57,7 +58,18 @@ func main() {
 	
 	app.Use(swagger.New(swaggerCfg))
 
-	// Register routes
+	// Register Routes & Sockets
+	app.Use("/ws", func(c *fiber.Ctx) error {
+        // IsWebSocketUpgrade returns true if the client
+        // requested upgrade to the WebSocket protocol.
+        if websocket.IsWebSocketUpgrade(c) {
+            c.Locals("allowed", true)
+            return c.Next()
+        }
+        return fiber.ErrUpgradeRequired
+    })
+
 	routes.SetupRoutes(app)
+	routes.SetupSockets(app)
 	log.Fatal(app.Listen(":8000"))
 }

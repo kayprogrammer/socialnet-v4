@@ -93,7 +93,7 @@ type NotificationSchema struct {
 	IsRead			bool					`json:"is_read" example:"true"`
 }
 
-func (notification NotificationSchema) Init (currentUserID uuid.UUID) NotificationSchema {
+func (notification NotificationSchema) Init (currentUserID *uuid.UUID) NotificationSchema {
 	// Set Related Data.
 	notification.Sender = notification.Sender.Init(notification.Edges.Sender)
 
@@ -109,13 +109,15 @@ func (notification NotificationSchema) Init (currentUserID uuid.UUID) Notificati
 	notification.Text = nil // Omit text
 
 	// Set IsRead
-	readBy := notification.Edges.ReadBy
-	for _, user := range readBy {
-		if user.ID == currentUserID {
-			notification.IsRead = true
-			break
+	if currentUserID != nil {
+		readBy := notification.Edges.ReadBy
+		for _, user := range readBy {
+			if user.ID == *currentUserID {
+				notification.IsRead = true
+				break
+			}
 		}
-	} 
+	}
 	notification.Edges = nil // Omit edges
 	return notification
 }
@@ -232,7 +234,7 @@ func (data NotificationsResponseDataSchema) Init (currentUserID uuid.UUID) Notif
 	// Set Initial Data
 	items := data.Items
 	for i := range items {
-		items[i] = items[i].Init(currentUserID)
+		items[i] = items[i].Init(&currentUserID)
 	}
 	data.Items = items
 	return data

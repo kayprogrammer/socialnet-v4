@@ -1,6 +1,7 @@
 package routes
 
 import (
+    "github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	midw "github.com/kayprogrammer/socialnet-v4/authentication"
 )
@@ -59,4 +60,8 @@ func SetupRoutes(app *fiber.App) {
 	profilesRouter.Put("/friends/requests", midw.AuthMiddleware, AcceptOrRejectFriendRequest)
 	profilesRouter.Get("/notifications", midw.AuthMiddleware, RetrieveUserNotifications)
 	profilesRouter.Post("/notifications", midw.AuthMiddleware, ReadNotification)
+}
+
+func SetupSockets(app *fiber.App) {
+	app.Get("/api/v4/ws/notifications", websocket.New(NotificationSocket))
 }
