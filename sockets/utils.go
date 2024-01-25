@@ -8,19 +8,12 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/authentication"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
-	"github.com/kayprogrammer/socialnet-v4/schemas"
 )
-
-type SocketNotificationSchema struct {
-	schemas.NotificationSchema
-	Status				string			`json:"status"`
-}
 
 // Maintain db & a list of connected clients
 var (
 	clients = make(map[*websocket.Conn]bool)
 	clientsMutex = &sync.Mutex{}
-	notification SocketNotificationSchema
 )
 
 // Function to add a client to the list

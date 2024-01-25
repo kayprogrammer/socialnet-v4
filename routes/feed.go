@@ -257,15 +257,15 @@ func CreateReaction(c *fiber.Ctx) error {
 	// Create & Send Notifications
 	if user.ID != targetedObjAuthor.ID {
 		notification, created := notificationManager.GetOrCreate(
-			db, user, "REACTION", 
-			[]uuid.UUID{targetedObjAuthor.ID}, 
-			reaction.Edges.Post, 
-			reaction.Edges.Comment, 
+			db, user, "REACTION",
+			[]uuid.UUID{targetedObjAuthor.ID},
+			reaction.Edges.Post,
+			reaction.Edges.Comment,
 			reaction.Edges.Reply,
 		)
 
 		if created {
-			SendNotificationInSocket(c, notification)
+			SendNotificationInSocket(c, notification, nil, nil)
 		}
 	}
 	return c.Status(201).JSON(response)
@@ -301,13 +301,12 @@ func DeleteReaction(c *fiber.Ctx) error {
 
 	// Remove Reaction Notifications
 	notification := notificationManager.Get(
-		db, user, "REACTION", 
+		db, user, "REACTION",
 		reaction.Edges.Post, reaction.Edges.Comment, reaction.Edges.Reply,
 	)
 	if notification != nil {
 		// Send to websocket and delete notification
-		SendNotificationInSocket(c, notification, "DELETED")
-		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
+		SendNotificationInSocket(c, notification, nil, nil, "DELETED")
 	}
 
 	// Delete reaction and return response
@@ -388,7 +387,7 @@ func CreateComment(c *fiber.Ctx) error {
 	// Created & Send Notification
 	if user.ID != post.AuthorID {
 		notification := notificationManager.Create(db, user, "COMMENT", []uuid.UUID{post.AuthorID}, nil, comment, nil)
-		SendNotificationInSocket(c, notification)
+		SendNotificationInSocket(c, notification, nil, nil)
 	}
 	// Convert type and return comment
 	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
@@ -396,7 +395,7 @@ func CreateComment(c *fiber.Ctx) error {
 		ResponseSchema: schemas.ResponseSchema{Message: "Comment created"}.Init(),
 		Data:           convertedComment.Init(),
 	}
-	return c.Status(200).JSON(response)
+	return c.Status(201).JSON(response)
 }
 
 // @Summary Retrieve Comment with replies
@@ -472,7 +471,7 @@ func CreateReply(c *fiber.Ctx) error {
 	// Created & Send Notification
 	if user.ID != comment.AuthorID {
 		notification := notificationManager.Create(db, user, "REPLY", []uuid.UUID{comment.AuthorID}, nil, nil, reply)
-		SendNotificationInSocket(c, notification)
+		SendNotificationInSocket(c, notification, nil, nil)
 	}
 
 	// Convert type and return reply
@@ -481,7 +480,7 @@ func CreateReply(c *fiber.Ctx) error {
 		ResponseSchema: schemas.ResponseSchema{Message: "Reply created"}.Init(),
 		Data:           convertedReply.Init(),
 	}
-	return c.Status(200).JSON(response)
+	return c.Status(201).JSON(response)
 }
 
 // @Summary Update Comment
@@ -552,17 +551,16 @@ func DeleteComment(c *fiber.Ctx) error {
 
 	// Remove Comment Notifications
 	notification := notificationManager.Get(
-		db, user, "COMMENT", 
+		db, user, "COMMENT",
 		nil, comment, nil,
 	)
 	if notification != nil {
-		// Send to websocket and delete notification
-		SendNotificationInSocket(c, notification, "DELETED")
-		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
+		// Send to websocket and delete notification & comment
+		SendNotificationInSocket(c, notification, &comment.Slug, nil, "DELETED")
 	}
 
 	// Delete and return response
-	db.Comment.DeleteOne(comment).Exec(managers.Ctx)
+	// db.Comment.DeleteOne(comment).Exec(managers.Ctx)
 	response := schemas.ResponseSchema{Message: "Comment Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }
@@ -658,17 +656,16 @@ func DeleteReply(c *fiber.Ctx) error {
 
 	// Remove Reply Notifications
 	notification := notificationManager.Get(
-		db, user, "REPLY", 
+		db, user, "REPLY",
 		nil, nil, reply,
 	)
 	if notification != nil {
 		// Send to websocket and delete notification
-		SendNotificationInSocket(c, notification, "DELETED")
-		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
+		SendNotificationInSocket(c, notification, nil, &reply.Slug, "DELETED")
 	}
 
 	// Delete and return response
-	db.Reply.DeleteOne(reply).Exec(managers.Ctx)
+	// db.Reply.DeleteOne(reply).Exec(managers.Ctx)
 	response := schemas.ResponseSchema{Message: "Reply Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }

@@ -21,7 +21,7 @@ func ValidateReactionFocus(focus string) *utils.ErrorResponse {
 	return &err 
 }
 
-func SendNotificationInSocket(fiberCtx *fiber.Ctx, notification *ent.Notification, statusOpts ...string) error {
+func SendNotificationInSocket(fiberCtx *fiber.Ctx, notification *ent.Notification, commentSlug *string, replySlug *string, statusOpts ...string) error {
 	// Check if page size is provided as an argument
 	status := "CREATED"
 	if len(statusOpts) > 0 {
@@ -33,7 +33,7 @@ func SendNotificationInSocket(fiberCtx *fiber.Ctx, notification *ent.Notificatio
 	}
 	uri := webSocketScheme + fiberCtx.Hostname() + "/api/v4/ws/notifications/"
 	notificationData := sockets.SocketNotificationSchema{
-		NotificationSchema: schemas.NotificationSchema{ID: notification.ID, Ntype: string(notification.Ntype)},
+		NotificationSchema: schemas.NotificationSchema{ID: notification.ID, Ntype: string(notification.Ntype), CommentSlug: commentSlug, ReplySlug: replySlug},
 		Status: status,
 	}
 	if status == "CREATED" {
