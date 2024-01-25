@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
@@ -257,7 +258,7 @@ func CreateReaction(c *fiber.Ctx) error {
 	if user.ID != targetedObjAuthor.ID {
 		notification, created := notificationManager.GetOrCreate(
 			db, user, "REACTION", 
-			[]*ent.User{targetedObjAuthor}, 
+			[]uuid.UUID{targetedObjAuthor.ID}, 
 			reaction.Edges.Post, 
 			reaction.Edges.Comment, 
 			reaction.Edges.Reply,
@@ -386,7 +387,7 @@ func CreateComment(c *fiber.Ctx) error {
 
 	// Created & Send Notification
 	if user.ID != post.AuthorID {
-		notification := notificationManager.Create(db, user, "COMMENT", []*ent.User{post.Edges.Author}, nil, comment, nil)
+		notification := notificationManager.Create(db, user, "COMMENT", []uuid.UUID{post.AuthorID}, nil, comment, nil)
 		SendNotificationInSocket(c, notification)
 	}
 	// Convert type and return comment
@@ -470,7 +471,7 @@ func CreateReply(c *fiber.Ctx) error {
 
 	// Created & Send Notification
 	if user.ID != comment.AuthorID {
-		notification := notificationManager.Create(db, user, "REPLY", []*ent.User{comment.Edges.Author}, nil, nil, reply)
+		notification := notificationManager.Create(db, user, "REPLY", []uuid.UUID{comment.AuthorID}, nil, nil, reply)
 		SendNotificationInSocket(c, notification)
 	}
 

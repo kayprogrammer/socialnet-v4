@@ -236,12 +236,12 @@ func (obj NotificationManager) ReadOne(client *ent.Client, userID uuid.UUID, not
 	return nil
 }
 
-func (obj NotificationManager) Create(client *ent.Client, sender *ent.User, ntype notification.Ntype, receivers []*ent.User, post *ent.Post, comment *ent.Comment, reply *ent.Reply) *ent.Notification {
+func (obj NotificationManager) Create(client *ent.Client, sender *ent.User, ntype notification.Ntype, receiverIDs []uuid.UUID, post *ent.Post, comment *ent.Comment, reply *ent.Reply) *ent.Notification {
 	// Create Notification
 	nc := client.Notification.Create().
 		SetSender(sender).
 		SetNtype(ntype).
-		AddReceivers(receivers...)
+		AddReceiverIDs(receiverIDs...)
 	if post != nil {
 		nc = nc.SetPost(post)
 	} else if comment != nil {
@@ -260,7 +260,7 @@ func (obj NotificationManager) Create(client *ent.Client, sender *ent.User, ntyp
 	return notification
 }
 
-func (obj NotificationManager) GetOrCreate(client *ent.Client, sender *ent.User, ntype notification.Ntype, receivers []*ent.User, post *ent.Post, comment *ent.Comment, reply *ent.Reply) (*ent.Notification, bool) {
+func (obj NotificationManager) GetOrCreate(client *ent.Client, sender *ent.User, ntype notification.Ntype, receiverIDs []uuid.UUID, post *ent.Post, comment *ent.Comment, reply *ent.Reply) (*ent.Notification, bool) {
 	created := false
 	nq := client.Notification.Query().
 		Where(
@@ -278,7 +278,7 @@ func (obj NotificationManager) GetOrCreate(client *ent.Client, sender *ent.User,
 	if n == nil {
 		created = true
 		// Create notification
-		n = obj.Create(client, sender, ntype, receivers, post, comment, reply)
+		n = obj.Create(client, sender, ntype, receiverIDs, post, comment, reply)
 	}
 	return n, created		 
 }
