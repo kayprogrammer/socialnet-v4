@@ -297,3 +297,13 @@ func (obj NotificationManager) Get(client *ent.Client, sender *ent.User, ntype n
 	n, _ := nq.Only(Ctx)
 	return n
 }
+
+func (obj NotificationManager) IsAmongReceivers(client *ent.Client, notificationID uuid.UUID, receiverID uuid.UUID) bool {
+	exists := client.Notification.Query().
+		Where(
+			notification.ID(notificationID),
+			notification.HasReceiversWith(user.ID(receiverID)),
+		).
+		ExistX(Ctx)
+	return exists 
+}

@@ -1,9 +1,10 @@
 package routes
 
 import (
-    "github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	midw "github.com/kayprogrammer/socialnet-v4/authentication"
+	"github.com/kayprogrammer/socialnet-v4/sockets"
 )
 
 func SetupRoutes(app *fiber.App) {
@@ -63,5 +64,5 @@ func SetupRoutes(app *fiber.App) {
 }
 
 func SetupSockets(app *fiber.App) {
-	app.Get("/api/v4/ws/notifications", websocket.New(NotificationSocket))
+	app.Get("/api/v4/ws/notifications", websocket.New(sockets.NotificationSocket))
 }

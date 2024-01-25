@@ -294,7 +294,7 @@ func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, fo
 	var replyObj *ent.Reply 
 	if focus == "POST" {
 		// Get Post Object and Query reactions for the post
-		post, errCode, errData := PostManager{}.GetBySlug(client, slug)
+		post, errCode, errData := PostManager{}.GetBySlug(client, slug, true)
 		if errCode != nil {
 			return nil, nil, errCode, errData
 		}
@@ -304,7 +304,7 @@ func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, fo
 		postObj = post
 	} else if focus == "COMMENT" {
 		// Get Comment Object and Query reactions for the comment
-		comment, errCode, errData := CommentManager{}.GetBySlug(client, slug)
+		comment, errCode, errData := CommentManager{}.GetBySlug(client, slug, true)
 		if errCode != nil {
 			return nil, nil, errCode, errData
 		}
@@ -314,7 +314,7 @@ func (obj ReactionManager) UpdateOrCreate(client *ent.Client, user *ent.User, fo
 		commentObj = comment
 	} else {
 		// Get Reply Object and Query reactions for the reply
-		reply, errCode, errData := ReplyManager{}.GetBySlug(client, slug)
+		reply, errCode, errData := ReplyManager{}.GetBySlug(client, slug, true)
 		if errCode != nil {
 			return nil, nil, errCode, errData
 		}

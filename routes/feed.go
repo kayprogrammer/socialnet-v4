@@ -254,14 +254,19 @@ func CreateReaction(c *fiber.Ctx) error {
 	}
 
 	// Create & Send Notifications
-	notificationManager.GetOrCreate(
-		db, user, "REACTION", 
-		[]*ent.User{targetedObjAuthor}, 
-		reaction.Edges.Post, 
-		reaction.Edges.Comment, 
-		reaction.Edges.Reply,
-	)
+	if user.ID != targetedObjAuthor.ID {
+		notification, created := notificationManager.GetOrCreate(
+			db, user, "REACTION", 
+			[]*ent.User{targetedObjAuthor}, 
+			reaction.Edges.Post, 
+			reaction.Edges.Comment, 
+			reaction.Edges.Reply,
+		)
 
+		if created {
+			SendNotificationInSocket(c, notification)
+		}
+	}
 	return c.Status(201).JSON(response)
 }
 
@@ -300,6 +305,7 @@ func DeleteReaction(c *fiber.Ctx) error {
 	)
 	if notification != nil {
 		// Send to websocket and delete notification
+		SendNotificationInSocket(c, notification, "DELETED")
 		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
 	}
 
@@ -380,7 +386,8 @@ func CreateComment(c *fiber.Ctx) error {
 
 	// Created & Send Notification
 	if user.ID != post.AuthorID {
-		notificationManager.Create(db, user, "COMMENT", []*ent.User{post.Edges.Author}, nil, comment, nil)
+		notification := notificationManager.Create(db, user, "COMMENT", []*ent.User{post.Edges.Author}, nil, comment, nil)
+		SendNotificationInSocket(c, notification)
 	}
 	// Convert type and return comment
 	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
@@ -463,7 +470,8 @@ func CreateReply(c *fiber.Ctx) error {
 
 	// Created & Send Notification
 	if user.ID != comment.AuthorID {
-		notificationManager.Create(db, user, "REPLY", []*ent.User{comment.Edges.Author}, nil, nil, reply)
+		notification := notificationManager.Create(db, user, "REPLY", []*ent.User{comment.Edges.Author}, nil, nil, reply)
+		SendNotificationInSocket(c, notification)
 	}
 
 	// Convert type and return reply
@@ -548,6 +556,7 @@ func DeleteComment(c *fiber.Ctx) error {
 	)
 	if notification != nil {
 		// Send to websocket and delete notification
+		SendNotificationInSocket(c, notification, "DELETED")
 		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
 	}
 
@@ -653,6 +662,7 @@ func DeleteReply(c *fiber.Ctx) error {
 	)
 	if notification != nil {
 		// Send to websocket and delete notification
+		SendNotificationInSocket(c, notification, "DELETED")
 		db.Notification.DeleteOne(notification).Exec(managers.Ctx)
 	}
 

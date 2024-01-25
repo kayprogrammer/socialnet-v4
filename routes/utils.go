@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-
+	"github.com/gofiber/fiber/v2"
 	"github.com/gorilla/websocket"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
+	"github.com/kayprogrammer/socialnet-v4/sockets"
 	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
@@ -20,29 +21,24 @@ func ValidateReactionFocus(focus string) *utils.ErrorResponse {
 	return &err 
 }
 
-type SocketNotificationSchema struct {
-	schemas.NotificationSchema
-	Status				string			`json:"status"`
-}
-
-func SendNotificationInSocket(isSecured bool, host string, notification *ent.Notification, statusOpts ...string) error {
+func SendNotificationInSocket(fiberCtx *fiber.Ctx, notification *ent.Notification, statusOpts ...string) error {
 	// Check if page size is provided as an argument
 	status := "CREATED"
 	if len(statusOpts) > 0 {
 		status = statusOpts[0]
 	}
 	webSocketScheme := "ws://"
-	if isSecured {
+	if fiberCtx.Secure() {
 		webSocketScheme = "wss://"
 	}
-	uri := webSocketScheme + host + "/api/v4/ws/notifications/"
-	notificationData := SocketNotificationSchema{
+	uri := webSocketScheme + fiberCtx.Hostname() + "/api/v4/ws/notifications/"
+	notificationData := sockets.SocketNotificationSchema{
 		NotificationSchema: schemas.NotificationSchema{ID: notification.ID, Ntype: string(notification.Ntype)},
 		Status: status,
 	}
 	if status == "CREATED" {
 		convertedNotification := utils.ConvertStructData(notification, schemas.NotificationSchema{}).(*schemas.NotificationSchema)
-		notificationData = SocketNotificationSchema{
+		notificationData = sockets.SocketNotificationSchema{
 			NotificationSchema: convertedNotification.Init(nil),
 			Status: status,
 		}

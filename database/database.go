@@ -40,6 +40,7 @@ func ConnectDb() *ent.Client {
 	); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
+	Database = client
 	return client
 }
 

@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/contrib/websocket"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/contrib/swagger"
+	"github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/database"
 	"github.com/kayprogrammer/socialnet-v4/routes"
@@ -53,21 +53,20 @@ func main() {
 	swaggerCfg := swagger.Config{
 		FilePath: "./docs/swagger.json",
 		Path:     "/",
-		Title: "SOCIALNET API Documentation",
+		Title:    "SOCIALNET API Documentation",
 	}
-	
+
 	app.Use(swagger.New(swaggerCfg))
 
 	// Register Routes & Sockets
 	app.Use("/ws", func(c *fiber.Ctx) error {
-        // IsWebSocketUpgrade returns true if the client
-        // requested upgrade to the WebSocket protocol.
-        if websocket.IsWebSocketUpgrade(c) {
-            c.Locals("allowed", true)
-            return c.Next()
-        }
-        return fiber.ErrUpgradeRequired
-    })
+		// IsWebSocketUpgrade returns true if the client
+		// requested upgrade to the WebSocket protocol.
+		if websocket.IsWebSocketUpgrade(c) {
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
 
 	routes.SetupRoutes(app)
 	routes.SetupSockets(app)
