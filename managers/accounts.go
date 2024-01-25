@@ -55,25 +55,31 @@ func (obj UserManager) GetByEmail(client *ent.Client, email string) (*ent.User, 
 	return u, nil
 }
 
-func (obj UserManager) Create(client *ent.Client, userData schemas.RegisterUser) (*ent.User, error) {
+func (obj UserManager) Create(client *ent.Client, userData schemas.RegisterUser, isStaff bool, isEmailVerified bool) *ent.User {
 	username := UsernameGenerator(client, userData.FirstName, userData.LastName, nil)
 	password := utils.HashPassword(userData.Password)
-
-	u, err := client.User.
-		Create().
+	u := client.User.Create().
 		SetFirstName(userData.FirstName). 
 		SetLastName(userData.LastName).
 		SetEmail(userData.Email). 
 		SetUsername(username). 
 		SetPassword(password).
-		SetTermsAgreement(userData.TermsAgreement). 
-		Save(Ctx)
-	if err != nil {
-		fmt.Printf("failed creating user: %v\n", err)
-		return nil, nil
-	}
-	return u, nil
+		SetTermsAgreement(userData.TermsAgreement).
+		SetIsStaff(isStaff).
+		SetIsEmailVerified(isEmailVerified).
+		SaveX(Ctx)
+	return u
 }
+
+func (obj UserManager) GetOrCreate(client *ent.Client, userData schemas.RegisterUser, isEmailVerified bool, isStaff bool) *ent.User {
+	user, _ := obj.GetByEmail(client, userData.Email)
+	if user == nil {
+		// Create user
+		user = obj.Create(client, userData, isStaff, isEmailVerified)
+	}
+	return user
+}
+
 
 func (obj UserManager) UpdateTokens(user *ent.User, access string, refresh string) (*ent.User, error) {
 	u, _ := user.Update().SetAccess(access).SetRefresh(refresh).Save(Ctx)

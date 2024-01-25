@@ -42,7 +42,7 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	// Create User
-	newUser, _ := userManager.Create(db, user)
+	newUser := userManager.Create(db, user, false, false)
 
 	// Send Email
 	otp := otpManager.GetOrCreate(db, newUser.ID)

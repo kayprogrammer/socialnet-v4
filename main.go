@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/database"
+	"github.com/kayprogrammer/socialnet-v4/initials"
 	"github.com/kayprogrammer/socialnet-v4/routes"
 
 	_ "github.com/kayprogrammer/socialnet-v4/docs"
@@ -27,8 +28,8 @@ import (
 // @description Type 'Bearer jwt_string' to correctly set the API Key
 func main() {
 	cfg := config.GetConfig()
-	database.ConnectDb()
-	// initials.CreateInitialData(db)
+	db := database.ConnectDb()
+	initials.CreateInitialData(db)
 
 	app := fiber.New()
 
