@@ -400,3 +400,4 @@ func ReadNotification(c *fiber.Ctx) error {
 	response := schemas.ResponseSchema{Message: respMessage}.Init()
 	return c.Status(200).JSON(response)
 }
+
