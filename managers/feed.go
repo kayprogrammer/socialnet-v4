@@ -53,7 +53,6 @@ func (obj PostManager) Create(client *ent.Client, author *ent.User, postData sch
 
 	// Set related values
 	p.Edges.Author = author
-	// p.Edges
 	if imageId != nil {
 		p.Edges.Image = image
 	}

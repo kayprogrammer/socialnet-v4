@@ -19,40 +19,36 @@ import (
 type UserManager struct {
 }
 
-func (obj UserManager) GetById(client *ent.Client, id uuid.UUID) (*ent.User, error) {
-	u, err := client.User.
+func (obj UserManager) GetById(client *ent.Client, id uuid.UUID) *ent.User {
+	u, _ := client.User.
 		Query().
 		Where(user.ID(id)).
 		Only(Ctx)
-	if err != nil {
-		fmt.Printf("failed querying user by id: %v\n", err)
-		return nil, nil
-	}
-	return u, nil
+	return u
 }
 
-func (obj UserManager) GetByRefreshToken(client *ent.Client, token string) (*ent.User, error) {
-	u, err := client.User.
+func (obj UserManager) GetByRefreshToken(client *ent.Client, token string) *ent.User {
+	u, _ := client.User.
 		Query().
 		Where(user.Refresh(token)).
 		Only(Ctx)
-	if err != nil {
-		fmt.Printf("failed querying user by refresh token: %v\n", err)
-		return nil, nil
-	}
-	return u, nil
+	return u
 }
 
-func (obj UserManager) GetByEmail(client *ent.Client, email string) (*ent.User, error) {
-	u, err := client.User.
+func (obj UserManager) GetByEmail(client *ent.Client, email string) *ent.User {
+	u, _ := client.User.
 		Query().
 		Where(user.Email(email)).
 		Only(Ctx)
-	if err != nil {
-		fmt.Printf("failed querying user by email: %v\n", err)
-		return nil, nil
-	}
-	return u, nil
+	return u
+}
+
+func (obj UserManager) GetByUsername(client *ent.Client, username string) *ent.User {
+	u, _ := client.User.
+		Query().
+		Where(user.Username(username)).
+		Only(Ctx)
+	return u
 }
 
 func (obj UserManager) Create(client *ent.Client, userData schemas.RegisterUser, isStaff bool, isEmailVerified bool) *ent.User {
@@ -72,7 +68,7 @@ func (obj UserManager) Create(client *ent.Client, userData schemas.RegisterUser,
 }
 
 func (obj UserManager) GetOrCreate(client *ent.Client, userData schemas.RegisterUser, isEmailVerified bool, isStaff bool) *ent.User {
-	user, _ := obj.GetByEmail(client, userData.Email)
+	user := obj.GetByEmail(client, userData.Email)
 	if user == nil {
 		// Create user
 		user = obj.Create(client, userData, isStaff, isEmailVerified)

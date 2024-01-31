@@ -33,7 +33,7 @@ func Register(c *fiber.Ctx) error {
 		return c.Status(422).JSON(err)
 	}
 
-	userByEmail, _ := userManager.GetByEmail(db, user.Email)
+	userByEmail := userManager.GetByEmail(db, user.Email)
 	if userByEmail != nil {
 		data := map[string]string{
 			"email": "Email already registered!",
@@ -74,7 +74,7 @@ func VerifyEmail(c *fiber.Ctx) error {
 		return c.Status(422).JSON(err)
 	}
 
-	user, _ := userManager.GetByEmail(db, verifyEmail.Email)
+	user := userManager.GetByEmail(db, verifyEmail.Email)
 	if user == nil {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
@@ -121,7 +121,7 @@ func ResendVerificationEmail(c *fiber.Ctx) error {
 		return c.Status(422).JSON(err)
 	}
 
-	user, _ := userManager.GetByEmail(db, emailSchema.Email)
+	user := userManager.GetByEmail(db, emailSchema.Email)
 	if user == nil {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
@@ -158,7 +158,7 @@ func SendPasswordResetOtp(c *fiber.Ctx) error {
 		return c.Status(422).JSON(err)
 	}
 
-	user, _ := userManager.GetByEmail(db, emailSchema.Email)
+	user := userManager.GetByEmail(db, emailSchema.Email)
 	if user == nil {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
@@ -192,7 +192,7 @@ func SetNewPassword(c *fiber.Ctx) error {
 		return c.Status(422).JSON(err)
 	}
 
-	user, _ := userManager.GetByEmail(db, passwordResetSchema.Email)
+	user := userManager.GetByEmail(db, passwordResetSchema.Email)
 	if user == nil {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
@@ -237,7 +237,7 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(422).JSON(err)
 	}
 
-	user, _ := userManager.GetByEmail(db, userLoginSchema.Email)
+	user := userManager.GetByEmail(db, userLoginSchema.Email)
 	if user == nil {
 		return c.Status(401).JSON(utils.RequestErr(utils.ERR_INVALID_CREDENTIALS, "Invalid Credentials"))
 	}
@@ -283,7 +283,7 @@ func Refresh(c *fiber.Ctx) error {
 	}
 
 	token := refreshTokenSchema.Refresh
-	user, _ := userManager.GetByRefreshToken(db, token)
+	user := userManager.GetByRefreshToken(db, token)
 	if user == nil || !auth.DecodeRefreshToken(token) {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INVALID_TOKEN, "Refresh token is invalid or expired"))
 	}
