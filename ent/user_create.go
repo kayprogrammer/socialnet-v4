@@ -11,10 +11,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/kayprogrammer/socialnet-v4/ent/chat"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
@@ -404,6 +406,51 @@ func (uc *UserCreate) AddNotificationsRead(n ...*Notification) *UserCreate {
 		ids[i] = n[i].ID
 	}
 	return uc.AddNotificationsReadIDs(ids...)
+}
+
+// AddOwnedChatIDs adds the "owned_chats" edge to the Chat entity by IDs.
+func (uc *UserCreate) AddOwnedChatIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddOwnedChatIDs(ids...)
+	return uc
+}
+
+// AddOwnedChats adds the "owned_chats" edges to the Chat entity.
+func (uc *UserCreate) AddOwnedChats(c ...*Chat) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddOwnedChatIDs(ids...)
+}
+
+// AddMemberChatIDs adds the "member_chats" edge to the Chat entity by IDs.
+func (uc *UserCreate) AddMemberChatIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddMemberChatIDs(ids...)
+	return uc
+}
+
+// AddMemberChats adds the "member_chats" edges to the Chat entity.
+func (uc *UserCreate) AddMemberChats(c ...*Chat) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddMemberChatIDs(ids...)
+}
+
+// AddMessageIDs adds the "messages" edge to the Message entity by IDs.
+func (uc *UserCreate) AddMessageIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddMessageIDs(ids...)
+	return uc
+}
+
+// AddMessages adds the "messages" edges to the Message entity.
+func (uc *UserCreate) AddMessages(m ...*Message) *UserCreate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uc.AddMessageIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -813,6 +860,54 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(notification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.OwnedChatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OwnedChatsTable,
+			Columns: []string{user.OwnedChatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.MemberChatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.MemberChatsTable,
+			Columns: user.MemberChatsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.MessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MessagesTable,
+			Columns: []string{user.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

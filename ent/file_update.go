@@ -12,7 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/kayprogrammer/socialnet-v4/ent/chat"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/predicate"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
@@ -95,6 +97,36 @@ func (fu *FileUpdate) AddPosts(p ...*Post) *FileUpdate {
 	return fu.AddPostIDs(ids...)
 }
 
+// AddChatIDs adds the "chats" edge to the Chat entity by IDs.
+func (fu *FileUpdate) AddChatIDs(ids ...uuid.UUID) *FileUpdate {
+	fu.mutation.AddChatIDs(ids...)
+	return fu
+}
+
+// AddChats adds the "chats" edges to the Chat entity.
+func (fu *FileUpdate) AddChats(c ...*Chat) *FileUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return fu.AddChatIDs(ids...)
+}
+
+// AddMessageIDs adds the "messages" edge to the Message entity by IDs.
+func (fu *FileUpdate) AddMessageIDs(ids ...uuid.UUID) *FileUpdate {
+	fu.mutation.AddMessageIDs(ids...)
+	return fu
+}
+
+// AddMessages adds the "messages" edges to the Message entity.
+func (fu *FileUpdate) AddMessages(m ...*Message) *FileUpdate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return fu.AddMessageIDs(ids...)
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fu *FileUpdate) Mutation() *FileMutation {
 	return fu.mutation
@@ -140,6 +172,48 @@ func (fu *FileUpdate) RemovePosts(p ...*Post) *FileUpdate {
 		ids[i] = p[i].ID
 	}
 	return fu.RemovePostIDs(ids...)
+}
+
+// ClearChats clears all "chats" edges to the Chat entity.
+func (fu *FileUpdate) ClearChats() *FileUpdate {
+	fu.mutation.ClearChats()
+	return fu
+}
+
+// RemoveChatIDs removes the "chats" edge to Chat entities by IDs.
+func (fu *FileUpdate) RemoveChatIDs(ids ...uuid.UUID) *FileUpdate {
+	fu.mutation.RemoveChatIDs(ids...)
+	return fu
+}
+
+// RemoveChats removes "chats" edges to Chat entities.
+func (fu *FileUpdate) RemoveChats(c ...*Chat) *FileUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return fu.RemoveChatIDs(ids...)
+}
+
+// ClearMessages clears all "messages" edges to the Message entity.
+func (fu *FileUpdate) ClearMessages() *FileUpdate {
+	fu.mutation.ClearMessages()
+	return fu
+}
+
+// RemoveMessageIDs removes the "messages" edge to Message entities by IDs.
+func (fu *FileUpdate) RemoveMessageIDs(ids ...uuid.UUID) *FileUpdate {
+	fu.mutation.RemoveMessageIDs(ids...)
+	return fu
+}
+
+// RemoveMessages removes "messages" edges to Message entities.
+func (fu *FileUpdate) RemoveMessages(m ...*Message) *FileUpdate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return fu.RemoveMessageIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -299,6 +373,96 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if fu.mutation.ChatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.ChatsTable,
+			Columns: []string{file.ChatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.RemovedChatsIDs(); len(nodes) > 0 && !fu.mutation.ChatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.ChatsTable,
+			Columns: []string{file.ChatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.ChatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.ChatsTable,
+			Columns: []string{file.ChatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.MessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.MessagesTable,
+			Columns: []string{file.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.RemovedMessagesIDs(); len(nodes) > 0 && !fu.mutation.MessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.MessagesTable,
+			Columns: []string{file.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.MessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.MessagesTable,
+			Columns: []string{file.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{file.Label}
@@ -383,6 +547,36 @@ func (fuo *FileUpdateOne) AddPosts(p ...*Post) *FileUpdateOne {
 	return fuo.AddPostIDs(ids...)
 }
 
+// AddChatIDs adds the "chats" edge to the Chat entity by IDs.
+func (fuo *FileUpdateOne) AddChatIDs(ids ...uuid.UUID) *FileUpdateOne {
+	fuo.mutation.AddChatIDs(ids...)
+	return fuo
+}
+
+// AddChats adds the "chats" edges to the Chat entity.
+func (fuo *FileUpdateOne) AddChats(c ...*Chat) *FileUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return fuo.AddChatIDs(ids...)
+}
+
+// AddMessageIDs adds the "messages" edge to the Message entity by IDs.
+func (fuo *FileUpdateOne) AddMessageIDs(ids ...uuid.UUID) *FileUpdateOne {
+	fuo.mutation.AddMessageIDs(ids...)
+	return fuo
+}
+
+// AddMessages adds the "messages" edges to the Message entity.
+func (fuo *FileUpdateOne) AddMessages(m ...*Message) *FileUpdateOne {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return fuo.AddMessageIDs(ids...)
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fuo *FileUpdateOne) Mutation() *FileMutation {
 	return fuo.mutation
@@ -428,6 +622,48 @@ func (fuo *FileUpdateOne) RemovePosts(p ...*Post) *FileUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return fuo.RemovePostIDs(ids...)
+}
+
+// ClearChats clears all "chats" edges to the Chat entity.
+func (fuo *FileUpdateOne) ClearChats() *FileUpdateOne {
+	fuo.mutation.ClearChats()
+	return fuo
+}
+
+// RemoveChatIDs removes the "chats" edge to Chat entities by IDs.
+func (fuo *FileUpdateOne) RemoveChatIDs(ids ...uuid.UUID) *FileUpdateOne {
+	fuo.mutation.RemoveChatIDs(ids...)
+	return fuo
+}
+
+// RemoveChats removes "chats" edges to Chat entities.
+func (fuo *FileUpdateOne) RemoveChats(c ...*Chat) *FileUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return fuo.RemoveChatIDs(ids...)
+}
+
+// ClearMessages clears all "messages" edges to the Message entity.
+func (fuo *FileUpdateOne) ClearMessages() *FileUpdateOne {
+	fuo.mutation.ClearMessages()
+	return fuo
+}
+
+// RemoveMessageIDs removes the "messages" edge to Message entities by IDs.
+func (fuo *FileUpdateOne) RemoveMessageIDs(ids ...uuid.UUID) *FileUpdateOne {
+	fuo.mutation.RemoveMessageIDs(ids...)
+	return fuo
+}
+
+// RemoveMessages removes "messages" edges to Message entities.
+func (fuo *FileUpdateOne) RemoveMessages(m ...*Message) *FileUpdateOne {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return fuo.RemoveMessageIDs(ids...)
 }
 
 // Where appends a list predicates to the FileUpdate builder.
@@ -610,6 +846,96 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.ChatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.ChatsTable,
+			Columns: []string{file.ChatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.RemovedChatsIDs(); len(nodes) > 0 && !fuo.mutation.ChatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.ChatsTable,
+			Columns: []string{file.ChatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.ChatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.ChatsTable,
+			Columns: []string{file.ChatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.MessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.MessagesTable,
+			Columns: []string{file.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.RemovedMessagesIDs(); len(nodes) > 0 && !fuo.mutation.MessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.MessagesTable,
+			Columns: []string{file.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.MessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.MessagesTable,
+			Columns: []string{file.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

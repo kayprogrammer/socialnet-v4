@@ -9,6 +9,37 @@ import (
 )
 
 var (
+	// ChatsColumns holds the columns for the "chats" table.
+	ChatsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "ctype", Type: field.TypeEnum, Enums: []string{"DM", "GROUP"}},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "image_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "owner_id", Type: field.TypeUUID},
+	}
+	// ChatsTable holds the schema information for the "chats" table.
+	ChatsTable = &schema.Table{
+		Name:       "chats",
+		Columns:    ChatsColumns,
+		PrimaryKey: []*schema.Column{ChatsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "chats_files_chats",
+				Columns:    []*schema.Column{ChatsColumns[6]},
+				RefColumns: []*schema.Column{FilesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "chats_users_owned_chats",
+				Columns:    []*schema.Column{ChatsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// CitiesColumns holds the columns for the "cities" table.
 	CitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -133,6 +164,42 @@ var (
 				Name:    "unique_requestee_requester_combination",
 				Unique:  true,
 				Columns: []*schema.Column{FriendsColumns[5], FriendsColumns[4]},
+			},
+		},
+	}
+	// MessagesColumns holds the columns for the "messages" table.
+	MessagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "text", Type: field.TypeString, Nullable: true},
+		{Name: "chat_id", Type: field.TypeUUID},
+		{Name: "file_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "sender_id", Type: field.TypeUUID},
+	}
+	// MessagesTable holds the schema information for the "messages" table.
+	MessagesTable = &schema.Table{
+		Name:       "messages",
+		Columns:    MessagesColumns,
+		PrimaryKey: []*schema.Column{MessagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "messages_chats_messages",
+				Columns:    []*schema.Column{MessagesColumns[4]},
+				RefColumns: []*schema.Column{ChatsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "messages_files_messages",
+				Columns:    []*schema.Column{MessagesColumns[5]},
+				RefColumns: []*schema.Column{FilesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "messages_users_messages",
+				Columns:    []*schema.Column{MessagesColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -455,13 +522,40 @@ var (
 			},
 		},
 	}
+	// UserMemberChatsColumns holds the columns for the "user_member_chats" table.
+	UserMemberChatsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "chat_id", Type: field.TypeUUID},
+	}
+	// UserMemberChatsTable holds the schema information for the "user_member_chats" table.
+	UserMemberChatsTable = &schema.Table{
+		Name:       "user_member_chats",
+		Columns:    UserMemberChatsColumns,
+		PrimaryKey: []*schema.Column{UserMemberChatsColumns[0], UserMemberChatsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_member_chats_user_id",
+				Columns:    []*schema.Column{UserMemberChatsColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_member_chats_chat_id",
+				Columns:    []*schema.Column{UserMemberChatsColumns[1]},
+				RefColumns: []*schema.Column{ChatsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ChatsTable,
 		CitiesTable,
 		CommentsTable,
 		CountriesTable,
 		FilesTable,
 		FriendsTable,
+		MessagesTable,
 		NotificationsTable,
 		OtpsTable,
 		PostsTable,
@@ -472,10 +566,18 @@ var (
 		UsersTable,
 		UserNotificationsTable,
 		UserNotificationsReadTable,
+		UserMemberChatsTable,
 	}
 )
 
 func init() {
+	ChatsTable.ForeignKeys[0].RefTable = FilesTable
+	ChatsTable.ForeignKeys[1].RefTable = UsersTable
+	ChatsTable.Annotation = &entsql.Annotation{}
+	ChatsTable.Annotation.Checks = map[string]string{
+		"dm_chat_constraints":    "(ctype = 'DM' AND name IS NULL AND description IS NULL AND image IS NULL) OR (ctype = 'GROUP')",
+		"group_chat_constraints": "(ctype = 'GROUP' AND name IS NOT NULL) OR (ctype = 'DM')",
+	}
 	CitiesTable.ForeignKeys[0].RefTable = CountriesTable
 	CitiesTable.ForeignKeys[1].RefTable = RegionsTable
 	CommentsTable.ForeignKeys[0].RefTable = PostsTable
@@ -486,6 +588,9 @@ func init() {
 	FriendsTable.Annotation.Checks = map[string]string{
 		"different_users": "requester_id <> requestee_id",
 	}
+	MessagesTable.ForeignKeys[0].RefTable = ChatsTable
+	MessagesTable.ForeignKeys[1].RefTable = FilesTable
+	MessagesTable.ForeignKeys[2].RefTable = UsersTable
 	NotificationsTable.ForeignKeys[0].RefTable = CommentsTable
 	NotificationsTable.ForeignKeys[1].RefTable = PostsTable
 	NotificationsTable.ForeignKeys[2].RefTable = RepliesTable
@@ -506,4 +611,6 @@ func init() {
 	UserNotificationsTable.ForeignKeys[1].RefTable = NotificationsTable
 	UserNotificationsReadTable.ForeignKeys[0].RefTable = UsersTable
 	UserNotificationsReadTable.ForeignKeys[1].RefTable = NotificationsTable
+	UserMemberChatsTable.ForeignKeys[0].RefTable = UsersTable
+	UserMemberChatsTable.ForeignKeys[1].RefTable = ChatsTable
 }

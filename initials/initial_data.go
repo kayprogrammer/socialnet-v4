@@ -3,19 +3,21 @@ package initials
 import (
 	"log"
 
+	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 )
-// var	truth = true
+
 var userManager = managers.UserManager{}
+var cfg = config.GetConfig()
 
 func createSuperUser(db *ent.Client) *ent.User {
 	userData := schemas.RegisterUser{
 		FirstName:       "Test",
 		LastName:        "Admin",
-		Email:           "testadmin@email.com",
-		Password:        "testadmin",
+		Email:           cfg.FirstSuperuserEmail,
+		Password:        cfg.FirstSuperuserPassword,
 		TermsAgreement:  true,
 	}
 	user := userManager.GetOrCreate(db, userData, true, true)
@@ -26,8 +28,8 @@ func createClient(db *ent.Client) *ent.User {
 	userData := schemas.RegisterUser{
 		FirstName:       "Test",
 		LastName:        "Client",
-		Email:           "testclient@email.com",
-		Password:        "testclient",
+		Email:           cfg.FirstClientEmail,
+		Password:        cfg.FirstClientPassword,
 		TermsAgreement:  true,
 	}
 	user := userManager.GetOrCreate(db, userData, true, false)

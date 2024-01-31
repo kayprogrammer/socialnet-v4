@@ -37,5 +37,7 @@ func (File) Edges() []ent.Edge {
     return []ent.Edge{
         edge.To("users", User.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
         edge.To("posts", Post.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
+        edge.To("chats", Chat.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
+        edge.To("messages", Message.Type).Annotations(entsql.OnDelete(entsql.SetNull)),
     }
 }

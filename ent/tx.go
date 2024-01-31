@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Chat is the client for interacting with the Chat builders.
+	Chat *ChatClient
 	// City is the client for interacting with the City builders.
 	City *CityClient
 	// Comment is the client for interacting with the Comment builders.
@@ -22,6 +24,8 @@ type Tx struct {
 	File *FileClient
 	// Friend is the client for interacting with the Friend builders.
 	Friend *FriendClient
+	// Message is the client for interacting with the Message builders.
+	Message *MessageClient
 	// Notification is the client for interacting with the Notification builders.
 	Notification *NotificationClient
 	// Otp is the client for interacting with the Otp builders.
@@ -169,11 +173,13 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Chat = NewChatClient(tx.config)
 	tx.City = NewCityClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
 	tx.Country = NewCountryClient(tx.config)
 	tx.File = NewFileClient(tx.config)
 	tx.Friend = NewFriendClient(tx.config)
+	tx.Message = NewMessageClient(tx.config)
 	tx.Notification = NewNotificationClient(tx.config)
 	tx.Otp = NewOtpClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
@@ -191,7 +197,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: City.QueryXXX(), the query will be executed
+// applies a query, for example: Chat.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

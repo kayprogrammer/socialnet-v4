@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/kayprogrammer/socialnet-v4/ent/chat"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
+	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 )
@@ -99,6 +101,36 @@ func (fc *FileCreate) AddPosts(p ...*Post) *FileCreate {
 		ids[i] = p[i].ID
 	}
 	return fc.AddPostIDs(ids...)
+}
+
+// AddChatIDs adds the "chats" edge to the Chat entity by IDs.
+func (fc *FileCreate) AddChatIDs(ids ...uuid.UUID) *FileCreate {
+	fc.mutation.AddChatIDs(ids...)
+	return fc
+}
+
+// AddChats adds the "chats" edges to the Chat entity.
+func (fc *FileCreate) AddChats(c ...*Chat) *FileCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return fc.AddChatIDs(ids...)
+}
+
+// AddMessageIDs adds the "messages" edge to the Message entity by IDs.
+func (fc *FileCreate) AddMessageIDs(ids ...uuid.UUID) *FileCreate {
+	fc.mutation.AddMessageIDs(ids...)
+	return fc
+}
+
+// AddMessages adds the "messages" edges to the Message entity.
+func (fc *FileCreate) AddMessages(m ...*Message) *FileCreate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return fc.AddMessageIDs(ids...)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -238,6 +270,38 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.ChatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.ChatsTable,
+			Columns: []string{file.ChatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(chat.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.MessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.MessagesTable,
+			Columns: []string{file.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(message.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

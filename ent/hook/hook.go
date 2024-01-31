@@ -9,6 +9,18 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent"
 )
 
+// The ChatFunc type is an adapter to allow the use of ordinary
+// function as Chat mutator.
+type ChatFunc func(context.Context, *ent.ChatMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChatFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ChatMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ChatMutation", m)
+}
+
 // The CityFunc type is an adapter to allow the use of ordinary
 // function as City mutator.
 type CityFunc func(context.Context, *ent.CityMutation) (ent.Value, error)
@@ -67,6 +79,18 @@ func (f FriendFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FriendMutation", m)
+}
+
+// The MessageFunc type is an adapter to allow the use of ordinary
+// function as Message mutator.
+type MessageFunc func(context.Context, *ent.MessageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MessageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageMutation", m)
 }
 
 // The NotificationFunc type is an adapter to allow the use of ordinary

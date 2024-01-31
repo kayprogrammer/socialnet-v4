@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Chat is the predicate function for chat builders.
+type Chat func(*sql.Selector)
+
 // City is the predicate function for city builders.
 type City func(*sql.Selector)
 
@@ -20,6 +23,9 @@ type File func(*sql.Selector)
 
 // Friend is the predicate function for friend builders.
 type Friend func(*sql.Selector)
+
+// Message is the predicate function for message builders.
+type Message func(*sql.Selector)
 
 // Notification is the predicate function for notification builders.
 type Notification func(*sql.Selector)

@@ -87,9 +87,15 @@ type UserEdges struct {
 	Notifications []*Notification `json:"notifications,omitempty"`
 	// NotificationsRead holds the value of the notifications_read edge.
 	NotificationsRead []*Notification `json:"notifications_read,omitempty"`
+	// OwnedChats holds the value of the owned_chats edge.
+	OwnedChats []*Chat `json:"owned_chats,omitempty"`
+	// MemberChats holds the value of the member_chats edge.
+	MemberChats []*Chat `json:"member_chats,omitempty"`
+	// Messages holds the value of the messages edge.
+	Messages []*Message `json:"messages,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [15]bool
 }
 
 // CityOrErr returns the City value or an error if the edge
@@ -210,6 +216,33 @@ func (e UserEdges) NotificationsReadOrErr() ([]*Notification, error) {
 		return e.NotificationsRead, nil
 	}
 	return nil, &NotLoadedError{edge: "notifications_read"}
+}
+
+// OwnedChatsOrErr returns the OwnedChats value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) OwnedChatsOrErr() ([]*Chat, error) {
+	if e.loadedTypes[12] {
+		return e.OwnedChats, nil
+	}
+	return nil, &NotLoadedError{edge: "owned_chats"}
+}
+
+// MemberChatsOrErr returns the MemberChats value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) MemberChatsOrErr() ([]*Chat, error) {
+	if e.loadedTypes[13] {
+		return e.MemberChats, nil
+	}
+	return nil, &NotLoadedError{edge: "member_chats"}
+}
+
+// MessagesOrErr returns the Messages value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) MessagesOrErr() ([]*Message, error) {
+	if e.loadedTypes[14] {
+		return e.Messages, nil
+	}
+	return nil, &NotLoadedError{edge: "messages"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -427,6 +460,21 @@ func (u *User) QueryNotifications() *NotificationQuery {
 // QueryNotificationsRead queries the "notifications_read" edge of the User entity.
 func (u *User) QueryNotificationsRead() *NotificationQuery {
 	return NewUserClient(u.config).QueryNotificationsRead(u)
+}
+
+// QueryOwnedChats queries the "owned_chats" edge of the User entity.
+func (u *User) QueryOwnedChats() *ChatQuery {
+	return NewUserClient(u.config).QueryOwnedChats(u)
+}
+
+// QueryMemberChats queries the "member_chats" edge of the User entity.
+func (u *User) QueryMemberChats() *ChatQuery {
+	return NewUserClient(u.config).QueryMemberChats(u)
+}
+
+// QueryMessages queries the "messages" edge of the User entity.
+func (u *User) QueryMessages() *MessageQuery {
+	return NewUserClient(u.config).QueryMessages(u)
 }
 
 // Update returns a builder for updating this User.

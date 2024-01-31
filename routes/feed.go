@@ -9,8 +9,10 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
-var postManager = managers.PostManager{}
-var validator = utils.Validator()
+var (
+	postManager = managers.PostManager{}
+	validator = utils.Validator()
+)
 
 // @Summary Retrieve Latest Posts
 // @Description This endpoint retrieves paginated responses of latest posts

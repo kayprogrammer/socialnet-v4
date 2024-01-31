@@ -12,11 +12,13 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/kayprogrammer/socialnet-v4/ent/chat"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/country"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
@@ -85,11 +87,13 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			chat.Table:         chat.ValidColumn,
 			city.Table:         city.ValidColumn,
 			comment.Table:      comment.ValidColumn,
 			country.Table:      country.ValidColumn,
 			file.Table:         file.ValidColumn,
 			friend.Table:       friend.ValidColumn,
+			message.Table:      message.ValidColumn,
 			notification.Table: notification.ValidColumn,
 			otp.Table:          otp.ValidColumn,
 			post.Table:         post.ValidColumn,

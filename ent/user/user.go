@@ -73,6 +73,12 @@ const (
 	EdgeNotifications = "notifications"
 	// EdgeNotificationsRead holds the string denoting the notifications_read edge name in mutations.
 	EdgeNotificationsRead = "notifications_read"
+	// EdgeOwnedChats holds the string denoting the owned_chats edge name in mutations.
+	EdgeOwnedChats = "owned_chats"
+	// EdgeMemberChats holds the string denoting the member_chats edge name in mutations.
+	EdgeMemberChats = "member_chats"
+	// EdgeMessages holds the string denoting the messages edge name in mutations.
+	EdgeMessages = "messages"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// CityTable is the table that holds the city relation/edge.
@@ -155,6 +161,25 @@ const (
 	// NotificationsReadInverseTable is the table name for the Notification entity.
 	// It exists in this package in order to avoid circular dependency with the "notification" package.
 	NotificationsReadInverseTable = "notifications"
+	// OwnedChatsTable is the table that holds the owned_chats relation/edge.
+	OwnedChatsTable = "chats"
+	// OwnedChatsInverseTable is the table name for the Chat entity.
+	// It exists in this package in order to avoid circular dependency with the "chat" package.
+	OwnedChatsInverseTable = "chats"
+	// OwnedChatsColumn is the table column denoting the owned_chats relation/edge.
+	OwnedChatsColumn = "owner_id"
+	// MemberChatsTable is the table that holds the member_chats relation/edge. The primary key declared below.
+	MemberChatsTable = "user_member_chats"
+	// MemberChatsInverseTable is the table name for the Chat entity.
+	// It exists in this package in order to avoid circular dependency with the "chat" package.
+	MemberChatsInverseTable = "chats"
+	// MessagesTable is the table that holds the messages relation/edge.
+	MessagesTable = "messages"
+	// MessagesInverseTable is the table name for the Message entity.
+	// It exists in this package in order to avoid circular dependency with the "message" package.
+	MessagesInverseTable = "messages"
+	// MessagesColumn is the table column denoting the messages relation/edge.
+	MessagesColumn = "sender_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -186,6 +211,9 @@ var (
 	// NotificationsReadPrimaryKey and NotificationsReadColumn2 are the table columns denoting the
 	// primary key for the notifications_read relation (M2M).
 	NotificationsReadPrimaryKey = []string{"user_id", "notification_id"}
+	// MemberChatsPrimaryKey and MemberChatsColumn2 are the table columns denoting the
+	// primary key for the member_chats relation (M2M).
+	MemberChatsPrimaryKey = []string{"user_id", "chat_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -466,6 +494,48 @@ func ByNotificationsRead(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 		sqlgraph.OrderByNeighborTerms(s, newNotificationsReadStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOwnedChatsCount orders the results by owned_chats count.
+func ByOwnedChatsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOwnedChatsStep(), opts...)
+	}
+}
+
+// ByOwnedChats orders the results by owned_chats terms.
+func ByOwnedChats(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOwnedChatsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMemberChatsCount orders the results by member_chats count.
+func ByMemberChatsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMemberChatsStep(), opts...)
+	}
+}
+
+// ByMemberChats orders the results by member_chats terms.
+func ByMemberChats(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMemberChatsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMessagesCount orders the results by messages count.
+func ByMessagesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMessagesStep(), opts...)
+	}
+}
+
+// ByMessages orders the results by messages terms.
+func ByMessages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMessagesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCityStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -548,5 +618,26 @@ func newNotificationsReadStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NotificationsReadInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, NotificationsReadTable, NotificationsReadPrimaryKey...),
+	)
+}
+func newOwnedChatsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OwnedChatsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OwnedChatsTable, OwnedChatsColumn),
+	)
+}
+func newMemberChatsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MemberChatsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, MemberChatsTable, MemberChatsPrimaryKey...),
+	)
+}
+func newMessagesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MessagesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
 	)
 }

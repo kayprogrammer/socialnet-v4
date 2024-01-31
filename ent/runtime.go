@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/kayprogrammer/socialnet-v4/ent/chat"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/country"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
@@ -26,6 +28,22 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	chatFields := schema.Chat{}.Fields()
+	_ = chatFields
+	// chatDescCreatedAt is the schema descriptor for created_at field.
+	chatDescCreatedAt := chatFields[1].Descriptor()
+	// chat.DefaultCreatedAt holds the default value on creation for the created_at field.
+	chat.DefaultCreatedAt = chatDescCreatedAt.Default.(func() time.Time)
+	// chatDescUpdatedAt is the schema descriptor for updated_at field.
+	chatDescUpdatedAt := chatFields[2].Descriptor()
+	// chat.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	chat.DefaultUpdatedAt = chatDescUpdatedAt.Default.(func() time.Time)
+	// chat.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	chat.UpdateDefaultUpdatedAt = chatDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// chatDescID is the schema descriptor for id field.
+	chatDescID := chatFields[0].Descriptor()
+	// chat.DefaultID holds the default value on creation for the id field.
+	chat.DefaultID = chatDescID.Default.(func() uuid.UUID)
 	cityFields := schema.City{}.Fields()
 	_ = cityFields
 	// cityDescCreatedAt is the schema descriptor for created_at field.
@@ -130,6 +148,22 @@ func init() {
 	friendDescID := friendFields[0].Descriptor()
 	// friend.DefaultID holds the default value on creation for the id field.
 	friend.DefaultID = friendDescID.Default.(func() uuid.UUID)
+	messageFields := schema.Message{}.Fields()
+	_ = messageFields
+	// messageDescCreatedAt is the schema descriptor for created_at field.
+	messageDescCreatedAt := messageFields[1].Descriptor()
+	// message.DefaultCreatedAt holds the default value on creation for the created_at field.
+	message.DefaultCreatedAt = messageDescCreatedAt.Default.(func() time.Time)
+	// messageDescUpdatedAt is the schema descriptor for updated_at field.
+	messageDescUpdatedAt := messageFields[2].Descriptor()
+	// message.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	message.DefaultUpdatedAt = messageDescUpdatedAt.Default.(func() time.Time)
+	// message.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	message.UpdateDefaultUpdatedAt = messageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// messageDescID is the schema descriptor for id field.
+	messageDescID := messageFields[0].Descriptor()
+	// message.DefaultID holds the default value on creation for the id field.
+	message.DefaultID = messageDescID.Default.(func() uuid.UUID)
 	notificationFields := schema.Notification{}.Fields()
 	_ = notificationFields
 	// notificationDescCreatedAt is the schema descriptor for created_at field.

@@ -131,6 +131,9 @@ func (User) Edges() []ent.Edge {
 		edge.To("notifications_from", Notification.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("notifications", Notification.Type),
 		edge.To("notifications_read", Notification.Type),
+		edge.To("owned_chats", Chat.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("member_chats", Chat.Type),
+		edge.To("messages", Message.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }
 

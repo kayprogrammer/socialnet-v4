@@ -16,11 +16,13 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/kayprogrammer/socialnet-v4/ent/chat"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/country"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
@@ -36,6 +38,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Chat is the client for interacting with the Chat builders.
+	Chat *ChatClient
 	// City is the client for interacting with the City builders.
 	City *CityClient
 	// Comment is the client for interacting with the Comment builders.
@@ -46,6 +50,8 @@ type Client struct {
 	File *FileClient
 	// Friend is the client for interacting with the Friend builders.
 	Friend *FriendClient
+	// Message is the client for interacting with the Message builders.
+	Message *MessageClient
 	// Notification is the client for interacting with the Notification builders.
 	Notification *NotificationClient
 	// Otp is the client for interacting with the Otp builders.
@@ -73,11 +79,13 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Chat = NewChatClient(c.config)
 	c.City = NewCityClient(c.config)
 	c.Comment = NewCommentClient(c.config)
 	c.Country = NewCountryClient(c.config)
 	c.File = NewFileClient(c.config)
 	c.Friend = NewFriendClient(c.config)
+	c.Message = NewMessageClient(c.config)
 	c.Notification = NewNotificationClient(c.config)
 	c.Otp = NewOtpClient(c.config)
 	c.Post = NewPostClient(c.config)
@@ -178,11 +186,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
+		Chat:         NewChatClient(cfg),
 		City:         NewCityClient(cfg),
 		Comment:      NewCommentClient(cfg),
 		Country:      NewCountryClient(cfg),
 		File:         NewFileClient(cfg),
 		Friend:       NewFriendClient(cfg),
+		Message:      NewMessageClient(cfg),
 		Notification: NewNotificationClient(cfg),
 		Otp:          NewOtpClient(cfg),
 		Post:         NewPostClient(cfg),
@@ -210,11 +220,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
+		Chat:         NewChatClient(cfg),
 		City:         NewCityClient(cfg),
 		Comment:      NewCommentClient(cfg),
 		Country:      NewCountryClient(cfg),
 		File:         NewFileClient(cfg),
 		Friend:       NewFriendClient(cfg),
+		Message:      NewMessageClient(cfg),
 		Notification: NewNotificationClient(cfg),
 		Otp:          NewOtpClient(cfg),
 		Post:         NewPostClient(cfg),
@@ -229,7 +241,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		City.
+//		Chat.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -252,8 +264,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.City, c.Comment, c.Country, c.File, c.Friend, c.Notification, c.Otp, c.Post,
-		c.Reaction, c.Region, c.Reply, c.SiteDetail, c.User,
+		c.Chat, c.City, c.Comment, c.Country, c.File, c.Friend, c.Message,
+		c.Notification, c.Otp, c.Post, c.Reaction, c.Region, c.Reply, c.SiteDetail,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -263,8 +276,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.City, c.Comment, c.Country, c.File, c.Friend, c.Notification, c.Otp, c.Post,
-		c.Reaction, c.Region, c.Reply, c.SiteDetail, c.User,
+		c.Chat, c.City, c.Comment, c.Country, c.File, c.Friend, c.Message,
+		c.Notification, c.Otp, c.Post, c.Reaction, c.Region, c.Reply, c.SiteDetail,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -273,6 +287,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *ChatMutation:
+		return c.Chat.mutate(ctx, m)
 	case *CityMutation:
 		return c.City.mutate(ctx, m)
 	case *CommentMutation:
@@ -283,6 +299,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.File.mutate(ctx, m)
 	case *FriendMutation:
 		return c.Friend.mutate(ctx, m)
+	case *MessageMutation:
+		return c.Message.mutate(ctx, m)
 	case *NotificationMutation:
 		return c.Notification.mutate(ctx, m)
 	case *OtpMutation:
@@ -301,6 +319,203 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// ChatClient is a client for the Chat schema.
+type ChatClient struct {
+	config
+}
+
+// NewChatClient returns a client for the Chat from the given config.
+func NewChatClient(c config) *ChatClient {
+	return &ChatClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `chat.Hooks(f(g(h())))`.
+func (c *ChatClient) Use(hooks ...Hook) {
+	c.hooks.Chat = append(c.hooks.Chat, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `chat.Intercept(f(g(h())))`.
+func (c *ChatClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Chat = append(c.inters.Chat, interceptors...)
+}
+
+// Create returns a builder for creating a Chat entity.
+func (c *ChatClient) Create() *ChatCreate {
+	mutation := newChatMutation(c.config, OpCreate)
+	return &ChatCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Chat entities.
+func (c *ChatClient) CreateBulk(builders ...*ChatCreate) *ChatCreateBulk {
+	return &ChatCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ChatClient) MapCreateBulk(slice any, setFunc func(*ChatCreate, int)) *ChatCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ChatCreateBulk{err: fmt.Errorf("calling to ChatClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ChatCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ChatCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Chat.
+func (c *ChatClient) Update() *ChatUpdate {
+	mutation := newChatMutation(c.config, OpUpdate)
+	return &ChatUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChatClient) UpdateOne(ch *Chat) *ChatUpdateOne {
+	mutation := newChatMutation(c.config, OpUpdateOne, withChat(ch))
+	return &ChatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChatClient) UpdateOneID(id uuid.UUID) *ChatUpdateOne {
+	mutation := newChatMutation(c.config, OpUpdateOne, withChatID(id))
+	return &ChatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Chat.
+func (c *ChatClient) Delete() *ChatDelete {
+	mutation := newChatMutation(c.config, OpDelete)
+	return &ChatDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChatClient) DeleteOne(ch *Chat) *ChatDeleteOne {
+	return c.DeleteOneID(ch.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ChatClient) DeleteOneID(id uuid.UUID) *ChatDeleteOne {
+	builder := c.Delete().Where(chat.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChatDeleteOne{builder}
+}
+
+// Query returns a query builder for Chat.
+func (c *ChatClient) Query() *ChatQuery {
+	return &ChatQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeChat},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Chat entity by its id.
+func (c *ChatClient) Get(ctx context.Context, id uuid.UUID) (*Chat, error) {
+	return c.Query().Where(chat.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChatClient) GetX(ctx context.Context, id uuid.UUID) *Chat {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwner queries the owner edge of a Chat.
+func (c *ChatClient) QueryOwner(ch *Chat) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ch.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(chat.Table, chat.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, chat.OwnerTable, chat.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(ch.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryImage queries the image edge of a Chat.
+func (c *ChatClient) QueryImage(ch *Chat) *FileQuery {
+	query := (&FileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ch.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(chat.Table, chat.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, chat.ImageTable, chat.ImageColumn),
+		)
+		fromV = sqlgraph.Neighbors(ch.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUsers queries the users edge of a Chat.
+func (c *ChatClient) QueryUsers(ch *Chat) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ch.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(chat.Table, chat.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, chat.UsersTable, chat.UsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ch.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessages queries the messages edge of a Chat.
+func (c *ChatClient) QueryMessages(ch *Chat) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ch.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(chat.Table, chat.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, chat.MessagesTable, chat.MessagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ch.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ChatClient) Hooks() []Hook {
+	return c.hooks.Chat
+}
+
+// Interceptors returns the client interceptors.
+func (c *ChatClient) Interceptors() []Interceptor {
+	return c.inters.Chat
+}
+
+func (c *ChatClient) mutate(ctx context.Context, m *ChatMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ChatCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ChatUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ChatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ChatDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Chat mutation op: %q", m.Op())
 	}
 }
 
@@ -1003,6 +1218,38 @@ func (c *FileClient) QueryPosts(f *File) *PostQuery {
 	return query
 }
 
+// QueryChats queries the chats edge of a File.
+func (c *FileClient) QueryChats(f *File) *ChatQuery {
+	query := (&ChatClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(chat.Table, chat.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, file.ChatsTable, file.ChatsColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessages queries the messages edge of a File.
+func (c *FileClient) QueryMessages(f *File) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, file.MessagesTable, file.MessagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	return c.hooks.File
@@ -1190,6 +1437,187 @@ func (c *FriendClient) mutate(ctx context.Context, m *FriendMutation) (Value, er
 		return (&FriendDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Friend mutation op: %q", m.Op())
+	}
+}
+
+// MessageClient is a client for the Message schema.
+type MessageClient struct {
+	config
+}
+
+// NewMessageClient returns a client for the Message from the given config.
+func NewMessageClient(c config) *MessageClient {
+	return &MessageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `message.Hooks(f(g(h())))`.
+func (c *MessageClient) Use(hooks ...Hook) {
+	c.hooks.Message = append(c.hooks.Message, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `message.Intercept(f(g(h())))`.
+func (c *MessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Message = append(c.inters.Message, interceptors...)
+}
+
+// Create returns a builder for creating a Message entity.
+func (c *MessageClient) Create() *MessageCreate {
+	mutation := newMessageMutation(c.config, OpCreate)
+	return &MessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Message entities.
+func (c *MessageClient) CreateBulk(builders ...*MessageCreate) *MessageCreateBulk {
+	return &MessageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MessageClient) MapCreateBulk(slice any, setFunc func(*MessageCreate, int)) *MessageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MessageCreateBulk{err: fmt.Errorf("calling to MessageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MessageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MessageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Message.
+func (c *MessageClient) Update() *MessageUpdate {
+	mutation := newMessageMutation(c.config, OpUpdate)
+	return &MessageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageClient) UpdateOne(m *Message) *MessageUpdateOne {
+	mutation := newMessageMutation(c.config, OpUpdateOne, withMessage(m))
+	return &MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageClient) UpdateOneID(id uuid.UUID) *MessageUpdateOne {
+	mutation := newMessageMutation(c.config, OpUpdateOne, withMessageID(id))
+	return &MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Message.
+func (c *MessageClient) Delete() *MessageDelete {
+	mutation := newMessageMutation(c.config, OpDelete)
+	return &MessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageClient) DeleteOne(m *Message) *MessageDeleteOne {
+	return c.DeleteOneID(m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessageClient) DeleteOneID(id uuid.UUID) *MessageDeleteOne {
+	builder := c.Delete().Where(message.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageDeleteOne{builder}
+}
+
+// Query returns a query builder for Message.
+func (c *MessageClient) Query() *MessageQuery {
+	return &MessageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Message entity by its id.
+func (c *MessageClient) Get(ctx context.Context, id uuid.UUID) (*Message, error) {
+	return c.Query().Where(message.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageClient) GetX(ctx context.Context, id uuid.UUID) *Message {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySender queries the sender edge of a Message.
+func (c *MessageClient) QuerySender(m *Message) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.SenderTable, message.SenderColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChat queries the chat edge of a Message.
+func (c *MessageClient) QueryChat(m *Message) *ChatQuery {
+	query := (&ChatClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(chat.Table, chat.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.ChatTable, message.ChatColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFile queries the file edge of a Message.
+func (c *MessageClient) QueryFile(m *Message) *FileQuery {
+	query := (&FileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.FileTable, message.FileColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MessageClient) Hooks() []Hook {
+	return c.hooks.Message
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageClient) Interceptors() []Interceptor {
+	return c.inters.Message
+}
+
+func (c *MessageClient) mutate(ctx context.Context, m *MessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Message mutation op: %q", m.Op())
 	}
 }
 
@@ -2776,6 +3204,54 @@ func (c *UserClient) QueryNotificationsRead(u *User) *NotificationQuery {
 	return query
 }
 
+// QueryOwnedChats queries the owned_chats edge of a User.
+func (c *UserClient) QueryOwnedChats(u *User) *ChatQuery {
+	query := (&ChatClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(chat.Table, chat.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OwnedChatsTable, user.OwnedChatsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMemberChats queries the member_chats edge of a User.
+func (c *UserClient) QueryMemberChats(u *User) *ChatQuery {
+	query := (&ChatClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(chat.Table, chat.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.MemberChatsTable, user.MemberChatsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessages queries the messages edge of a User.
+func (c *UserClient) QueryMessages(u *User) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MessagesTable, user.MessagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -2804,11 +3280,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		City, Comment, Country, File, Friend, Notification, Otp, Post, Reaction, Region,
-		Reply, SiteDetail, User []ent.Hook
+		Chat, City, Comment, Country, File, Friend, Message, Notification, Otp, Post,
+		Reaction, Region, Reply, SiteDetail, User []ent.Hook
 	}
 	inters struct {
-		City, Comment, Country, File, Friend, Notification, Otp, Post, Reaction, Region,
-		Reply, SiteDetail, User []ent.Interceptor
+		Chat, City, Comment, Country, File, Friend, Message, Notification, Otp, Post,
+		Reaction, Region, Reply, SiteDetail, User []ent.Interceptor
 	}
 )

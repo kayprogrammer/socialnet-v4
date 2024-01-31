@@ -36,9 +36,13 @@ type FileEdges struct {
 	Users []*User `json:"users,omitempty"`
 	// Posts holds the value of the posts edge.
 	Posts []*Post `json:"posts,omitempty"`
+	// Chats holds the value of the chats edge.
+	Chats []*Chat `json:"chats,omitempty"`
+	// Messages holds the value of the messages edge.
+	Messages []*Message `json:"messages,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -57,6 +61,24 @@ func (e FileEdges) PostsOrErr() ([]*Post, error) {
 		return e.Posts, nil
 	}
 	return nil, &NotLoadedError{edge: "posts"}
+}
+
+// ChatsOrErr returns the Chats value or an error if the edge
+// was not loaded in eager-loading.
+func (e FileEdges) ChatsOrErr() ([]*Chat, error) {
+	if e.loadedTypes[2] {
+		return e.Chats, nil
+	}
+	return nil, &NotLoadedError{edge: "chats"}
+}
+
+// MessagesOrErr returns the Messages value or an error if the edge
+// was not loaded in eager-loading.
+func (e FileEdges) MessagesOrErr() ([]*Message, error) {
+	if e.loadedTypes[3] {
+		return e.Messages, nil
+	}
+	return nil, &NotLoadedError{edge: "messages"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -130,6 +152,16 @@ func (f *File) QueryUsers() *UserQuery {
 // QueryPosts queries the "posts" edge of the File entity.
 func (f *File) QueryPosts() *PostQuery {
 	return NewFileClient(f.config).QueryPosts(f)
+}
+
+// QueryChats queries the "chats" edge of the File entity.
+func (f *File) QueryChats() *ChatQuery {
+	return NewFileClient(f.config).QueryChats(f)
+}
+
+// QueryMessages queries the "messages" edge of the File entity.
+func (f *File) QueryMessages() *MessageQuery {
+	return NewFileClient(f.config).QueryMessages(f)
 }
 
 // Update returns a builder for updating this File.

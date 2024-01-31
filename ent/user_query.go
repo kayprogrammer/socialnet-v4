@@ -12,10 +12,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/kayprogrammer/socialnet-v4/ent/chat"
 	"github.com/kayprogrammer/socialnet-v4/ent/city"
 	"github.com/kayprogrammer/socialnet-v4/ent/comment"
 	"github.com/kayprogrammer/socialnet-v4/ent/file"
 	"github.com/kayprogrammer/socialnet-v4/ent/friend"
+	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/notification"
 	"github.com/kayprogrammer/socialnet-v4/ent/otp"
 	"github.com/kayprogrammer/socialnet-v4/ent/post"
@@ -44,6 +46,9 @@ type UserQuery struct {
 	withNotificationsFrom *NotificationQuery
 	withNotifications     *NotificationQuery
 	withNotificationsRead *NotificationQuery
+	withOwnedChats        *ChatQuery
+	withMemberChats       *ChatQuery
+	withMessages          *MessageQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -344,6 +349,72 @@ func (uq *UserQuery) QueryNotificationsRead() *NotificationQuery {
 	return query
 }
 
+// QueryOwnedChats chains the current query on the "owned_chats" edge.
+func (uq *UserQuery) QueryOwnedChats() *ChatQuery {
+	query := (&ChatClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(chat.Table, chat.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OwnedChatsTable, user.OwnedChatsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMemberChats chains the current query on the "member_chats" edge.
+func (uq *UserQuery) QueryMemberChats() *ChatQuery {
+	query := (&ChatClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(chat.Table, chat.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.MemberChatsTable, user.MemberChatsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessages chains the current query on the "messages" edge.
+func (uq *UserQuery) QueryMessages() *MessageQuery {
+	query := (&MessageClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MessagesTable, user.MessagesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (uq *UserQuery) First(ctx context.Context) (*User, error) {
@@ -548,6 +619,9 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withNotificationsFrom: uq.withNotificationsFrom.Clone(),
 		withNotifications:     uq.withNotifications.Clone(),
 		withNotificationsRead: uq.withNotificationsRead.Clone(),
+		withOwnedChats:        uq.withOwnedChats.Clone(),
+		withMemberChats:       uq.withMemberChats.Clone(),
+		withMessages:          uq.withMessages.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -686,6 +760,39 @@ func (uq *UserQuery) WithNotificationsRead(opts ...func(*NotificationQuery)) *Us
 	return uq
 }
 
+// WithOwnedChats tells the query-builder to eager-load the nodes that are connected to
+// the "owned_chats" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithOwnedChats(opts ...func(*ChatQuery)) *UserQuery {
+	query := (&ChatClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withOwnedChats = query
+	return uq
+}
+
+// WithMemberChats tells the query-builder to eager-load the nodes that are connected to
+// the "member_chats" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithMemberChats(opts ...func(*ChatQuery)) *UserQuery {
+	query := (&ChatClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withMemberChats = query
+	return uq
+}
+
+// WithMessages tells the query-builder to eager-load the nodes that are connected to
+// the "messages" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithMessages(opts ...func(*MessageQuery)) *UserQuery {
+	query := (&MessageClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withMessages = query
+	return uq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -764,7 +871,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [15]bool{
 			uq.withCity != nil,
 			uq.withAvatar != nil,
 			uq.withOtp != nil,
@@ -777,6 +884,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withNotificationsFrom != nil,
 			uq.withNotifications != nil,
 			uq.withNotificationsRead != nil,
+			uq.withOwnedChats != nil,
+			uq.withMemberChats != nil,
+			uq.withMessages != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -875,6 +985,27 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadNotificationsRead(ctx, query, nodes,
 			func(n *User) { n.Edges.NotificationsRead = []*Notification{} },
 			func(n *User, e *Notification) { n.Edges.NotificationsRead = append(n.Edges.NotificationsRead, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withOwnedChats; query != nil {
+		if err := uq.loadOwnedChats(ctx, query, nodes,
+			func(n *User) { n.Edges.OwnedChats = []*Chat{} },
+			func(n *User, e *Chat) { n.Edges.OwnedChats = append(n.Edges.OwnedChats, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withMemberChats; query != nil {
+		if err := uq.loadMemberChats(ctx, query, nodes,
+			func(n *User) { n.Edges.MemberChats = []*Chat{} },
+			func(n *User, e *Chat) { n.Edges.MemberChats = append(n.Edges.MemberChats, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withMessages; query != nil {
+		if err := uq.loadMessages(ctx, query, nodes,
+			func(n *User) { n.Edges.Messages = []*Message{} },
+			func(n *User, e *Message) { n.Edges.Messages = append(n.Edges.Messages, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1301,6 +1432,127 @@ func (uq *UserQuery) loadNotificationsRead(ctx context.Context, query *Notificat
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadOwnedChats(ctx context.Context, query *ChatQuery, nodes []*User, init func(*User), assign func(*User, *Chat)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(chat.FieldOwnerID)
+	}
+	query.Where(predicate.Chat(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.OwnedChatsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OwnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "owner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadMemberChats(ctx context.Context, query *ChatQuery, nodes []*User, init func(*User), assign func(*User, *Chat)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*User)
+	nids := make(map[uuid.UUID]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.MemberChatsTable)
+		s.Join(joinT).On(s.C(chat.FieldID), joinT.C(user.MemberChatsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.MemberChatsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.MemberChatsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Chat](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "member_chats" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadMessages(ctx context.Context, query *MessageQuery, nodes []*User, init func(*User), assign func(*User, *Message)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(message.FieldSenderID)
+	}
+	query.Where(predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.MessagesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SenderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "sender_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
