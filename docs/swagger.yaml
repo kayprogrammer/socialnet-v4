@@ -37,6 +37,60 @@ definitions:
     required:
     - username
     type: object
+  schemas.ChatSchema:
+    properties:
+      created_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+      ctype:
+        example: DM
+        type: string
+      description:
+        example: A nice group for tech enthusiasts
+        type: string
+      id:
+        type: string
+      image:
+        example: https://img.url
+        type: string
+      latest_message:
+        $ref: '#/definitions/schemas.LatestMessageSchema'
+      name:
+        example: Correct Group
+        type: string
+      owner:
+        $ref: '#/definitions/schemas.UserDataSchema'
+      updated_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+    type: object
+  schemas.ChatsResponseDataSchema:
+    properties:
+      chats:
+        items:
+          $ref: '#/definitions/schemas.ChatSchema'
+        type: array
+      current_page:
+        example: 1
+        type: integer
+      last_page:
+        example: 100
+        type: integer
+      per_page:
+        example: 100
+        type: integer
+    type: object
+  schemas.ChatsResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.ChatsResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.CitiesResponseSchema:
     properties:
       data:
@@ -176,6 +230,15 @@ definitions:
         type: string
     required:
     - email
+    type: object
+  schemas.LatestMessageSchema:
+    properties:
+      file:
+        type: string
+      sender:
+        $ref: '#/definitions/schemas.UserDataSchema'
+      text:
+        type: string
     type: object
   schemas.LoginSchema:
     properties:
@@ -713,7 +776,20 @@ definitions:
     type: object
 info:
   contact: {}
-  description: A Realtime Social Networking API built with Fiber
+  description: "`A Realtime Social Networking API built with FIBER & GORM ORM` |\n\n`WEBSOCKETS:`\n‎
+    `Notifications:`\n`\t\tURL: wss://{host}/api/v4/ws/notifications`\n`\t\t* Requires
+    authorization, so pass in the Bearer Authorization header.`\n`\t\t* You can only
+    read and not send notification messages into this socket.`\n`\tChats:`\n`\t\tURL:
+    wss://{host}/api/v4/ws/chats/{id}/`\n`\t\t* Requires authorization, so pass in
+    the Bearer Authorization header.`\n`\t\t* Use chat_id as the ID for existing chat
+    or username if its the first message in a DM.`\n`\t\t* You cannot read realtime
+    messages from a username that doesn't belong to the authorized user, but you can
+    surely send messages.`\n`\t\t* Only send message to the socket endpoint after
+    the message has been created or updated, and files has been uploaded.`\n`\t\t*
+    Fields when sending message through the socket: e.g {\"status\": \"CREATED\",
+    \"id\": \"fe4e0235-80fc-4c94-b15e-3da63226f8ab\"}`\n`\t\t\t* status - This must
+    be either CREATED or UPDATED (string type)`\n`\t\t\t* id - This is the ID of the
+    message (uuid type)`"
   title: SOCIALNET API
   version: "4.0"
 paths:
@@ -911,6 +987,26 @@ paths:
       summary: Verify a user's email
       tags:
       - Auth
+  /chats:
+    get:
+      description: '`This endpoint retrieves a paginated list of the current user
+        chats`'
+      parameters:
+      - default: 1
+        description: Current Page
+        in: query
+        name: page
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ChatsResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Retrieve User Chats
+      tags:
+      - Chat
   /feed/comments/{slug}:
     delete:
       description: This endpoint deletes a comment

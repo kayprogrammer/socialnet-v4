@@ -61,6 +61,10 @@ func SetupRoutes(app *fiber.App) {
 	profilesRouter.Put("/friends/requests", midw.AuthMiddleware, AcceptOrRejectFriendRequest)
 	profilesRouter.Get("/notifications", midw.AuthMiddleware, RetrieveUserNotifications)
 	profilesRouter.Post("/notifications", midw.AuthMiddleware, ReadNotification)
+
+	// Chat Routes
+	chatRouter := api.Group("/chats", midw.AuthMiddleware)
+	chatRouter.Get("", RetrieveUserChats)
 }
 
 func SetupSockets(app *fiber.App) {

@@ -94,3 +94,8 @@ func (data ChatsResponseDataSchema) Init () ChatsResponseDataSchema {
 	data.Items = items
 	return data
 }
+
+type ChatsResponseSchema struct {
+	ResponseSchema
+	Data			ChatsResponseDataSchema		`json:"data"`
+}

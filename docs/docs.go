@@ -323,6 +323,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/chats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "` + "`" + `This endpoint retrieves a paginated list of the current user chats` + "`" + `",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Retrieve User Chats",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Current Page",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ChatsResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/feed/comments/{slug}": {
             "get": {
                 "description": "This endpoint retrieves a comment with replies",
@@ -1311,6 +1342,83 @@ const docTemplate = `{
                 }
             }
         },
+        "schemas.ChatSchema": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-14T19:00:02.613124+01:00"
+                },
+                "ctype": {
+                    "type": "string",
+                    "example": "DM"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "A nice group for tech enthusiasts"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string",
+                    "example": "https://img.url"
+                },
+                "latest_message": {
+                    "$ref": "#/definitions/schemas.LatestMessageSchema"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Correct Group"
+                },
+                "owner": {
+                    "$ref": "#/definitions/schemas.UserDataSchema"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-14T19:00:02.613124+01:00"
+                }
+            }
+        },
+        "schemas.ChatsResponseDataSchema": {
+            "type": "object",
+            "properties": {
+                "chats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.ChatSchema"
+                    }
+                },
+                "current_page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "last_page": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "per_page": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "schemas.ChatsResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.ChatsResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
         "schemas.CitiesResponseSchema": {
             "type": "object",
             "properties": {
@@ -1511,6 +1619,20 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 5,
                     "example": "johndoe@email.com"
+                }
+            }
+        },
+        "schemas.LatestMessageSchema": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "type": "string"
+                },
+                "sender": {
+                    "$ref": "#/definitions/schemas.UserDataSchema"
+                },
+                "text": {
+                    "type": "string"
                 }
             }
         },
@@ -2290,7 +2412,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v4",
 	Schemes:          []string{},
 	Title:            "SOCIALNET API",
-	Description:      "A Realtime Social Networking API built with Fiber",
+	Description:      "`A Realtime Social Networking API built with FIBER & GORM ORM` |\n\n`WEBSOCKETS:`\n\u200e `Notifications:`\n`\t\tURL: wss://{host}/api/v4/ws/notifications`\n`\t\t* Requires authorization, so pass in the Bearer Authorization header.`\n`\t\t* You can only read and not send notification messages into this socket.`\n`\tChats:`\n`\t\tURL: wss://{host}/api/v4/ws/chats/{id}/`\n`\t\t* Requires authorization, so pass in the Bearer Authorization header.`\n`\t\t* Use chat_id as the ID for existing chat or username if its the first message in a DM.`\n`\t\t* You cannot read realtime messages from a username that doesn't belong to the authorized user, but you can surely send messages.`\n`\t\t* Only send message to the socket endpoint after the message has been created or updated, and files has been uploaded.`\n`\t\t* Fields when sending message through the socket: e.g {\"status\": \"CREATED\", \"id\": \"fe4e0235-80fc-4c94-b15e-3da63226f8ab\"}`\n`\t\t\t* status - This must be either CREATED or UPDATED (string type)`\n`\t\t\t* id - This is the ID of the message (uuid type)`",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

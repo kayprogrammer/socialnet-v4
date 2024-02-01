@@ -575,7 +575,7 @@ func init() {
 	ChatsTable.ForeignKeys[1].RefTable = UsersTable
 	ChatsTable.Annotation = &entsql.Annotation{}
 	ChatsTable.Annotation.Checks = map[string]string{
-		"dm_chat_constraints":    "(ctype = 'DM' AND name IS NULL AND description IS NULL AND image IS NULL) OR (ctype = 'GROUP')",
+		"dm_chat_constraints":    "(ctype = 'DM' AND name IS NULL AND description IS NULL AND image_id IS NULL) OR (ctype = 'GROUP')",
 		"group_chat_constraints": "(ctype = 'GROUP' AND name IS NOT NULL) OR (ctype = 'DM')",
 	}
 	CitiesTable.ForeignKeys[0].RefTable = CountriesTable
