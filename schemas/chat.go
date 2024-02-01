@@ -15,16 +15,16 @@ type LatestMessageSchema struct {
 }
 
 type ChatSchema struct {
-	Edges        		*ent.ChatEdges 		`json:"edges,omitempty" swaggerignore:"true"`
-	ID					uuid.UUID			`json:"id"`
-	Owner 				UserDataSchema 		`json:"owner"`
-	Name 				*string 			`json:"name" example:"Correct Group"`
-	Ctype 				string 				`json:"ctype" example:"DM"`
-	Description 		*string 			`json:"description" example:"A nice group for tech enthusiasts"`
-	LatestMessage 		LatestMessageSchema	`json:"latest_message"`
-	Image 				*string				`json:"image" example:"https://img.url"`
-	CreatedAt 			time.Time			`json:"created_at" example:"2024-01-14T19:00:02.613124+01:00"`
-	UpdatedAt 			time.Time			`json:"updated_at" example:"2024-01-14T19:00:02.613124+01:00"`
+	Edges        		*ent.ChatEdges 			`json:"edges,omitempty" swaggerignore:"true"`
+	ID					uuid.UUID				`json:"id"`
+	Owner 				UserDataSchema 			`json:"owner"`
+	Name 				*string 				`json:"name" example:"Correct Group"`
+	Ctype 				string 					`json:"ctype" example:"DM"`
+	Description 		*string 				`json:"description" example:"A nice group for tech enthusiasts"`
+	LatestMessage 		*LatestMessageSchema	`json:"latest_message"`
+	Image 				*string					`json:"image" example:"https://img.url"`
+	CreatedAt 			time.Time				`json:"created_at" example:"2024-01-14T19:00:02.613124+01:00"`
+	UpdatedAt 			time.Time				`json:"updated_at" example:"2024-01-14T19:00:02.613124+01:00"`
 }
 
 func (chat ChatSchema) Init () ChatSchema {
@@ -48,11 +48,12 @@ func (chat ChatSchema) Init () ChatSchema {
 			url := utils.GenerateFileUrl(file.ID.String(), "messages", file.ResourceType)
 			fileUrl = &url
 		}
-		chat.LatestMessage = LatestMessageSchema{
-			Sender: chat.LatestMessage.Sender.Init(latestMessage.Edges.Sender),
+		lm := LatestMessageSchema{
 			Text: latestMessage.Text,
 			File: fileUrl,
 		}
+		lm.Sender = lm.Sender.Init(latestMessage.Edges.Sender)
+		chat.LatestMessage = &lm
 	}
 	chat.Edges = nil // Omit edges
 	return chat

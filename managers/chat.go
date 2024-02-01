@@ -15,7 +15,7 @@ type ChatManager struct {
 }
 
 func (obj ChatManager) GetUserChats(client *ent.Client, userObj *ent.User) []*ent.Chat {
-	chats, _ := client.Chat.Query().
+	chats := client.Chat.Query().
 		Where(
 			chat.Or(
 				chat.OwnerIDEQ(userObj.ID),
@@ -26,10 +26,10 @@ func (obj ChatManager) GetUserChats(client *ent.Client, userObj *ent.User) []*en
 		WithImage().
 		WithMessages(
 			func(mq *ent.MessageQuery) {
-				mq.WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).WithFile().Order(ent.Desc(message.FieldCreatedAt)).Limit(1)
+				mq.Limit(2).WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).WithFile().Order(ent.Desc(message.FieldCreatedAt))
 			}).
 		Order(ent.Desc(chat.FieldUpdatedAt)).
-		All(Ctx)
+		AllX(Ctx)
 	return chats
 }
 
