@@ -25,3 +25,6 @@ test:
 
 ureqm:
 	go mod tidy
+
+swag:
+	swag init --md .
