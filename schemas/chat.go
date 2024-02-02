@@ -9,25 +9,25 @@ import (
 )
 
 type LatestMessageSchema struct {
-	Sender			UserDataSchema			`json:"sender"`
-	Text			*string					`json:"text"`
-	File			*string					`json:"file"`
+	Sender UserDataSchema `json:"sender"`
+	Text   *string        `json:"text"`
+	File   *string        `json:"file"`
 }
 
 type ChatSchema struct {
-	Edges        		*ent.ChatEdges 			`json:"edges,omitempty" swaggerignore:"true"`
-	ID					uuid.UUID				`json:"id"`
-	Owner 				UserDataSchema 			`json:"owner"`
-	Name 				*string 				`json:"name" example:"Correct Group"`
-	Ctype 				string 					`json:"ctype" example:"DM"`
-	Description 		*string 				`json:"description" example:"A nice group for tech enthusiasts"`
-	LatestMessage 		*LatestMessageSchema	`json:"latest_message"`
-	Image 				*string					`json:"image" example:"https://img.url"`
-	CreatedAt 			time.Time				`json:"created_at" example:"2024-01-14T19:00:02.613124+01:00"`
-	UpdatedAt 			time.Time				`json:"updated_at" example:"2024-01-14T19:00:02.613124+01:00"`
+	Edges         *ent.ChatEdges       `json:"edges,omitempty" swaggerignore:"true"`
+	ID            uuid.UUID            `json:"id" example:"d10dde64-a242-4ed0-bd75-4c759644b3a6"`
+	Owner         UserDataSchema       `json:"owner"`
+	Name          *string              `json:"name" example:"Correct Group"`
+	Ctype         string               `json:"ctype" example:"DM"`
+	Description   *string              `json:"description" example:"A nice group for tech enthusiasts"`
+	LatestMessage *LatestMessageSchema `json:"latest_message"`
+	Image         *string              `json:"image" example:"https://img.url"`
+	CreatedAt     time.Time            `json:"created_at" example:"2024-01-14T19:00:02.613124+01:00"`
+	UpdatedAt     time.Time            `json:"updated_at" example:"2024-01-14T19:00:02.613124+01:00"`
 }
 
-func (chat ChatSchema) Init () ChatSchema {
+func (chat ChatSchema) Init() ChatSchema {
 	// Set Owner Details.
 	chat.Owner = chat.Owner.Init(chat.Edges.Owner)
 
@@ -60,33 +60,60 @@ func (chat ChatSchema) Init () ChatSchema {
 }
 
 type MessageSchema struct {
-	Edges        		*ent.MessageEdges 	`json:"edges,omitempty" swaggerignore:"true"`
-	ID					uuid.UUID			`json:"id"`
-	ChatID				uuid.UUID			`json:"chat_id"`
-	Sender 				UserDataSchema 		`json:"sender"`
-	Text 				*string 			`json:"text" example:"Jesus is Lord"`
-	File 				*string				`json:"file" example:"https://img.url"`
-	CreatedAt 			time.Time			`json:"created_at" example:"2024-01-14T19:00:02.613124+01:00"`
-	UpdatedAt 			time.Time			`json:"updated_at" example:"2024-01-14T19:00:02.613124+01:00"`
+	Edges     *ent.MessageEdges `json:"edges,omitempty" swaggerignore:"true"`
+	ID        uuid.UUID         `json:"id"`
+	ChatID    uuid.UUID         `json:"chat_id"`
+	Sender    UserDataSchema    `json:"sender"`
+	Text      *string           `json:"text" example:"Jesus is Lord"`
+	File      *string           `json:"file" example:"https://img.url"`
+	CreatedAt time.Time         `json:"created_at" example:"2024-01-14T19:00:02.613124+01:00"`
+	UpdatedAt time.Time         `json:"updated_at" example:"2024-01-14T19:00:02.613124+01:00"`
+}
+
+func (message MessageSchema) Init() MessageSchema {
+	// Set Author Details.
+	message.Sender = message.Sender.Init(message.Edges.Sender)
+
+	// Set FileUrl
+	file := message.Edges.File
+	if file != nil {
+		url := utils.GenerateFileUrl(file.ID.String(), "messages", file.ResourceType)
+		message.File = &url
+	}
+
+	message.Edges = nil // Omit edges
+	return message
 }
 
 type GroupChatSchema struct {
-	Edges        		*ent.ChatEdges	 	`json:"edges,omitempty" swaggerignore:"true"`
-	ID					uuid.UUID			`json:"id"`
-	Name 				string 				`json:"name" example:"Correct Group"`
-	Description 		*string 			`json:"description" example:"Jesus is Lord"`
-	Image 				*string				`json:"image" example:"https://img.url"`
-	Users 				[]*UserDataSchema	`json:"users"`
+	Edges       *ent.ChatEdges    `json:"edges,omitempty" swaggerignore:"true"`
+	ID          uuid.UUID         `json:"id"`
+	Name        string            `json:"name" example:"Correct Group"`
+	Description *string           `json:"description" example:"Jesus is Lord"`
+	Image       *string           `json:"image" example:"https://img.url"`
+	Users       []*UserDataSchema `json:"users"`
+}
+
+type MessageCreateSchema struct {
+	ChatID   *uuid.UUID `json:"chat_id" validate:"omitempty" example:"d10dde64-a242-4ed0-bd75-4c759644b3a6"`
+	Username *string    `json:"username,omitempty" validate:"required_without=ChatID" example:"john-doe"`
+	Text     *string    `json:"text" validate:"required_without=FileType" example:"I am not in danger skyler, I am the danger"`
+	FileType *string    `json:"file_type" validate:"omitempty,file_type_validator" example:"image/jpeg"`
+}
+
+type MessageUpdateSchema struct {
+	Text     *string `json:"text" validate:"required_without=FileType" example:"The Earth is the Lord's and the fullness thereof"`
+	FileType *string `json:"file_type" validate:"omitempty,file_type_validator" example:"image/jpeg"`
 }
 
 // RESPONSE SCHEMAS
 // CHATS
 type ChatsResponseDataSchema struct {
 	PaginatedResponseDataSchema
-	Items			[]ChatSchema		`json:"chats"`
+	Items []ChatSchema `json:"chats"`
 }
 
-func (data ChatsResponseDataSchema) Init () ChatsResponseDataSchema {
+func (data ChatsResponseDataSchema) Init() ChatsResponseDataSchema {
 	// Set Initial Data
 	items := data.Items
 	for i := range items {
@@ -98,5 +125,26 @@ func (data ChatsResponseDataSchema) Init () ChatsResponseDataSchema {
 
 type ChatsResponseSchema struct {
 	ResponseSchema
-	Data			ChatsResponseDataSchema		`json:"data"`
+	Data ChatsResponseDataSchema `json:"data"`
+}
+
+type MessageCreateResponseDataSchema struct {
+	MessageSchema
+	File           *string                `json:"file,omitempty" swaggerignore:"true"` // Remove image during create & update
+	FileUploadData *utils.SignatureFormat `json:"file_upload_data"`
+}
+
+func (messageData MessageCreateResponseDataSchema) Init(fileType *string) MessageCreateResponseDataSchema {
+	file := messageData.MessageSchema.Edges.File
+	if fileType != nil && file != nil { // Generate data when file is being uploaded
+		fuData := utils.GenerateFileSignature(file.ID.String(), "messages")
+		messageData.FileUploadData = &fuData
+	}
+	messageData.MessageSchema = messageData.MessageSchema.Init()
+	return messageData
+}
+
+type MessageCreateResponseSchema struct {
+	ResponseSchema
+	Data MessageCreateResponseDataSchema `json:"data"`
 }

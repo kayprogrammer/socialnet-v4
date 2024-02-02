@@ -3,10 +3,10 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"entgo.io/ent/schema"
 )
 
 type Chat struct {
@@ -75,3 +75,16 @@ func (Message) Edges() []ent.Edge {
 		edge.From("file", File.Type).Ref("messages").Field("file_id").Unique(),
 	}
 }
+
+// Hooks of the User.
+// func (User) Hooks() []ent.Hook {
+// 	return []ent.Hook{
+// 		hook.On(
+// 			hook.OpCreate,
+// 			hook.HandlerFunc(func(ctx context.Context, tx *ent.Tx, user *User) error {
+// 				fmt.Println("Executing custom logic before create operation")
+// 				return nil
+// 			}),
+// 		),
+// 	}
+// }

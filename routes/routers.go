@@ -65,6 +65,7 @@ func SetupRoutes(app *fiber.App) {
 	// Chat Routes
 	chatRouter := api.Group("/chats", midw.AuthMiddleware)
 	chatRouter.Get("", RetrieveUserChats)
+	chatRouter.Post("", SendMessage)
 }
 
 func SetupSockets(app *fiber.App) {

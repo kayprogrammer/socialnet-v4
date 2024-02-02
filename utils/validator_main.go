@@ -6,32 +6,31 @@ import (
 	"strings"
 
 	"github.com/go-playground/locales/en"
-	"github.com/go-playground/universal-translator"
+	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
 var (
-    customValidator *validator.Validate
-    translator      ut.Translator
+	customValidator *validator.Validate
+	translator      ut.Translator
 )
 
-
 func (e *ErrorResponse) Error() string {
-    return e.Message
+	return e.Message
 }
 
 // Initialize the custom validator and translator
 func init() {
-    customValidator = validator.New()
-    en := en.New()
-    uni := ut.New(en, en)
-    translator, _ = uni.GetTranslator("en")
-    
-    // Register Custom Validators
-    customValidator.RegisterValidation("date", DateValidator)
-    customValidator.RegisterValidation("reaction_type_validator", ReactionTypeValidator)
-    customValidator.RegisterValidation("file_type_validator", FileTypeValidator)
+	customValidator = validator.New()
+	en := en.New()
+	uni := ut.New(en, en)
+	translator, _ = uni.GetTranslator("en")
 
+	// Register Custom Validators
+	customValidator.RegisterValidation("date", DateValidator)
+	customValidator.RegisterValidation("reaction_type_validator", ReactionTypeValidator)
+	customValidator.RegisterValidation("file_type_validator", FileTypeValidator)
+	// customValidator.RegisterValidation("is_uuid", ValidateUUID)
 
 	customValidator.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -45,30 +44,31 @@ func init() {
 
 // Register translations
 func registerTranslations(param string) {
-    // Register custom error messages for each validation tag
-    registerTranslation := func (tag string, translation string, translator ut.Translator) {
-        customValidator.RegisterTranslation(tag, translator, func(ut ut.Translator) error {
-            return ut.Add(tag, translation, true)
-        }, func(ut ut.Translator, fe validator.FieldError) string {
-            t, _ := ut.T(tag, fe.Field())
-            return t
-        })
-    }
+	// Register custom error messages for each validation tag
+	registerTranslation := func(tag string, translation string, translator ut.Translator) {
+		customValidator.RegisterTranslation(tag, translator, func(ut ut.Translator) error {
+			return ut.Add(tag, translation, true)
+		}, func(ut ut.Translator, fe validator.FieldError) string {
+			t, _ := ut.T(tag, fe.Field())
+			return t
+		})
+	}
 
-    registerTranslation("date", "Invalid date format!", translator)
-    registerTranslation("gt", "Value is too small!", translator)
-    registerTranslation("file_type_validator", "Invalid file type", translator)
-    registerTranslation("reaction_type_validator", "Invalid reaction type", translator)
-    registerTranslation("required", "This field is required.", translator)
+	registerTranslation("date", "Invalid date format!", translator)
+	registerTranslation("gt", "Value is too small!", translator)
+	registerTranslation("file_type_validator", "Invalid file type", translator)
+	registerTranslation("reaction_type_validator", "Invalid reaction type", translator)
+	// registerTranslation("is_uuid", "Invalid UUID!", translator)
+	registerTranslation("required", "This field is required.", translator)
 
-    minErrMsg := fmt.Sprintf("%s characters min", param)
-    registerTranslation("min", minErrMsg, translator)
-    maxErrMsg := fmt.Sprintf("%s characters max", param)
-    registerTranslation("max", maxErrMsg, translator)
-    registerTranslation("email", "Invalid Email", translator)
+	minErrMsg := fmt.Sprintf("%s characters min", param)
+	registerTranslation("min", minErrMsg, translator)
+	maxErrMsg := fmt.Sprintf("%s characters max", param)
+	registerTranslation("max", maxErrMsg, translator)
+	registerTranslation("email", "Invalid Email", translator)
 
-    eqErrMsg := fmt.Sprintf("Must be %s", param)
-    registerTranslation("eq", eqErrMsg, translator)
+	eqErrMsg := fmt.Sprintf("Must be %s", param)
+	registerTranslation("eq", eqErrMsg, translator)
 
 }
 
@@ -77,30 +77,36 @@ type CustomValidator struct{}
 
 // Validate performs the validation of the given struct
 func (cv *CustomValidator) Validate(i interface{}) *ErrorResponse {
-    if err := customValidator.Struct(i); err != nil {
-        err := err.(validator.ValidationErrors)
-        return cv.translateValidationErrors(err)
-    }
-    return nil
+	if err := customValidator.Struct(i); err != nil {
+		err := err.(validator.ValidationErrors)
+		return cv.translateValidationErrors(err)
+	}
+	return nil
 }
 
 // translateValidationErrors translates the validation errors to custom errors
 func (cv *CustomValidator) translateValidationErrors(errs validator.ValidationErrors) *ErrorResponse {
-    errData := make(map[string]string)
+	errData := make(map[string]string)
 	for _, err := range errs {
-        registerTranslations(err.Param())
-        errMsg := err.Translate(translator)
-        if strings.Contains(errMsg, "ReadNotificationSchema.id") && strings.Contains(errMsg, "required_if") {
-            // Hack to change error message for read notification schema id required_if error.
-            errMsg = "Set ID or mark all as read as True"
-        }
+		registerTranslations(err.Param())
+		errMsg := err.Translate(translator)
+		if strings.Contains(errMsg, "MessageCreateSchema.username") && strings.Contains(errMsg, "required_without") {
+			// Hack to change error message for message create schema username required_without error.
+			errMsg = "Set username if chat id isn't passed"
+		} else if (strings.Contains(errMsg, "MessageCreateSchema.text") || strings.Contains(errMsg, "MessageUpdateSchema.text")) && strings.Contains(errMsg, "required_without") {
+			// Hack to change error message for message create schema username required_without error.
+			errMsg = "You must enter a text"
+		} else if strings.Contains(errMsg, "ReadNotificationSchema.id") && strings.Contains(errMsg, "required_if") {
+			// Hack to change error message for read notification schema id required_if error.
+			errMsg = "Set ID or mark all as read as True"
+		}
 		errData[err.Field()] = errMsg
-    }
-    errResp := RequestErr(ERR_INVALID_ENTRY, "Invalid Entry", errData)
-    return &errResp
+	}
+	errResp := RequestErr(ERR_INVALID_ENTRY, "Invalid Entry", errData)
+	return &errResp
 }
 
 // New creates a new instance of CustomValidator
 func Validator() *CustomValidator {
-    return &CustomValidator{}
+	return &CustomValidator{}
 }

@@ -142,10 +142,13 @@ func (obj MessageManager) Create(client *ent.Client, sender *ent.User, chat *ent
 	if fileID != nil {
 		messageObj.Edges.File = file
 	}
+
+	// Update Chat
+	client.Chat.UpdateOneID(messageObj.ChatID).Save(Ctx)
 	return messageObj
 }
 
-func (obj ChatManager) GetUserMessage(client *ent.Client, userObj *ent.User, id uuid.UUID, detailedOpts ...bool) *ent.Message {
+func (obj MessageManager) GetUserMessage(client *ent.Client, userObj *ent.User, id uuid.UUID, detailedOpts ...bool) *ent.Message {
 	messageQ := client.Message.Query().
 		Where(
 			message.IDEQ(id),

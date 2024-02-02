@@ -49,6 +49,7 @@ definitions:
         example: A nice group for tech enthusiasts
         type: string
       id:
+        example: d10dde64-a242-4ed0-bd75-4c759644b3a6
         type: string
       image:
         example: https://img.url
@@ -251,6 +252,55 @@ definitions:
     required:
     - email
     - password
+    type: object
+  schemas.MessageCreateResponseDataSchema:
+    properties:
+      chat_id:
+        type: string
+      created_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+      file:
+        example: https://img.url
+        type: string
+      file_upload_data:
+        $ref: '#/definitions/utils.SignatureFormat'
+      id:
+        type: string
+      sender:
+        $ref: '#/definitions/schemas.UserDataSchema'
+      text:
+        example: Jesus is Lord
+        type: string
+      updated_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+    type: object
+  schemas.MessageCreateResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.MessageCreateResponseDataSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  schemas.MessageCreateSchema:
+    properties:
+      chat_id:
+        example: d10dde64-a242-4ed0-bd75-4c759644b3a6
+        type: string
+      file_type:
+        example: image/jpeg
+        type: string
+      text:
+        example: I am not in danger skyler, I am the danger
+        type: string
+      username:
+        example: john-doe
+        type: string
     type: object
   schemas.NotificationSchema:
     properties:
@@ -1017,6 +1067,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Retrieve User Chats
+      tags:
+      - Chat
+    post:
+      description: |-
+        `This endpoint sends a message`
+        `You must either send a text or a file or both.`
+        `If there's no chat_id, then its a new chat and you must set username and leave chat_id`
+        `If chat_id is available, then ignore username and set the correct chat_id`
+        `The file_upload_data in the response is what is used for uploading the file to cloudinary from client`
+      parameters:
+      - description: Message object
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.MessageCreateSchema'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.MessageCreateResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Send a message
       tags:
       - Chat
   /feed/comments/{slug}:

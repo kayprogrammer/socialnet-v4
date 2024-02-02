@@ -352,6 +352,37 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "` + "`" + `This endpoint sends a message` + "`" + `\n` + "`" + `You must either send a text or a file or both.` + "`" + `\n` + "`" + `If there's no chat_id, then its a new chat and you must set username and leave chat_id` + "`" + `\n` + "`" + `If chat_id is available, then ignore username and set the correct chat_id` + "`" + `\n` + "`" + `The file_upload_data in the response is what is used for uploading the file to cloudinary from client` + "`" + `",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Send a message",
+                "parameters": [
+                    {
+                        "description": "Message object",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.MessageCreateSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.MessageCreateResponseSchema"
+                        }
+                    }
+                }
             }
         },
         "/feed/comments/{slug}": {
@@ -1358,7 +1389,8 @@ const docTemplate = `{
                     "example": "A nice group for tech enthusiasts"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "d10dde64-a242-4ed0-bd75-4c759644b3a6"
                 },
                 "image": {
                     "type": "string",
@@ -1650,6 +1682,76 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "password"
+                }
+            }
+        },
+        "schemas.MessageCreateResponseDataSchema": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-14T19:00:02.613124+01:00"
+                },
+                "file": {
+                    "type": "string",
+                    "example": "https://img.url"
+                },
+                "file_upload_data": {
+                    "$ref": "#/definitions/utils.SignatureFormat"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "sender": {
+                    "$ref": "#/definitions/schemas.UserDataSchema"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "Jesus is Lord"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-14T19:00:02.613124+01:00"
+                }
+            }
+        },
+        "schemas.MessageCreateResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.MessageCreateResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "schemas.MessageCreateSchema": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "string",
+                    "example": "d10dde64-a242-4ed0-bd75-4c759644b3a6"
+                },
+                "file_type": {
+                    "type": "string",
+                    "example": "image/jpeg"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "I am not in danger skyler, I am the danger"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john-doe"
                 }
             }
         },

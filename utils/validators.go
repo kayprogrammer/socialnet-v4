@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent/reaction"
 )
 
@@ -37,22 +38,12 @@ func FileTypeValidator(fl validator.FieldLevel) bool {
 	return fileTypeFound
 }
 
-// func IDOrMarkAllAsReadValidator(fl validator.FieldLevel) bool {
-// 	// This is for reading notifications, by ensuring user enters an ID or mark all as read
-// 	id, ok := fl.Top().Interface().(uuid.UUID)
-// 	if !ok {
-// 		return false
-// 	}
+func ValidateUUID(fl validator.FieldLevel) bool {
+    value, ok := fl.Field().Interface().(string)
+    if !ok {
+        return false
+    }
 
-// 	markAllAsReadField, ok := fl.Parent().FieldByName("MarkAllAsRead")
-// 	if !ok {
-// 		return false
-// 	}
-// 	markAllAsRead := markAllAsReadField.Interface().(bool)
-
-// 	if id == 0 && !markAllAsRead {
-// 		return false
-// 	}
-
-// 	return true
-// }
+    _, err := uuid.Parse(value)
+    return err == nil
+}
