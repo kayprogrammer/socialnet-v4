@@ -43,9 +43,13 @@ func RetrieveUserChats(c *fiber.Ctx) error {
 
 // @Summary Send a message
 // @Description `This endpoint sends a message`
+// @Description
 // @Description `You must either send a text or a file or both.`
+// @Description
 // @Description `If there's no chat_id, then its a new chat and you must set username and leave chat_id`
+// @Description
 // @Description `If chat_id is available, then ignore username and set the correct chat_id`
+// @Description
 // @Description `The file_upload_data in the response is what is used for uploading the file to cloudinary from client`
 // @Tags Chat
 // @Param post body schemas.MessageCreateSchema true "Message object"

@@ -1072,9 +1072,13 @@ paths:
     post:
       description: |-
         `This endpoint sends a message`
+
         `You must either send a text or a file or both.`
+
         `If there's no chat_id, then its a new chat and you must set username and leave chat_id`
+
         `If chat_id is available, then ignore username and set the correct chat_id`
+
         `The file_upload_data in the response is what is used for uploading the file to cloudinary from client`
       parameters:
       - description: Message object

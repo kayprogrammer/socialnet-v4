@@ -26,7 +26,7 @@ func (obj ChatManager) GetUserChats(client *ent.Client, userObj *ent.User) []*en
 		WithImage().
 		WithMessages(
 			func(mq *ent.MessageQuery) {
-				mq.Limit(2).WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).WithFile().Order(ent.Desc(message.FieldCreatedAt))
+				mq.WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).WithFile().Order(ent.Desc(message.FieldCreatedAt))
 			}).
 		Order(ent.Desc(chat.FieldUpdatedAt)).
 		AllX(Ctx)
