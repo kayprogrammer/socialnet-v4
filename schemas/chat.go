@@ -106,6 +106,37 @@ type MessageUpdateSchema struct {
 	FileType *string `json:"file_type" validate:"omitempty,file_type_validator" example:"image/jpeg"`
 }
 
+type MessagesResponseDataSchema struct {
+	PaginatedResponseDataSchema
+	Items []MessageSchema `json:"items"`
+}
+
+func (data MessagesResponseDataSchema) Init () MessagesResponseDataSchema {
+	// Set Initial Data
+	items := data.Items
+	for i := range items {
+		items[i] = items[i].Init()
+	}
+	data.Items = items
+	return data
+}
+
+type MessagesSchema struct {
+	Chat     ChatSchema                 `json:"chat"`
+	Messages MessagesResponseDataSchema `json:"messages"`
+	Users    []*UserDataSchema           `json:"users"`
+}
+
+func (data MessagesSchema) Init () MessagesSchema {
+	// Set Initial Data
+	// Set Users
+	data.Users = ConvertUsers(data.Chat.Edges.Users)
+
+	// Set Chat
+	data.Chat = data.Chat.Init()
+	return data
+}
+
 // RESPONSE SCHEMAS
 // CHATS
 type ChatsResponseDataSchema struct {
@@ -147,4 +178,9 @@ func (messageData MessageCreateResponseDataSchema) Init(fileType *string) Messag
 type MessageCreateResponseSchema struct {
 	ResponseSchema
 	Data MessageCreateResponseDataSchema `json:"data"`
+}
+
+type ChatResponseSchema struct {
+	ResponseSchema
+	Data MessagesSchema `json:"data"`
 }

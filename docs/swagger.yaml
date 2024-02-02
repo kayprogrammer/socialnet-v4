@@ -37,6 +37,17 @@ definitions:
     required:
     - username
     type: object
+  schemas.ChatResponseSchema:
+    properties:
+      data:
+        $ref: '#/definitions/schemas.MessagesSchema'
+      message:
+        example: Data fetched/created/updated/deleted
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
   schemas.ChatSchema:
     properties:
       created_at:
@@ -301,6 +312,54 @@ definitions:
       username:
         example: john-doe
         type: string
+    type: object
+  schemas.MessageSchema:
+    properties:
+      chat_id:
+        type: string
+      created_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+      file:
+        example: https://img.url
+        type: string
+      id:
+        type: string
+      sender:
+        $ref: '#/definitions/schemas.UserDataSchema'
+      text:
+        example: Jesus is Lord
+        type: string
+      updated_at:
+        example: "2024-01-14T19:00:02.613124+01:00"
+        type: string
+    type: object
+  schemas.MessagesResponseDataSchema:
+    properties:
+      current_page:
+        example: 1
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/schemas.MessageSchema'
+        type: array
+      last_page:
+        example: 100
+        type: integer
+      per_page:
+        example: 100
+        type: integer
+    type: object
+  schemas.MessagesSchema:
+    properties:
+      chat:
+        $ref: '#/definitions/schemas.ChatSchema'
+      messages:
+        $ref: '#/definitions/schemas.MessagesResponseDataSchema'
+      users:
+        items:
+          $ref: '#/definitions/schemas.UserDataSchema'
+        type: array
     type: object
   schemas.NotificationSchema:
     properties:
@@ -1095,6 +1154,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Send a message
+      tags:
+      - Chat
+  /chats/{chat_id}:
+    get:
+      description: '`This endpoint retrieves all messages in a chat`'
+      parameters:
+      - description: Chat ID (uuid)
+        in: path
+        name: chat_id
+        required: true
+        type: string
+      - default: 1
+        description: Current Page
+        in: query
+        name: page
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ChatResponseSchema'
+      security:
+      - BearerAuth: []
+      summary: Retrieve messages from a Chat
       tags:
       - Chat
   /feed/comments/{slug}:

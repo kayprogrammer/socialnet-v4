@@ -111,3 +111,42 @@ func SendMessage(c *fiber.Ctx) error {
 	}
 	return c.Status(201).JSON(response)
 }
+
+// @Summary Retrieve messages from a Chat
+// @Description `This endpoint retrieves all messages in a chat`
+// @Tags Chat
+// @Param chat_id path string true "Chat ID (uuid)"
+// @Param page query int false "Current Page" default(1)
+// @Success 200 {object} schemas.ChatResponseSchema
+// @Router /chats/{chat_id} [get]
+// @Security BearerAuth
+func RetrieveMessages(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+	// Parse the UUID parameter
+	chatID, err := utils.ParseUUID(c.Params("chat_id"))
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+
+	chat := chatManager.GetSingleUserChatFullDetails(db, user, *chatID)
+
+	// Paginate, Convert type and return Messages
+	convertedChat := utils.ConvertStructData(chat, schemas.ChatSchema{}).(*schemas.ChatSchema)
+	paginatedData, paginatedMessages, err := PaginateQueryset(chat.Edges.Messages, c, 400)
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	convertedMessages := utils.ConvertStructData(paginatedMessages, []schemas.MessageSchema{}).(*[]schemas.MessageSchema)
+	response := schemas.ChatResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Messages fetched"}.Init(),
+		Data: schemas.MessagesSchema{
+			Chat: *convertedChat,
+			Messages: schemas.MessagesResponseDataSchema{
+				PaginatedResponseDataSchema: *paginatedData,
+				Items:                       *convertedMessages,
+			}.Init(),
+		}.Init(),
+	}
+	return c.Status(200).JSON(response)
+}
