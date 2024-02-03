@@ -150,3 +150,76 @@ func RetrieveMessages(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Update a Group Chat
+// @Description `This endpoint updates a group chat.`
+// @Tags Chat
+// @Param chat_id path string true "Chat ID (uuid)"
+// @Param post body schemas.GroupChatInputSchema true "Chat object"
+// @Success 200 {object} schemas.GroupChatInputResponseSchema
+// @Router /chats/{chat_id} [patch]
+// @Security BearerAuth
+func UpdateGroupChat(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	chatID, err := utils.ParseUUID(c.Params("chat_id"))
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+
+	chatData := schemas.GroupChatInputSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &chatData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(chatData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	chat := chatManager.GetUserGroup(db, user, *chatID, true)
+	if chat == nil {
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User owns no group chat with that ID"))
+	}
+	chatID := messageData.ChatID
+	username := messageData.Username
+
+	var chat *ent.Chat
+	if chatID == nil {
+		// Create a new chat dm with current user and recipient user
+		recipientUser := userManager.GetByUsername(db, *username)
+		if recipientUser == nil {
+			data := map[string]string{
+				"username": "No user with that username",
+			}
+			return c.Status(422).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid entry", data))
+		}
+		chat = chatManager.GetDMChat(db, user, recipientUser)
+		// Check if a chat already exists between both users
+		if chat != nil {
+			data := map[string]string{
+				"username": "A chat already exist between you and the recipient",
+			}
+			return c.Status(422).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid entry", data))
+		}
+		chat = chatManager.Create(db, user, "DM", []*ent.User{recipientUser})
+	} else {
+		// Get the chat with chat id and check if the current user is the owner or the recipient
+		chat = chatManager.GetSingleUserChat(db, user, *chatID)
+		if chat == nil {
+			return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User has no chat with that ID"))
+		}
+	}
+
+	//Create Message
+	message := messageManager.Create(db, user, chat, messageData.Text, messageData.FileType)
+
+	// Convert type and return Message
+	convertedMessage := utils.ConvertStructData(message, schemas.MessageCreateResponseDataSchema{}).(*schemas.MessageCreateResponseDataSchema)
+	response := schemas.MessageCreateResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Message sent"}.Init(),
+		Data:           convertedMessage.Init(messageData.FileType),
+	}
+	return c.Status(201).JSON(response)
+}

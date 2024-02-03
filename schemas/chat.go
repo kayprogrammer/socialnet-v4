@@ -111,7 +111,7 @@ type MessagesResponseDataSchema struct {
 	Items []MessageSchema `json:"items"`
 }
 
-func (data MessagesResponseDataSchema) Init () MessagesResponseDataSchema {
+func (data MessagesResponseDataSchema) Init() MessagesResponseDataSchema {
 	// Set Initial Data
 	items := data.Items
 	for i := range items {
@@ -124,10 +124,10 @@ func (data MessagesResponseDataSchema) Init () MessagesResponseDataSchema {
 type MessagesSchema struct {
 	Chat     ChatSchema                 `json:"chat"`
 	Messages MessagesResponseDataSchema `json:"messages"`
-	Users    []*UserDataSchema           `json:"users"`
+	Users    []*UserDataSchema          `json:"users"`
 }
 
-func (data MessagesSchema) Init () MessagesSchema {
+func (data MessagesSchema) Init() MessagesSchema {
 	// Set Initial Data
 	// Set Users
 	data.Users = ConvertUsers(data.Chat.Edges.Users)
@@ -135,6 +135,20 @@ func (data MessagesSchema) Init () MessagesSchema {
 	// Set Chat
 	data.Chat = data.Chat.Init()
 	return data
+}
+
+type GroupChatInputSchema struct {
+	Name              *string    `json:"name" validate:"omitempty,max=100" example:"Dopest Group"`
+	Description       *string   `json:"description" validate:"omitempty,max=1000" example:"This is a group for bosses."`
+	UsernamesToAdd    *[]string `json:"usernames_to_add" validate:"omitempty,min=1,max=99" example:"['john-doe']"`
+	UsernamesToRemove *[]string `json:"usernames_to_remove" validate:"omitempty,min=1,max=99" example:"['john-doe']"`
+	FileType          *string   `json:"file_type" validate:"omitempty,file_type_validator" example:"image/jpeg"`
+}
+
+type GroupChatCreateSchema struct {
+	Name              string    `json:"name" validate:"max=100" example:"Dopest Group"`
+	UsernamesToAdd    []string  `json:"usernames_to_add" validate:"omitempty,min=1,max=99" example:"['john-doe']"`
+	UsernamesToRemove *[]string `json:"-"`
 }
 
 // RESPONSE SCHEMAS

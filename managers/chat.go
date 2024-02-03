@@ -6,6 +6,7 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent/chat"
 	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
+	"github.com/kayprogrammer/socialnet-v4/schemas"
 )
 
 // ----------------------------------
@@ -53,6 +54,29 @@ func (obj ChatManager) GetDMChat(client *ent.Client, userObj *ent.User, recipien
 }
 
 func (obj ChatManager) Create(client *ent.Client, owner *ent.User, ctype chat.Ctype, recipientsOpts ...[]*ent.User) *ent.Chat {
+	chatObjCreationQuery := client.Chat.Create().
+		SetCtype(ctype).
+		SetOwner(owner)
+
+	if len(recipientsOpts) > 0 {
+		chatObjCreationQuery = chatObjCreationQuery.AddUsers(recipientsOpts[0]...)
+	}
+	chatObj := chatObjCreationQuery.SaveX(Ctx)
+	return chatObj
+}
+
+func (obj ChatManager) UsernamesToAddAndRemoveValidations(chatObj *ent.Chat, usernamesToAdd *[]string, usernamesToRemove *[]string ) *ent.Chat {
+	originalExistingUserIDs := chat.users
+}
+func (obj ChatManager) UpdateGroup(client *ent.Client, owner *ent.User, chatObj ent.Chat, data schemas.GroupChatInputSchema) *ent.Chat {
+	usernamesToAdd := data.UsernamesToAdd
+	usernamesToRemove := data.UsernamesToRemove
+	// Add users to the chat if they don't exist in it already
+
+	c := chatObj.Update().
+		SetNillableName(data.Name).
+		SetNillableDescription(data.Description).
+		setdes
 	chatObjCreationQuery := client.Chat.Create().
 		SetCtype(ctype).
 		SetOwner(owner)
