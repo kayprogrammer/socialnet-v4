@@ -39,7 +39,7 @@ func (obj PostManager) Create(client *ent.Client, author *ent.User, postData sch
 	var imageId *uuid.UUID
 	var image *ent.File
 	if postData.FileType != nil {
-		image, _ = FileManager{}.Create(client, postData.FileType)
+		image = FileManager{}.Create(client, *postData.FileType)
 		imageId = &image.ID
 	}
 	p, err := client.Post.
@@ -84,15 +84,9 @@ func (obj PostManager) GetBySlug(client *ent.Client, slug string, opts ...bool) 
 func (obj PostManager) Update(client *ent.Client, post *ent.Post, postData schemas.PostInputSchema) *ent.Post {
 	var imageId *uuid.UUID
 	image := post.Edges.Image
-	fileM := FileManager{}
 	if postData.FileType != nil {
 		// Create or Update Image Object
-		if image == nil {
-			image, _ = FileManager{}.Create(client, postData.FileType)
-		} else {
-			image = fileM.Update(client, image, *postData.FileType)
-
-		}
+		image = FileManager{}.UpdateOrCreate(client, image, *postData.FileType)
 		imageId = &image.ID
 	}
 	p, _ := post.

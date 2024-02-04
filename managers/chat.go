@@ -79,7 +79,7 @@ func (obj ChatManager) CreateGroup(client *ent.Client, owner *ent.User, usersToA
 	var imageId *uuid.UUID
 	var image *ent.File
 	if data.FileType != nil {
-		image, _ = FileManager{}.Create(client, data.FileType)
+		image = FileManager{}.Create(client, *data.FileType)
 		imageId = &image.ID
 	}
 
@@ -132,7 +132,7 @@ func (obj ChatManager) UsernamesToAddAndRemoveValidations(client *ent.Client, ch
 				user.IDIn(originalExistingUserIDs...),
 				user.IDNEQ(chatObj.OwnerID),
 			).AllX(Ctx)
-		expectedUserTotal -= len(usersToAdd)
+		expectedUserTotal -= len(usersToRemove)
 		chatUpdateQuery = chatUpdateQuery.RemoveUsers(usersToRemove...)
 	}
 	if expectedUserTotal > 99 {
@@ -157,15 +157,9 @@ func (obj ChatManager) UpdateGroup(client *ent.Client, chatObj *ent.Chat, data s
 	// Handle file upload
 	var imageId *uuid.UUID
 	image := chatObj.Edges.Image
-	fileM := FileManager{}
 	if data.FileType != nil {
 		// Create or Update Image Object
-		if image == nil {
-			image, _ = FileManager{}.Create(client, data.FileType)
-		} else {
-			image = fileM.Update(client, image, *data.FileType)
-
-		}
+		image = FileManager{}.UpdateOrCreate(client, image, *data.FileType)
 		imageId = &image.ID
 	}
 	chatUpdateQuery = chatUpdateQuery.SetNillableImageID(imageId)
@@ -249,7 +243,7 @@ func (obj MessageManager) Create(client *ent.Client, sender *ent.User, chat *ent
 	var fileID *uuid.UUID
 	var file *ent.File
 	if fileType != nil {
-		file, _ = FileManager{}.Create(client, fileType)
+		file = FileManager{}.Create(client, *fileType)
 		fileID = &file.ID
 	}
 
@@ -291,15 +285,9 @@ func (obj MessageManager) GetUserMessage(client *ent.Client, userObj *ent.User, 
 func (obj MessageManager) Update(client *ent.Client, message *ent.Message, text *string, fileType *string) *ent.Message {
 	var fileId *uuid.UUID
 	file := message.Edges.File
-	fileM := FileManager{}
 	if fileType != nil {
 		// Create or Update Image Object
-		if file == nil {
-			file, _ = FileManager{}.Create(client, fileType)
-		} else {
-			file = fileM.Update(client, file, *fileType)
-
-		}
+		file = FileManager{}.UpdateOrCreate(client, file, *fileType)
 		fileId = &file.ID
 	}
 

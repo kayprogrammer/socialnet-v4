@@ -30,6 +30,7 @@ func init() {
 	customValidator.RegisterValidation("date", DateValidator)
 	customValidator.RegisterValidation("reaction_type_validator", ReactionTypeValidator)
 	customValidator.RegisterValidation("file_type_validator", FileTypeValidator)
+	customValidator.RegisterValidation("usernames_to_update_validator", DistinctField)
 	// customValidator.RegisterValidation("is_uuid", ValidateUUID)
 
 	customValidator.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -58,8 +59,12 @@ func registerTranslations(param string) {
 	registerTranslation("gt", "Value is too small!", translator)
 	registerTranslation("file_type_validator", "Invalid file type", translator)
 	registerTranslation("reaction_type_validator", "Invalid reaction type", translator)
+	registerTranslation("usernames_to_update_validator", "Must not have any matching items with usernames to add", translator)
 	// registerTranslation("is_uuid", "Invalid UUID!", translator)
 	registerTranslation("required", "This field is required.", translator)
+	registerTranslation("required_if", "This field is required.", translator)
+	registerTranslation("required_without", "This field is required.", translator)
+
 
 	minErrMsg := fmt.Sprintf("%s characters min", param)
 	registerTranslation("min", minErrMsg, translator)
@@ -88,19 +93,15 @@ func (cv *CustomValidator) Validate(i interface{}) *ErrorResponse {
 func (cv *CustomValidator) translateValidationErrors(errs validator.ValidationErrors) *ErrorResponse {
 	errData := make(map[string]string)
 	for _, err := range errs {
-		registerTranslations(err.Param())
+		errParam :=  err.Param()
+		registerTranslations(errParam)
+		errTag :=  err.Tag()
 		errMsg := err.Translate(translator)
-		if strings.Contains(errMsg, "MessageCreateSchema.username") && strings.Contains(errMsg, "required_without") {
-			// Hack to change error message for message create schema username required_without error.
-			errMsg = "Set username if chat id isn't passed"
-		} else if (strings.Contains(errMsg, "MessageCreateSchema.text") || strings.Contains(errMsg, "MessageUpdateSchema.text")) && strings.Contains(errMsg, "required_without") {
-			// Hack to change error message for message create schema username required_without error.
-			errMsg = "You must enter a text"
-		} else if strings.Contains(errMsg, "ReadNotificationSchema.id") && strings.Contains(errMsg, "required_if") {
-			// Hack to change error message for read notification schema id required_if error.
-			errMsg = "Set ID or mark all as read as True"
+		errField := err.Field()
+		if (errField == "usernames_to_add" || errField == "usernames_to_remove") && (errTag == "max"  || errTag == "min") {
+			errMsg = fmt.Sprintf("%s users %s", errParam, errTag)
 		}
-		errData[err.Field()] = errMsg
+		errData[errField] = errMsg
 	}
 	errResp := RequestErr(ERR_INVALID_ENTRY, "Invalid Entry", errData)
 	return &errResp

@@ -70,15 +70,9 @@ func (obj UserProfileManager) GetByUsername(client *ent.Client, username string)
 func (obj UserProfileManager) Update(client *ent.Client, profile *ent.User, profileData schemas.ProfileUpdateSchema) *ent.User {
 	var avatarId *uuid.UUID
 	avatar := profile.Edges.Avatar
-	fileM := FileManager{}
 	if profileData.FileType != nil {
 		// Create or Update Image Object
-		if avatar == nil {
-			avatar, _ = FileManager{}.Create(client, profileData.FileType)
-		} else {
-			avatar = fileM.Update(client, avatar, *profileData.FileType)
-
-		}
+		avatar = FileManager{}.UpdateOrCreate(client, avatar, *profileData.FileType)
 		avatarId = &avatar.ID
 	}
 

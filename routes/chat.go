@@ -52,7 +52,7 @@ func RetrieveUserChats(c *fiber.Ctx) error {
 // @Description
 // @Description `The file_upload_data in the response is what is used for uploading the file to cloudinary from client`
 // @Tags Chat
-// @Param post body schemas.MessageCreateSchema true "Message object"
+// @Param message body schemas.MessageCreateSchema true "Message object"
 // @Success 201 {object} schemas.MessageCreateResponseSchema
 // @Router /chats [post]
 // @Security BearerAuth
@@ -155,7 +155,7 @@ func RetrieveMessages(c *fiber.Ctx) error {
 // @Description `This endpoint updates a group chat.`
 // @Tags Chat
 // @Param chat_id path string true "Chat ID (uuid)"
-// @Param post body schemas.GroupChatInputSchema true "Chat object"
+// @Param chat body schemas.GroupChatInputSchema true "Chat object"
 // @Success 200 {object} schemas.GroupChatInputResponseSchema
 // @Router /chats/{chat_id} [patch]
 // @Security BearerAuth
@@ -313,7 +313,7 @@ func DeleteMessage(c *fiber.Ctx) error {
 // @Tags Chat
 // @Param post body schemas.GroupChatCreateSchema true "Chat object"
 // @Success 201 {object} schemas.GroupChatInputResponseSchema
-// @Router /groups/group [post]
+// @Router /chats/groups/group [post]
 // @Security BearerAuth
 func CreateGroupChat(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)

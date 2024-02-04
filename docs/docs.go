@@ -385,6 +385,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/chats/groups/group": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "` + "`" + `This endpoint creates a group chat.` + "`" + `\n\n` + "`" + `The users_entry field should be a list of usernames you want to add to the group.` + "`" + `\n\n` + "`" + `Note: You cannot add more than 99 users in a group (1 owner + 99 other users = 100 users total).` + "`" + `",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Create a Group Chat",
+                "parameters": [
+                    {
+                        "description": "Chat object",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.GroupChatCreateSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.GroupChatInputResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/chats/messages/{message_id}": {
             "put": {
                 "security": [
@@ -1150,39 +1183,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/groups/group": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "` + "`" + `This endpoint creates a group chat.` + "`" + `\n\n` + "`" + `The users_entry field should be a list of usernames you want to add to the group.` + "`" + `\n\n` + "`" + `Note: You cannot add more than 99 users in a group (1 owner + 99 other users = 100 users total).` + "`" + `",
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "Create a Group Chat",
-                "parameters": [
-                    {
-                        "description": "Chat object",
-                        "name": "post",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schemas.GroupChatCreateSchema"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/schemas.GroupChatInputResponseSchema"
-                        }
-                    }
-                }
-            }
-        },
         "/healthcheck": {
             "get": {
                 "description": "This endpoint checks the health of our application.",
@@ -1879,6 +1879,10 @@ const docTemplate = `{
         },
         "schemas.GroupChatCreateSchema": {
             "type": "object",
+            "required": [
+                "name",
+                "usernames_to_add"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -1902,18 +1906,7 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "example": [
-                        "['john-doe']"
-                    ]
-                },
-                "usernames_to_remove": {
-                    "type": "array",
-                    "maxItems": 99,
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "['john-doe']"
+                        "john-doe"
                     ]
                 }
             }
@@ -1988,7 +1981,7 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "example": [
-                        "['john-doe']"
+                        "john-doe"
                     ]
                 },
                 "usernames_to_remove": {
@@ -1999,7 +1992,7 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "example": [
-                        "['john-doe']"
+                        "john-doe"
                     ]
                 }
             }
