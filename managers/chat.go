@@ -7,6 +7,7 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent/message"
 	"github.com/kayprogrammer/socialnet-v4/ent/user"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
 // ----------------------------------
@@ -65,27 +66,79 @@ func (obj ChatManager) Create(client *ent.Client, owner *ent.User, ctype chat.Ct
 	return chatObj
 }
 
-func (obj ChatManager) UsernamesToAddAndRemoveValidations(chatObj *ent.Chat, usernamesToAdd *[]string, usernamesToRemove *[]string ) *ent.Chat {
-	originalExistingUserIDs := chat.users
-}
-func (obj ChatManager) UpdateGroup(client *ent.Client, owner *ent.User, chatObj ent.Chat, data schemas.GroupChatInputSchema) *ent.Chat {
-	usernamesToAdd := data.UsernamesToAdd
-	usernamesToRemove := data.UsernamesToRemove
-	// Add users to the chat if they don't exist in it already
-
-	c := chatObj.Update().
-		SetNillableName(data.Name).
-		SetNillableDescription(data.Description).
-		setdes
-	chatObjCreationQuery := client.Chat.Create().
-		SetCtype(ctype).
-		SetOwner(owner)
-
-	if len(recipientsOpts) > 0 {
-		chatObjCreationQuery = chatObjCreationQuery.AddUsers(recipientsOpts[0]...)
+func (obj ChatManager) UsernamesToAddAndRemoveValidations(client *ent.Client, chatObj *ent.Chat, chatUpdateQuery *ent.ChatUpdateOne, usernamesToAdd *[]string, usernamesToRemove *[]string) (*ent.ChatUpdateOne, *utils.ErrorResponse) {
+	originalExistingUserIDs := []uuid.UUID{}
+	for _, user := range chatObj.Edges.Users {
+		originalExistingUserIDs = append(originalExistingUserIDs, user.ID)
 	}
-	chatObj := chatObjCreationQuery.SaveX(Ctx)
-	return chatObj
+	expectedUserTotal := len(originalExistingUserIDs)
+	usersToAdd := []*ent.User{}
+	if usernamesToAdd != nil {
+		usersToAdd = client.User.Query().
+			Where(
+				user.UsernameIn(*usernamesToAdd...),
+				user.Or(
+					user.Not(user.IDIn(originalExistingUserIDs...)),
+					user.IDNEQ(chatObj.OwnerID),
+				),
+			).AllX(Ctx)
+		expectedUserTotal += len(usersToAdd)
+		chatUpdateQuery = chatUpdateQuery.AddUsers(usersToAdd...)
+	}
+	usersToRemove := []*ent.User{}
+	if usernamesToRemove != nil {
+		if len(originalExistingUserIDs) < 1 {
+			data := map[string]string{
+				"usernames_to_remove": "No users to remove",
+			}
+			errData := utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid Entry", data)
+			return nil, &errData
+		}
+		usersToRemove = client.User.Query().
+			Where(
+				user.UsernameIn(*usernamesToRemove...),
+				user.IDIn(originalExistingUserIDs...),
+				user.IDNEQ(chatObj.OwnerID),
+			).AllX(Ctx)
+		expectedUserTotal -= len(usersToAdd)
+		chatUpdateQuery = chatUpdateQuery.RemoveUsers(usersToRemove...)
+	}
+	if expectedUserTotal > 99 {
+		data := map[string]string{
+			"usernames_to_add": "99 users limit reached",
+		}
+		errData := utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid Entry", data)
+		return nil, &errData
+	}
+	return chatUpdateQuery, nil
+}
+
+func (obj ChatManager) UpdateGroup(client *ent.Client, chatObj *ent.Chat, data schemas.GroupChatInputSchema) (*ent.Chat, *utils.ErrorResponse) {
+	chatUpdateQuery := chatObj.Update().
+		SetNillableName(data.Name).
+		SetNillableDescription(data.Description)
+
+	// Handle users upload or remove
+	var errData *utils.ErrorResponse
+	chatUpdateQuery, errData = obj.UsernamesToAddAndRemoveValidations(client, chatObj, chatUpdateQuery, data.UsernamesToAdd, data.UsernamesToRemove)
+
+	// Handle file upload
+	var imageId *uuid.UUID
+	image := chatObj.Edges.Image
+	fileM := FileManager{}
+	if data.FileType != nil {
+		// Create or Update Image Object
+		if image == nil {
+			image, _ = FileManager{}.Create(client, data.FileType)
+		} else {
+			image = fileM.Update(client, image, *data.FileType)
+
+		}
+		imageId = &image.ID
+	}
+	chatUpdateQuery = chatUpdateQuery.SetNillableImageID(imageId)
+	updatedChat := chatUpdateQuery.SaveX(Ctx)
+	return updatedChat, errData
 }
 
 func (obj ChatManager) GetSingleUserChat(client *ent.Client, userObj *ent.User, id uuid.UUID) *ent.Chat {

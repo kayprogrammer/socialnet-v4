@@ -67,6 +67,7 @@ func SetupRoutes(app *fiber.App) {
 	chatRouter.Get("", RetrieveUserChats)
 	chatRouter.Post("", SendMessage)
 	chatRouter.Get("/:chat_id", RetrieveMessages)
+	chatRouter.Patch("/:chat_id", UpdateGroupChat)
 }
 
 func SetupSockets(app *fiber.App) {

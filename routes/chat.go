@@ -182,44 +182,16 @@ func UpdateGroupChat(c *fiber.Ctx) error {
 	if chat == nil {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User owns no group chat with that ID"))
 	}
-	chatID := messageData.ChatID
-	username := messageData.Username
-
-	var chat *ent.Chat
-	if chatID == nil {
-		// Create a new chat dm with current user and recipient user
-		recipientUser := userManager.GetByUsername(db, *username)
-		if recipientUser == nil {
-			data := map[string]string{
-				"username": "No user with that username",
-			}
-			return c.Status(422).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid entry", data))
-		}
-		chat = chatManager.GetDMChat(db, user, recipientUser)
-		// Check if a chat already exists between both users
-		if chat != nil {
-			data := map[string]string{
-				"username": "A chat already exist between you and the recipient",
-			}
-			return c.Status(422).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid entry", data))
-		}
-		chat = chatManager.Create(db, user, "DM", []*ent.User{recipientUser})
-	} else {
-		// Get the chat with chat id and check if the current user is the owner or the recipient
-		chat = chatManager.GetSingleUserChat(db, user, *chatID)
-		if chat == nil {
-			return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User has no chat with that ID"))
-		}
+	var errData *utils.ErrorResponse
+	chat, errData = chatManager.UpdateGroup(db, chat, chatData)
+	if errData != nil {
+		return c.Status(422).JSON(errData)
 	}
-
-	//Create Message
-	message := messageManager.Create(db, user, chat, messageData.Text, messageData.FileType)
-
-	// Convert type and return Message
-	convertedMessage := utils.ConvertStructData(message, schemas.MessageCreateResponseDataSchema{}).(*schemas.MessageCreateResponseDataSchema)
-	response := schemas.MessageCreateResponseSchema{
-		ResponseSchema: schemas.ResponseSchema{Message: "Message sent"}.Init(),
-		Data:           convertedMessage.Init(messageData.FileType),
+	// Convert type and return chat
+	convertedChat := utils.ConvertStructData(chat, schemas.GroupChatInputResponseDataSchema{}).(*schemas.GroupChatInputResponseDataSchema)
+	response := schemas.GroupChatInputResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Chat updated"}.Init(),
+		Data:           convertedChat.Init(chatData.FileType),
 	}
-	return c.Status(201).JSON(response)
+	return c.Status(200).JSON(response)
 }

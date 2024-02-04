@@ -86,12 +86,32 @@ func (message MessageSchema) Init() MessageSchema {
 }
 
 type GroupChatSchema struct {
-	Edges       *ent.ChatEdges    `json:"edges,omitempty" swaggerignore:"true"`
-	ID          uuid.UUID         `json:"id"`
-	Name        string            `json:"name" example:"Correct Group"`
-	Description *string           `json:"description" example:"Jesus is Lord"`
-	Image       *string           `json:"image" example:"https://img.url"`
-	Users       []*UserDataSchema `json:"users"`
+	Edges       *ent.ChatEdges   `json:"edges,omitempty" swaggerignore:"true"`
+	ID          uuid.UUID        `json:"id"`
+	Name        string           `json:"name" example:"Correct Group"`
+	Description *string          `json:"description" example:"Jesus is Lord"`
+	Image       *string          `json:"image" example:"https://img.url"`
+	Users       []UserDataSchema `json:"users"`
+}
+
+func (chat GroupChatSchema) Init() GroupChatSchema {
+	// Set Users Details.
+	users := []UserDataSchema{}
+	for _, user := range chat.Edges.Users {
+		userData := UserDataSchema{}.Init(user)
+		users = append(users, userData)
+	}
+	chat.Users = users
+
+	// Set ImageUrl
+	image := chat.Edges.Image
+	if image != nil {
+		url := utils.GenerateFileUrl(image.ID.String(), "groups", image.ResourceType)
+		chat.Image = &url
+	}
+
+	chat.Edges = nil // Omit edges
+	return chat
 }
 
 type MessageCreateSchema struct {
@@ -138,7 +158,7 @@ func (data MessagesSchema) Init() MessagesSchema {
 }
 
 type GroupChatInputSchema struct {
-	Name              *string    `json:"name" validate:"omitempty,max=100" example:"Dopest Group"`
+	Name              *string   `json:"name" validate:"omitempty,max=100" example:"Dopest Group"`
 	Description       *string   `json:"description" validate:"omitempty,max=1000" example:"This is a group for bosses."`
 	UsernamesToAdd    *[]string `json:"usernames_to_add" validate:"omitempty,min=1,max=99" example:"['john-doe']"`
 	UsernamesToRemove *[]string `json:"usernames_to_remove" validate:"omitempty,min=1,max=99" example:"['john-doe']"`
@@ -197,4 +217,25 @@ type MessageCreateResponseSchema struct {
 type ChatResponseSchema struct {
 	ResponseSchema
 	Data MessagesSchema `json:"data"`
+}
+
+type GroupChatInputResponseDataSchema struct {
+	GroupChatSchema
+	Image          *string                `json:"image,omitempty" swaggerignore:"true"` // Remove image during create & update
+	FileUploadData *utils.SignatureFormat `json:"file_upload_data"`
+}
+
+func (groupChatData GroupChatInputResponseDataSchema) Init(fileType *string) GroupChatInputResponseDataSchema {
+	image := groupChatData.GroupChatSchema.Edges.Image
+	if fileType != nil && image != nil { // Generate data when file is being uploaded
+		fuData := utils.GenerateFileSignature(image.ID.String(), "groups")
+		groupChatData.FileUploadData = &fuData
+	}
+	groupChatData.GroupChatSchema = groupChatData.GroupChatSchema.Init()
+	return groupChatData
+}
+
+type GroupChatInputResponseSchema struct {
+	ResponseSchema
+	Data 			GroupChatInputResponseDataSchema		`json:"data"`
 }
