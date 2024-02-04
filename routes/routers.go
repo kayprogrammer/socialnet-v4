@@ -7,17 +7,18 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/sockets"
 )
 
+// All Endpoints (50)
 func SetupRoutes(app *fiber.App) {
 	api := app.Group("/api/v4")
 
-	// HealthCheck Route
+	// HealthCheck Route (1)
 	api.Get("/healthcheck", HealthCheck)
 
-	// General Routes
+	// General Routes (1)
 	generalRouter := api.Group("/general")
 	generalRouter.Get("/site-detail", GetSiteDetails)
 
-	// Auth Routes
+	// Auth Routes (9)
 	authRouter := api.Group("/auth")
 	authRouter.Post("/register", Register)
 	authRouter.Post("/verify-email", VerifyEmail)
@@ -28,7 +29,7 @@ func SetupRoutes(app *fiber.App) {
 	authRouter.Post("/refresh", Refresh)
 	authRouter.Get("/logout", midw.AuthMiddleware, Logout)
 
-	// Feed Routes
+	// Feed Routes (18)
 	feedRouter := api.Group("/feed")
 	feedRouter.Get("/posts", RetrievePosts)
 	feedRouter.Post("/posts", midw.AuthMiddleware, CreatePost)
@@ -48,7 +49,7 @@ func SetupRoutes(app *fiber.App) {
 	feedRouter.Put("/replies/:slug", midw.AuthMiddleware, UpdateReply)
 	feedRouter.Delete("/replies/:slug", midw.AuthMiddleware, DeleteReply)
 
-	// Profiles Routes
+	// Profiles Routes (12)
 	profilesRouter := api.Group("/profiles")
 	profilesRouter.Get("/cities", RetrieveCities)
 	profilesRouter.Get("", midw.GuestMiddleware, RetrieveUsers)
@@ -62,7 +63,7 @@ func SetupRoutes(app *fiber.App) {
 	profilesRouter.Get("/notifications", midw.AuthMiddleware, RetrieveUserNotifications)
 	profilesRouter.Post("/notifications", midw.AuthMiddleware, ReadNotification)
 
-	// Chat Routes
+	// Chat Routes (9)
 	chatRouter := api.Group("/chats", midw.AuthMiddleware)
 	chatRouter.Get("", RetrieveUserChats)
 	chatRouter.Post("", SendMessage)
@@ -71,6 +72,7 @@ func SetupRoutes(app *fiber.App) {
 	chatRouter.Delete("/:chat_id", DeleteGroupChat)
 	chatRouter.Put("/messages/:message_id", UpdateMessage)
 	chatRouter.Put("/messages/:message_id", DeleteMessage)
+	chatRouter.Post("/groups/group", CreateGroupChat)
 }
 
 func SetupSockets(app *fiber.App) {

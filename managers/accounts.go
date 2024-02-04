@@ -51,14 +51,25 @@ func (obj UserManager) GetByUsername(client *ent.Client, username string) *ent.U
 	return u
 }
 
+func (obj UserManager) GetByUsernames(client *ent.Client, usernames []string, excludeOpts ...uuid.UUID) []*ent.User {
+	usersQ := client.User.
+		Query().
+		Where(user.UsernameIn(usernames...))
+	if len(excludeOpts) > 0 {
+		usersQ = usersQ.Where(user.IDNEQ(excludeOpts[0]))
+	}
+	users := usersQ.AllX(Ctx)
+	return users
+}
+
 func (obj UserManager) Create(client *ent.Client, userData schemas.RegisterUser, isStaff bool, isEmailVerified bool) *ent.User {
 	username := UsernameGenerator(client, userData.FirstName, userData.LastName, nil)
 	password := utils.HashPassword(userData.Password)
 	u := client.User.Create().
-		SetFirstName(userData.FirstName). 
+		SetFirstName(userData.FirstName).
 		SetLastName(userData.LastName).
-		SetEmail(userData.Email). 
-		SetUsername(username). 
+		SetEmail(userData.Email).
+		SetUsername(username).
 		SetPassword(password).
 		SetTermsAgreement(userData.TermsAgreement).
 		SetIsStaff(isStaff).
@@ -76,7 +87,6 @@ func (obj UserManager) GetOrCreate(client *ent.Client, userData schemas.Register
 	return user
 }
 
-
 func (obj UserManager) UpdateTokens(user *ent.User, access string, refresh string) (*ent.User, error) {
 	u, _ := user.Update().SetAccess(access).SetRefresh(refresh).Save(Ctx)
 	return u, nil
@@ -91,12 +101,12 @@ type OtpManager struct {
 func (obj OtpManager) GetOrCreate(client *ent.Client, userId uuid.UUID) *ent.Otp {
 	code := utils.GetRandomInt(6)
 	o, _ := obj.GetByUserID(client, userId)
-	
+
 	// Create Otp
 	if o == nil {
 		o, _ = client.Otp.
 			Create().
-			SetUserID(userId). 
+			SetUserID(userId).
 			SetCode(code).
 			Save(Ctx)
 	} else {

@@ -304,3 +304,43 @@ func DeleteMessage(c *fiber.Ctx) error {
 	return c.Status(200).JSON(response)
 }
 
+// @Summary Create a Group Chat
+// @Description `This endpoint creates a group chat.`
+// @Description
+// @Description `The users_entry field should be a list of usernames you want to add to the group.`
+// @Description
+// @Description `Note: You cannot add more than 99 users in a group (1 owner + 99 other users = 100 users total).`
+// @Tags Chat
+// @Param post body schemas.GroupChatCreateSchema true "Chat object"
+// @Success 201 {object} schemas.GroupChatInputResponseSchema
+// @Router /groups/group [post]
+// @Security BearerAuth
+func CreateGroupChat(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	chatData := schemas.GroupChatCreateSchema{}
+
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &chatData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(chatData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+	usersToAdd := userManager.GetByUsernames(db, chatData.UsernamesToAdd, user.ID)
+	if len(usersToAdd) == 0 {
+		data := map[string]string{
+			"usernames_to_add": "Enter at least one valid username",
+		}
+		return c.Status(422).JSON(utils.RequestErr(utils.ERR_INVALID_ENTRY, "Invalid Entry", data))
+	}
+	chat := chatManager.CreateGroup(db, user, usersToAdd, chatData)
+	// Convert type and return chat
+	convertedChat := utils.ConvertStructData(chat, schemas.GroupChatInputResponseDataSchema{}).(*schemas.GroupChatInputResponseDataSchema)
+	response := schemas.GroupChatInputResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Chat created"}.Init(),
+		Data:           convertedChat.Init(chatData.FileType),
+	}
+	return c.Status(201).JSON(response)
+}

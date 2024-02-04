@@ -166,6 +166,7 @@ type GroupChatInputSchema struct {
 }
 
 type GroupChatCreateSchema struct {
+	GroupChatInputSchema
 	Name              string    `json:"name" validate:"max=100" example:"Dopest Group"`
 	UsernamesToAdd    []string  `json:"usernames_to_add" validate:"omitempty,min=1,max=99" example:"['john-doe']"`
 	UsernamesToRemove *[]string `json:"-"`

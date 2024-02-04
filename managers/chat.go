@@ -75,6 +75,29 @@ func (obj ChatManager) Create(client *ent.Client, owner *ent.User, ctype chat.Ct
 	return chatObj
 }
 
+func (obj ChatManager) CreateGroup(client *ent.Client, owner *ent.User, usersToAdd []*ent.User, data schemas.GroupChatCreateSchema) *ent.Chat {
+	var imageId *uuid.UUID
+	var image *ent.File
+	if data.FileType != nil {
+		image, _ = FileManager{}.Create(client, data.FileType)
+		imageId = &image.ID
+	}
+
+	chat := client.Chat.Create().
+		SetOwner(owner).
+		SetName(data.Name).
+		SetNillableDescription(data.Description).
+		SetCtype("GROUP").
+		SetNillableImageID(imageId).
+		AddUsers(usersToAdd...).
+		SaveX(Ctx)
+
+	// Set related data
+	chat.Edges.Users = usersToAdd
+	chat.Edges.Image = image
+	return chat
+}
+
 func (obj ChatManager) UsernamesToAddAndRemoveValidations(client *ent.Client, chatObj *ent.Chat, chatUpdateQuery *ent.ChatUpdateOne, usernamesToAdd *[]string, usernamesToRemove *[]string) (*ent.ChatUpdateOne, *utils.ErrorResponse) {
 	originalExistingUserIDs := []uuid.UUID{}
 	for _, user := range chatObj.Edges.Users {

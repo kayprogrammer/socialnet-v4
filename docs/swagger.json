@@ -377,6 +377,75 @@
                 }
             }
         },
+        "/chats/messages/{message_id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "`This endpoint updates a message.`\n\n`You must either send a text or a file or both.`\n\n`The file_upload_data in the response is what is used for uploading the file to cloudinary from client.`",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Update a message",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Message ID (uuid)",
+                        "name": "message_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Message object",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.MessageUpdateSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.MessageCreateResponseSchema"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "`This endpoint deletes a message.`",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Delete a message",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Message ID (uuid)",
+                        "name": "message_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/chats/{chat_id}": {
             "get": {
                 "security": [
@@ -410,6 +479,73 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/schemas.ChatResponseSchema"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "`This endpoint deletes a group chat.`",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Delete a Group Chat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Chat ID (uuid)",
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseSchema"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "`This endpoint updates a group chat.`",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Update a Group Chat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Chat ID (uuid)",
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Chat object",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.GroupChatInputSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.GroupChatInputResponseSchema"
                         }
                     }
                 }
@@ -1001,6 +1137,39 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/schemas.SiteDetailResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/group": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "`This endpoint creates a group chat.`\n\n`The users_entry field should be a list of usernames you want to add to the group.`\n\n`Note: You cannot add more than 99 users in a group (1 owner + 99 other users = 100 users total).`",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Create a Group Chat",
+                "parameters": [
+                    {
+                        "description": "Chat object",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.GroupChatCreateSchema"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.GroupChatInputResponseSchema"
                         }
                     }
                 }
@@ -1700,6 +1869,133 @@
                 }
             }
         },
+        "schemas.GroupChatCreateSchema": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "example": "This is a group for bosses."
+                },
+                "file_type": {
+                    "type": "string",
+                    "example": "image/jpeg"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "Dopest Group"
+                },
+                "usernames_to_add": {
+                    "type": "array",
+                    "maxItems": 99,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "['john-doe']"
+                    ]
+                },
+                "usernames_to_remove": {
+                    "type": "array",
+                    "maxItems": 99,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "['john-doe']"
+                    ]
+                }
+            }
+        },
+        "schemas.GroupChatInputResponseDataSchema": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Jesus is Lord"
+                },
+                "file_upload_data": {
+                    "$ref": "#/definitions/utils.SignatureFormat"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string",
+                    "example": "https://img.url"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Correct Group"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.UserDataSchema"
+                    }
+                }
+            }
+        },
+        "schemas.GroupChatInputResponseSchema": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/schemas.GroupChatInputResponseDataSchema"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Data fetched/created/updated/deleted"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "schemas.GroupChatInputSchema": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "example": "This is a group for bosses."
+                },
+                "file_type": {
+                    "type": "string",
+                    "example": "image/jpeg"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "Dopest Group"
+                },
+                "usernames_to_add": {
+                    "type": "array",
+                    "maxItems": 99,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "['john-doe']"
+                    ]
+                },
+                "usernames_to_remove": {
+                    "type": "array",
+                    "maxItems": 99,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "['john-doe']"
+                    ]
+                }
+            }
+        },
         "schemas.LatestMessageSchema": {
             "type": "object",
             "properties": {
@@ -1828,6 +2124,19 @@
                 "updated_at": {
                     "type": "string",
                     "example": "2024-01-14T19:00:02.613124+01:00"
+                }
+            }
+        },
+        "schemas.MessageUpdateSchema": {
+            "type": "object",
+            "properties": {
+                "file_type": {
+                    "type": "string",
+                    "example": "image/jpeg"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "The Earth is the Lord's and the fullness thereof"
                 }
             }
         },
