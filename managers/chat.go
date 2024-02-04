@@ -35,6 +35,15 @@ func (obj ChatManager) GetUserChats(client *ent.Client, userObj *ent.User) []*en
 	return chats
 }
 
+func (obj ChatManager) GetByID(client *ent.Client, id uuid.UUID) *ent.Chat {
+	chatObj, _ := client.Chat.Query().
+		Where(
+			chat.IDEQ(id),
+		).
+		Only(Ctx)
+	return chatObj
+}
+
 func (obj ChatManager) GetDMChat(client *ent.Client, userObj *ent.User, recipientUser *ent.User) *ent.Chat {
 	chatObj, _ := client.Chat.Query().
 		Where(

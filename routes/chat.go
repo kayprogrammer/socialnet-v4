@@ -195,3 +195,29 @@ func UpdateGroupChat(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Delete a Group Chat
+// @Description `This endpoint deletes a group chat.`
+// @Tags Chat
+// @Param chat_id path string true "Chat ID (uuid)"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /chats/{chat_id} [delete]
+// @Security BearerAuth
+func DeleteChat(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	chatID, err := utils.ParseUUID(c.Params("chat_id"))
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	user := c.Locals("user").(*ent.User)
+
+	// Retrieve & Validate Chat Existence
+	chat := chatManager.GetUserGroup(db, user, *chatID)
+	if chat == nil {
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User owns no group chat with that ID"))
+	}
+	// Delete and return response
+	db.Chat.DeleteOne(chat).Exec(managers.Ctx)
+	response := schemas.ResponseSchema{Message: "Group Chat Deleted"}.Init()
+	return c.Status(200).JSON(response)
+}
