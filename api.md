@@ -1,4 +1,4 @@
-## A Realtime Social Networking API built with FIBER & GORM ORM.
+## A Realtime Social Networking API built with FIBER & ENT ORM.
 
 ### WEBSOCKETS:
 
