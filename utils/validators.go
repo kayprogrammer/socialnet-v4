@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"log"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -50,28 +49,22 @@ func ValidateUUID(fl validator.FieldLevel) bool {
 }
 
 func DistinctField(fl validator.FieldLevel) bool {
-	usernamesToRemove, ok := fl.Field().Interface().([]string)
-	log.Println("Ok 1", ok)
-	if !ok {
-		return false
-	}
-	usernamesToAdd, ok := fl.Parent().FieldByName("UsernamesToAdd").Interface().(*[]string)
-	if !ok {
-		return false
-	}
-
+	usernamesToRemove := fl.Field().Interface().([]string)
+	usernamesToAdd := fl.Parent().FieldByName("UsernamesToAdd").Interface().(*[]string)
 	// Create a map to store the elements of usernamesToRemove
 	elementsMap := make(map[string]bool)
 
-	// Populate the map with elements from usernamesToRemove
-	for _, elem := range usernamesToRemove {
-		elementsMap[elem] = true
-	}
+	if usernamesToAdd != nil {
+		// Populate the map with elements from usernamesToRemove
+		for _, elem := range usernamesToRemove {
+			elementsMap[elem] = true
+		}
 
-	// Check if any element from slice1 is present in the map
-	for _, elem := range *usernamesToAdd {
-		if elementsMap[elem] {
-			return true
+		// Check if any element from slice1 is present in the map
+		for _, elem := range *usernamesToAdd {
+			if elementsMap[elem] {
+				return false
+			}
 		}
 	}
 

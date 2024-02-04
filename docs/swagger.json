@@ -359,7 +359,7 @@
                 "parameters": [
                     {
                         "description": "Message object",
-                        "name": "post",
+                        "name": "message",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -392,7 +392,7 @@
                 "parameters": [
                     {
                         "description": "Chat object",
-                        "name": "post",
+                        "name": "chat",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -432,7 +432,7 @@
                     },
                     {
                         "description": "Message object",
-                        "name": "post",
+                        "name": "message",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -566,7 +566,7 @@
                     },
                     {
                         "description": "Chat object",
-                        "name": "post",
+                        "name": "chat",
                         "in": "body",
                         "required": true,
                         "schema": {

@@ -367,7 +367,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Message object",
-                        "name": "post",
+                        "name": "message",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -400,7 +400,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Chat object",
-                        "name": "post",
+                        "name": "chat",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -440,7 +440,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "Message object",
-                        "name": "post",
+                        "name": "message",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -574,7 +574,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "Chat object",
-                        "name": "post",
+                        "name": "chat",
                         "in": "body",
                         "required": true,
                         "schema": {

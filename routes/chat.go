@@ -230,7 +230,7 @@ func DeleteGroupChat(c *fiber.Ctx) error {
 // @Description `The file_upload_data in the response is what is used for uploading the file to cloudinary from client.`
 // @Tags Chat
 // @Param message_id path string true "Message ID (uuid)"
-// @Param post body schemas.MessageUpdateSchema true "Message object"
+// @Param message body schemas.MessageUpdateSchema true "Message object"
 // @Success 200 {object} schemas.MessageCreateResponseSchema
 // @Router /chats/messages/{message_id} [put]
 // @Security BearerAuth
@@ -282,7 +282,7 @@ func DeleteMessage(c *fiber.Ctx) error {
 	}
 	user := c.Locals("user").(*ent.User)
 
-	// Retrieve & Validate Chat Existence
+	// Retrieve & Validate Message Existence
 	message := messageManager.GetUserMessage(db, user, *messageID)
 	if message == nil {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User has no message with that ID"))
@@ -311,7 +311,7 @@ func DeleteMessage(c *fiber.Ctx) error {
 // @Description
 // @Description `Note: You cannot add more than 99 users in a group (1 owner + 99 other users = 100 users total).`
 // @Tags Chat
-// @Param post body schemas.GroupChatCreateSchema true "Chat object"
+// @Param chat body schemas.GroupChatCreateSchema true "Chat object"
 // @Success 201 {object} schemas.GroupChatInputResponseSchema
 // @Router /chats/groups/group [post]
 // @Security BearerAuth

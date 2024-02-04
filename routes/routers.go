@@ -71,7 +71,7 @@ func SetupRoutes(app *fiber.App) {
 	chatRouter.Patch("/:chat_id", UpdateGroupChat)
 	chatRouter.Delete("/:chat_id", DeleteGroupChat)
 	chatRouter.Put("/messages/:message_id", UpdateMessage)
-	chatRouter.Put("/messages/:message_id", DeleteMessage)
+	chatRouter.Delete("/messages/:message_id", DeleteMessage)
 	chatRouter.Post("/groups/group", CreateGroupChat)
 }
 

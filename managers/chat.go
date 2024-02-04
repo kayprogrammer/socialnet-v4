@@ -153,7 +153,9 @@ func (obj ChatManager) UpdateGroup(client *ent.Client, chatObj *ent.Chat, data s
 	// Handle users upload or remove
 	var errData *utils.ErrorResponse
 	chatUpdateQuery, errData = obj.UsernamesToAddAndRemoveValidations(client, chatObj, chatUpdateQuery, data.UsernamesToAdd, data.UsernamesToRemove)
-
+	if errData != nil {
+		return nil, errData
+	}
 	// Handle file upload
 	var imageId *uuid.UUID
 	image := chatObj.Edges.Image
@@ -166,8 +168,8 @@ func (obj ChatManager) UpdateGroup(client *ent.Client, chatObj *ent.Chat, data s
 	updatedChat := chatUpdateQuery.SaveX(Ctx)
 
 	// Set related data
-	updatedChat.Edges.Users = chatObj.Edges.Users
-	updatedChat.Edges.Image = chatObj.Edges.Image
+	updatedChat.Edges.Users = chatObj.QueryUsers().WithAvatar().AllX(Ctx)
+	updatedChat.Edges.Image = image
 
 	return updatedChat, errData
 }
@@ -265,20 +267,16 @@ func (obj MessageManager) Create(client *ent.Client, sender *ent.User, chat *ent
 	return messageObj
 }
 
-func (obj MessageManager) GetUserMessage(client *ent.Client, userObj *ent.User, id uuid.UUID, detailedOpts ...bool) *ent.Message {
-	messageQ := client.Message.Query().
+func (obj MessageManager) GetUserMessage(client *ent.Client, userObj *ent.User, id uuid.UUID) *ent.Message {
+	messageObj, _ := client.Message.Query().
 		Where(
 			message.IDEQ(id),
 			message.SenderIDEQ(userObj.ID),
-		)
-	if len(detailedOpts) > 0 {
-		// Extra details
-		messageQ = messageQ.
-			WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).
-			WithChat().
-			WithFile()
-	}
-	messageObj, _ := messageQ.Only(Ctx)
+		).
+		WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).
+		WithChat().
+		WithFile().
+		Only(Ctx)
 	return messageObj
 }
 

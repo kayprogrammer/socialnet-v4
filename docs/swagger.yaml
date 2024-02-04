@@ -1237,7 +1237,7 @@ paths:
       parameters:
       - description: Message object
         in: body
-        name: post
+        name: message
         required: true
         schema:
           $ref: '#/definitions/schemas.MessageCreateSchema'
@@ -1303,7 +1303,7 @@ paths:
         type: string
       - description: Chat object
         in: body
-        name: post
+        name: chat
         required: true
         schema:
           $ref: '#/definitions/schemas.GroupChatInputSchema'
@@ -1328,7 +1328,7 @@ paths:
       parameters:
       - description: Chat object
         in: body
-        name: post
+        name: chat
         required: true
         schema:
           $ref: '#/definitions/schemas.GroupChatCreateSchema'
@@ -1376,7 +1376,7 @@ paths:
         type: string
       - description: Message object
         in: body
-        name: post
+        name: message
         required: true
         schema:
           $ref: '#/definitions/schemas.MessageUpdateSchema'
