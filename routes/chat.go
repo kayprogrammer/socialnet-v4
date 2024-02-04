@@ -266,3 +266,41 @@ func UpdateMessage(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(response)
 }
+
+// @Summary Delete a message
+// @Description `This endpoint deletes a message.`
+// @Tags Chat
+// @Param message_id path string true "Message ID (uuid)"
+// @Success 200 {object} schemas.ResponseSchema
+// @Router /chats/messages/{message_id} [delete]
+// @Security BearerAuth
+func DeleteMessage(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	messageID, err := utils.ParseUUID(c.Params("message_id"))
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	user := c.Locals("user").(*ent.User)
+
+	// Retrieve & Validate Chat Existence
+	message := messageManager.GetUserMessage(db, user, *messageID)
+	if message == nil {
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User has no message with that ID"))
+	}
+	chat := message.Edges.Chat
+	messagesCount := chatManager.GetMessagesCount(db, chat.ID)
+
+	// Send message deletion socket
+
+	// Delete message and chat if its the last message in the dm being deleted
+	if messagesCount == 1 && chat.Ctype == "DM" {
+		db.Chat.DeleteOne(chat).Exec(managers.Ctx) // Message deletes if chat gets deleted (CASCADE)
+	} else {
+		db.Message.DeleteOne(message).Exec(managers.Ctx)
+	}
+
+	// Return response
+	response := schemas.ResponseSchema{Message: "Message Deleted"}.Init()
+	return c.Status(200).JSON(response)
+}
+

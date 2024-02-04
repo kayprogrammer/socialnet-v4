@@ -70,6 +70,7 @@ func SetupRoutes(app *fiber.App) {
 	chatRouter.Patch("/:chat_id", UpdateGroupChat)
 	chatRouter.Delete("/:chat_id", DeleteGroupChat)
 	chatRouter.Put("/messages/:message_id", UpdateMessage)
+	chatRouter.Put("/messages/:message_id", DeleteMessage)
 }
 
 func SetupSockets(app *fiber.App) {

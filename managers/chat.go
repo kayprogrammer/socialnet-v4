@@ -207,6 +207,15 @@ func (obj ChatManager) GetUserGroup(client *ent.Client, userObj *ent.User, id uu
 	return chatObj
 }
 
+func (obj ChatManager) GetMessagesCount(client *ent.Client, chatID uuid.UUID) int {
+	messagesCount := client.Message.Query().
+		Where(
+			message.ChatIDEQ(chatID),
+		).CountX(Ctx)
+
+	return messagesCount
+}
+
 // ----------------------------------
 // MESSAGE MANAGEMENT
 // --------------------------------
