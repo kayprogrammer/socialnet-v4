@@ -147,6 +147,11 @@ func (obj ChatManager) UpdateGroup(client *ent.Client, chatObj *ent.Chat, data s
 	}
 	chatUpdateQuery = chatUpdateQuery.SetNillableImageID(imageId)
 	updatedChat := chatUpdateQuery.SaveX(Ctx)
+
+	// Set related data
+	updatedChat.Edges.Users = chatObj.Edges.Users
+	updatedChat.Edges.Image = chatObj.Edges.Image
+
 	return updatedChat, errData
 }
 
@@ -248,5 +253,33 @@ func (obj MessageManager) GetUserMessage(client *ent.Client, userObj *ent.User, 
 			WithFile()
 	}
 	messageObj, _ := messageQ.Only(Ctx)
+	return messageObj
+}
+
+func (obj MessageManager) Update(client *ent.Client, message *ent.Message, text *string, fileType *string) *ent.Message {
+	var fileId *uuid.UUID
+	file := message.Edges.File
+	fileM := FileManager{}
+	if fileType != nil {
+		// Create or Update Image Object
+		if file == nil {
+			file, _ = FileManager{}.Create(client, fileType)
+		} else {
+			file = fileM.Update(client, file, *fileType)
+
+		}
+		fileId = &file.ID
+	}
+
+	messageObj := message.Update().
+		SetNillableText(text).
+		SetNillableFileID(fileId).
+		SaveX(Ctx)
+
+	// Set related values
+	messageObj.Edges.Sender = message.Edges.Sender
+	if fileId != nil {
+		messageObj.Edges.File = file
+	}
 	return messageObj
 }

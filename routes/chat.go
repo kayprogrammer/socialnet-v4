@@ -203,7 +203,7 @@ func UpdateGroupChat(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /chats/{chat_id} [delete]
 // @Security BearerAuth
-func DeleteChat(c *fiber.Ctx) error {
+func DeleteGroupChat(c *fiber.Ctx) error {
 	db := c.Locals("db").(*ent.Client)
 	chatID, err := utils.ParseUUID(c.Params("chat_id"))
 	if err != nil {
@@ -219,5 +219,50 @@ func DeleteChat(c *fiber.Ctx) error {
 	// Delete and return response
 	db.Chat.DeleteOne(chat).Exec(managers.Ctx)
 	response := schemas.ResponseSchema{Message: "Group Chat Deleted"}.Init()
+	return c.Status(200).JSON(response)
+}
+
+// @Summary Update a message
+// @Description `This endpoint updates a message.`
+// @Description
+// @Description `You must either send a text or a file or both.`
+// @Description
+// @Description `The file_upload_data in the response is what is used for uploading the file to cloudinary from client.`
+// @Tags Chat
+// @Param message_id path string true "Message ID (uuid)"
+// @Param post body schemas.MessageUpdateSchema true "Message object"
+// @Success 200 {object} schemas.MessageCreateResponseSchema
+// @Router /chats/messages/{message_id} [put]
+// @Security BearerAuth
+func UpdateMessage(c *fiber.Ctx) error {
+	db := c.Locals("db").(*ent.Client)
+	user := c.Locals("user").(*ent.User)
+
+	messageID, err := utils.ParseUUID(c.Params("message_id"))
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+
+	message := messageManager.GetUserMessage(db, user, *messageID)
+	if message == nil {
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User has no message with that ID"))
+	}
+
+	messageData := schemas.MessageUpdateSchema{}
+	// Validate request
+	if errCode, errData := DecodeJSONBody(c, &messageData); errData != nil {
+		return c.Status(errCode).JSON(errData)
+	}
+	if err := validator.Validate(messageData); err != nil {
+		return c.Status(422).JSON(err)
+	}
+
+	message = messageManager.Update(db, message, messageData.Text, messageData.FileType)
+	// Convert type and return message
+	convertedMessage := utils.ConvertStructData(message, schemas.MessageCreateResponseDataSchema{}).(*schemas.MessageCreateResponseDataSchema)
+	response := schemas.MessageCreateResponseSchema{
+		ResponseSchema: schemas.ResponseSchema{Message: "Message updated"}.Init(),
+		Data:           convertedMessage.Init(messageData.FileType),
+	}
 	return c.Status(200).JSON(response)
 }
