@@ -65,16 +65,13 @@ func registerTranslations(param string) {
 	registerTranslation("required_if", "This field is required.", translator)
 	registerTranslation("required_without", "This field is required.", translator)
 
-
 	minErrMsg := fmt.Sprintf("%s characters min", param)
 	registerTranslation("min", minErrMsg, translator)
 	maxErrMsg := fmt.Sprintf("%s characters max", param)
 	registerTranslation("max", maxErrMsg, translator)
 	registerTranslation("email", "Invalid Email", translator)
-
 	eqErrMsg := fmt.Sprintf("Must be %s", param)
 	registerTranslation("eq", eqErrMsg, translator)
-
 }
 
 // CustomValidator is a custom validator that uses "github.com/go-playground/validator/v10"
@@ -93,12 +90,15 @@ func (cv *CustomValidator) Validate(i interface{}) *ErrorResponse {
 func (cv *CustomValidator) translateValidationErrors(errs validator.ValidationErrors) *ErrorResponse {
 	errData := make(map[string]string)
 	for _, err := range errs {
-		errParam :=  err.Param()
+		errParam := err.Param()
 		registerTranslations(errParam)
-		errTag :=  err.Tag()
+		errTag := err.Tag()
 		errMsg := err.Translate(translator)
 		errField := err.Field()
-		if (errField == "usernames_to_add" || errField == "usernames_to_remove") && (errTag == "max"  || errTag == "min") {
+
+		if errTag == "oneof" {
+			errMsg = fmt.Sprintf("%s is not a valid choice", err.Value())
+		} else if (errField == "usernames_to_add" || errField == "usernames_to_remove") && (errTag == "max" || errTag == "min") {
 			errMsg = fmt.Sprintf("%s users %s", errParam, errTag)
 		}
 		errData[errField] = errMsg

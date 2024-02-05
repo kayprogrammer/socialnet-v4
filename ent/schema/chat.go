@@ -43,13 +43,12 @@ func (Chat) Annotations() []schema.Annotation {
 		&entsql.Annotation{
 			// Check constraint to prevent requester and requestee from being the same user
 			Checks: map[string]string{
-				"dm_chat_constraints": "(ctype = 'DM' AND name IS NULL AND description IS NULL AND image_id IS NULL) OR (ctype = 'GROUP')", // DMs cannot have name, image and description
-				"group_chat_constraints": "(ctype = 'GROUP' AND name IS NOT NULL) OR (ctype = 'DM')", // Enter name for group chat
+				"dm_chat_constraints":    "(ctype = 'DM' AND name IS NULL AND description IS NULL AND image_id IS NULL) OR (ctype = 'GROUP')", // DMs cannot have name, image and description
+				"group_chat_constraints": "(ctype = 'GROUP' AND name IS NOT NULL) OR (ctype = 'DM')",                                          // Enter name for group chat
 			},
 		},
 	}
 }
-
 
 type Message struct {
 	ent.Schema

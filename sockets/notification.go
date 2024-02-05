@@ -87,7 +87,7 @@ func NotificationSocket(c *websocket.Conn) {
 
 	for {
 		if mt, msg, err = c.ReadMessage(); err != nil {
-			log.Println("read:", err)
+			ReturnError(c, utils.ERR_INVALID_ENTRY, "Invalid Entry", 4220)
 			break
 		}
 
