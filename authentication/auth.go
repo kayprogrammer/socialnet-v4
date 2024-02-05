@@ -79,11 +79,6 @@ func DecodeAccessToken(token string, db *ent.Client) (*ent.User, *string) {
 	})
 	tokenErr := "Auth Token is Invalid or Expired!"
 	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			log.Println("JWT Error: ", "Invalid Signature")
-		} else {
-			log.Println("JWT Error: ", err)
-		}
 		return nil, &tokenErr
 	}
 	if !tkn.Valid {
@@ -109,11 +104,6 @@ func DecodeRefreshToken(token string) bool {
 		return SECRETKEY, nil
 	})
 	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			log.Println("JWT Error: ", "Invalid Signature")
-		} else {
-			log.Println("JWT Error: ", err)
-		}
 		return false
 	}
 	if !tkn.Valid {
