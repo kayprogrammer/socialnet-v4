@@ -77,4 +77,5 @@ func SetupRoutes(app *fiber.App) {
 
 func SetupSockets(app *fiber.App) {
 	app.Get("/api/v4/ws/notifications", websocket.New(sockets.NotificationSocket))
+	app.Get("/api/v4/ws/chats/:id", websocket.New(sockets.ChatSocket))
 }

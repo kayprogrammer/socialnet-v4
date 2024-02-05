@@ -291,6 +291,7 @@ func DeleteMessage(c *fiber.Ctx) error {
 	messagesCount := chatManager.GetMessagesCount(db, chat.ID)
 
 	// Send message deletion socket
+	SendMessageDeletionInSocket(c, chat.ID, message.ID)
 
 	// Delete message and chat if its the last message in the dm being deleted
 	if messagesCount == 1 && chat.Ctype == "DM" {

@@ -8,12 +8,14 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/authentication"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
 // Maintain db & a list of connected clients
 var (
 	clients = make(map[*websocket.Conn]bool)
 	clientsMutex = &sync.Mutex{}
+	validator = utils.Validator()
 )
 
 // Function to add a client to the list
@@ -31,12 +33,17 @@ func RemoveClient(c *websocket.Conn) {
 }
 
 type ErrorResp struct {
-	Code			uint		`json:"code"`
+	Code			int		`json:"code"`
+	Type			string		`json:"type"`
 	Message			string		`json:"message"`
+	Data			*map[string]string	`json:"data,omitempty"`
 }
 
-func ReturnError(c *websocket.Conn, code uint, message string) {
-	errorResponse := ErrorResp{Code: code, Message: message}
+func ReturnError(c *websocket.Conn, errType string, message string, code int, dataOpts ...map[string]string) {
+	errorResponse := ErrorResp{Code: code, Type: errType, Message: message}
+	if len(dataOpts) > 0 {
+		errorResponse.Data = &dataOpts[0]
+	} 
 	jsonResponse, _ := json.Marshal(errorResponse)
 	c.WriteMessage(websocket.TextMessage, jsonResponse)
 }
@@ -62,3 +69,4 @@ func ValidateAuth (db *ent.Client, token string) (*ent.User, *string, *string) {
 	}
 	return user, secret, errMsg
 }
+

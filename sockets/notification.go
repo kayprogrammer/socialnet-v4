@@ -11,6 +11,7 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/ent/reply"
 	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
 type SocketNotificationSchema struct {
@@ -74,7 +75,7 @@ func NotificationSocket(c *websocket.Conn) {
 
 	// Validate Auth
 	if user, secret, errM = ValidateAuth(db, token); errM != nil {
-		ReturnError(c, 4001, *errM)
+		ReturnError(c, utils.ERR_INVALID_TOKEN, *errM, 4001)
 		return
 	}
 	// Add the client to the list of connected clients
@@ -94,7 +95,7 @@ func NotificationSocket(c *websocket.Conn) {
 		if secret != nil {
 			broadcastNotificationMessage(db, mt, msg)
 		} else {
-			ReturnError(c, 4001, "Not authorized to send data")
+			ReturnError(c, utils.ERR_UNAUTHORIZED_USER, "Not authorized to send data", 4001)
 			break
 		}
 	}

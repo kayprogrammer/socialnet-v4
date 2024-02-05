@@ -40,8 +40,18 @@ func (obj ChatManager) GetByID(client *ent.Client, id uuid.UUID) *ent.Chat {
 		Where(
 			chat.IDEQ(id),
 		).
+		WithUsers().
 		Only(Ctx)
 	return chatObj
+}
+
+func (obj ChatManager) UserIsMember(chat *ent.Chat, targetUser *ent.User) bool {
+	for _, user := range chat.Edges.Users {
+        if user.ID == targetUser.ID {
+            return true
+        }
+    }
+    return false
 }
 
 func (obj ChatManager) GetDMChat(client *ent.Client, userObj *ent.User, recipientUser *ent.User) *ent.Chat {
@@ -299,5 +309,16 @@ func (obj MessageManager) Update(client *ent.Client, message *ent.Message, text 
 	if fileId != nil {
 		messageObj.Edges.File = file
 	}
+	return messageObj
+}
+
+func (obj MessageManager) GetByID(client *ent.Client, id uuid.UUID) *ent.Message {
+	messageObj, _ := client.Message.Query().
+		Where(
+			message.IDEQ(id),
+		).
+		WithSender(func(uq *ent.UserQuery) { uq.WithAvatar() }).
+		WithFile().
+		Only(Ctx)
 	return messageObj
 }
