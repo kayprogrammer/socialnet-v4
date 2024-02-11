@@ -305,12 +305,7 @@ func refresh(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		assert.Equal(t, "Refresh token is invalid or expired", body["message"])
 
 		// Test for valid refresh token
-		accessToken := user.Access
-		if accessToken == nil {
-			token := "token"
-			accessToken = &token
-		}
-		user = userManager.UpdateTokens(user, *accessToken, auth.GenerateRefreshToken())
+		user = userManager.UpdateTokens(user, "whatever", auth.GenerateRefreshToken())
 		refreshTokenData.Refresh = *user.Refresh
 		res = ProcessTestBody(t, app, url, "POST", refreshTokenData)
 		// Assert response
