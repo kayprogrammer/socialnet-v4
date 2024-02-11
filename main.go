@@ -33,9 +33,6 @@ func main() {
 
 	app := fiber.New()
 
-	// Set up the database middleware
-	app.Use(database.DatabaseMiddleware)
-
 	// CORS config
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.CORSAllowedOrigins,
@@ -70,7 +67,8 @@ func main() {
 		return fiber.ErrUpgradeRequired
 	})
 
-	routes.SetupRoutes(app)
+	routes.SetupRoutes(app, db)
 	routes.SetupSockets(app)
+	defer db.Close()
 	log.Fatal(app.Listen(":8000"))
 }

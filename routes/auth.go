@@ -21,8 +21,8 @@ var otpManager = managers.OtpManager{}
 // @Success 201 {object} schemas.RegisterResponseSchema
 // @Failure 422 {object} utils.ErrorResponse
 // @Router /auth/register [post]
-func Register(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) Register(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := schemas.RegisterUser{}
 
 	// Validate request
@@ -46,7 +46,7 @@ func Register(c *fiber.Ctx) error {
 
 	// Send Email
 	otp := otpManager.GetOrCreate(db, newUser.ID)
-	go senders.SendEmail(c.Locals("env"), newUser, "activate", &otp.Code)
+	go senders.SendEmail(newUser, "activate", &otp.Code)
 
 	response := schemas.RegisterResponseSchema{
 		ResponseSchema: schemas.ResponseSchema{Message: "Registration successful"}.Init(),
@@ -62,8 +62,8 @@ func Register(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Failure 422 {object} utils.ErrorResponse
 // @Router /auth/verify-email [post]
-func VerifyEmail(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) VerifyEmail(c *fiber.Ctx) error {
+	db := endpoint.DB
 	verifyEmail := schemas.VerifyEmailRequestSchema{}
 
 	// Validate request
@@ -96,7 +96,7 @@ func VerifyEmail(c *fiber.Ctx) error {
 	user.Update().SetIsEmailVerified(true).Save(managers.Ctx)
 
 	// Send Welcome Email
-	go senders.SendEmail(c.Locals("env"), user, "welcome", nil)
+	go senders.SendEmail(user, "welcome", nil)
 
 	response := schemas.ResponseSchema{Message: "Account verification successful"}.Init()
 	return c.Status(200).JSON(response)
@@ -109,8 +109,8 @@ func VerifyEmail(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Failure 422 {object} utils.ErrorResponse
 // @Router /auth/resend-verification-email [post]
-func ResendVerificationEmail(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) ResendVerificationEmail(c *fiber.Ctx) error {
+	db := endpoint.DB
 	emailSchema := schemas.EmailRequestSchema{}
 
 	// Validate request
@@ -132,7 +132,7 @@ func ResendVerificationEmail(c *fiber.Ctx) error {
 
 	// Send Email
 	otp := otpManager.GetOrCreate(db, user.ID)
-	go senders.SendEmail(c.Locals("env"), user, "activate", &otp.Code)
+	go senders.SendEmail(user, "activate", &otp.Code)
 
 	response := schemas.ResponseSchema{Message: "Verification email sent"}.Init()
 	return c.Status(200).JSON(response)
@@ -146,8 +146,8 @@ func ResendVerificationEmail(c *fiber.Ctx) error {
 // @Failure 422 {object} utils.ErrorResponse
 // @Failure 404 {object} utils.ErrorResponse
 // @Router /auth/send-password-reset-otp [post]
-func SendPasswordResetOtp(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) SendPasswordResetOtp(c *fiber.Ctx) error {
+	db := endpoint.DB
 	emailSchema := schemas.EmailRequestSchema{}
 
 	// Validate request
@@ -165,7 +165,7 @@ func SendPasswordResetOtp(c *fiber.Ctx) error {
 
 	// Send Email
 	otp := otpManager.GetOrCreate(db, user.ID)
-	go senders.SendEmail(c.Locals("env"), user, "reset", &otp.Code)
+	go senders.SendEmail(user, "reset", &otp.Code)
 
 	response := schemas.ResponseSchema{Message: "Password otp sent"}.Init()
 	return c.Status(200).JSON(response)
@@ -179,8 +179,8 @@ func SendPasswordResetOtp(c *fiber.Ctx) error {
 // @Failure 422 {object} utils.ErrorResponse
 // @Failure 404 {object} utils.ErrorResponse
 // @Router /auth/set-new-password [post]
-func SetNewPassword(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) SetNewPassword(c *fiber.Ctx) error {
+	db := endpoint.DB
 
 	passwordResetSchema := schemas.SetNewPasswordSchema{}
 
@@ -210,7 +210,7 @@ func SetNewPassword(c *fiber.Ctx) error {
 	user.Update().SetPassword(utils.HashPassword(passwordResetSchema.Password)).Save(managers.Ctx)
 
 	// Send Email
-	go senders.SendEmail(c.Locals("env"), user, "reset-success", nil)
+	go senders.SendEmail(user, "reset-success", nil)
 
 	response := schemas.ResponseSchema{Message: "Password reset successful"}.Init()
 	return c.Status(200).JSON(response)
@@ -225,8 +225,8 @@ func SetNewPassword(c *fiber.Ctx) error {
 // @Failure 401 {object} utils.ErrorResponse
 // @Security GuestUserAuth
 // @Router /auth/login [post]
-func Login(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) Login(c *fiber.Ctx) error {
+	db := endpoint.DB
 	userLoginSchema := schemas.LoginSchema{}
 
 	// Validate request
@@ -270,8 +270,8 @@ func Login(c *fiber.Ctx) error {
 // @Failure 404 {object} utils.ErrorResponse
 // @Failure 401 {object} utils.ErrorResponse
 // @Router /auth/refresh [post]
-func Refresh(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) Refresh(c *fiber.Ctx) error {
+	db := endpoint.DB
 	refreshTokenSchema := schemas.RefreshTokenSchema{}
 
 	// Validate request
@@ -285,7 +285,7 @@ func Refresh(c *fiber.Ctx) error {
 	token := refreshTokenSchema.Refresh
 	user := userManager.GetByRefreshToken(db, token)
 	if user == nil || !auth.DecodeRefreshToken(token) {
-		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INVALID_TOKEN, "Refresh token is invalid or expired"))
+		return c.Status(401).JSON(utils.RequestErr(utils.ERR_INVALID_TOKEN, "Refresh token is invalid or expired"))
 	}
 
 	// Create and Update Auth Tokens
@@ -307,7 +307,7 @@ func Refresh(c *fiber.Ctx) error {
 // @Failure 401 {object} utils.ErrorResponse
 // @Router /auth/logout [get]
 // @Security BearerAuth
-func Logout(c *fiber.Ctx) error {
+func (endpoint Endpoint) Logout(c *fiber.Ctx) error {
 	user := c.Locals("user").(*ent.User)
 	user.Update().ClearAccess().ClearRefresh().Save(managers.Ctx) // Set tokens to null
 	response := schemas.ResponseSchema{Message: "Logout successful"}.Init()

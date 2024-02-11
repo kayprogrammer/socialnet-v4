@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
@@ -13,8 +12,8 @@ import (
 // @Tags General
 // @Success 200 {object} schemas.SiteDetailResponseSchema
 // @Router /general/site-detail [get]
-func GetSiteDetails(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) GetSiteDetails(c *fiber.Ctx) error {
+	db := endpoint.DB
 	sitedetail := managers.SiteDetailManager{}.GetOrCreate(db)
 	data := utils.ConvertStructData(sitedetail, schemas.SiteDetail{}).(*schemas.SiteDetail)
 	responseSiteDetail := schemas.SiteDetailResponseSchema{

@@ -9,6 +9,10 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/utils"
 )
 
+type Middleware struct {
+	DB *ent.Client
+}
+
 func GetUser(token string, db *ent.Client) (*ent.User, *string) {
 	if !strings.HasPrefix(token, "Bearer ") {
 		err := "Auth Bearer Not Provided"
@@ -21,9 +25,9 @@ func GetUser(token string, db *ent.Client) (*ent.User, *string) {
 	return user, nil
 }
 
-func AuthMiddleware(c *fiber.Ctx) error {
+func (mid Middleware) AuthMiddleware(c *fiber.Ctx) error {
 	token := c.Get("Authorization")
-	db := c.Locals("db").(*ent.Client)
+	db := mid.DB
 
 	if len(token) < 1 {
 		return c.Status(401).JSON(utils.RequestErr(utils.ERR_UNAUTHORIZED_USER, "Unauthorized User!"))
@@ -36,9 +40,9 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-func GuestMiddleware(c *fiber.Ctx) error {
+func (mid Middleware) GuestMiddleware(c *fiber.Ctx) error {
 	token := c.Get("Authorization")
-	db := c.Locals("db").(*ent.Client)
+	db := mid.DB
 	var user *ent.User
 	if len(token) > 0 {
 		userObj, err := GetUser(token, db)

@@ -20,8 +20,8 @@ var (
 // @Param page query int false "Current Page" default(1)
 // @Success 200 {object} schemas.PostsResponseSchema
 // @Router /feed/posts [get]
-func RetrievePosts(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrievePosts(c *fiber.Ctx) error {
+	db := endpoint.DB
 	posts := postManager.All(db)
 
 	// Paginate, Convert type and return Posts
@@ -47,8 +47,8 @@ func RetrievePosts(c *fiber.Ctx) error {
 // @Success 201 {object} schemas.PostInputResponseSchema
 // @Router /feed/posts [post]
 // @Security BearerAuth
-func CreatePost(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) CreatePost(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	postData := schemas.PostInputSchema{}
@@ -78,8 +78,8 @@ func CreatePost(c *fiber.Ctx) error {
 // @Param slug path string true "Post slug"
 // @Success 200 {object} schemas.PostResponseSchema
 // @Router /feed/posts/{slug} [get]
-func RetrievePost(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrievePost(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 
 	// Retrieve, Convert type and return Post
@@ -103,8 +103,8 @@ func RetrievePost(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.PostInputResponseSchema
 // @Router /feed/posts/{slug} [put]
 // @Security BearerAuth
-func UpdatePost(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) UpdatePost(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 	slug := c.Params("slug")
 
@@ -146,8 +146,8 @@ func UpdatePost(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /feed/posts/{slug} [delete]
 // @Security BearerAuth
-func DeletePost(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) DeletePost(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
 
@@ -179,8 +179,8 @@ var reactionManager = managers.ReactionManager{}
 // @Param reaction_type query string false "Reaction Type. Must be any of these: LIKE, LOVE, HAHA, WOW, SAD, ANGRY"
 // @Success 200 {object} schemas.ReactionsResponseSchema
 // @Router /feed/reactions/{focus}/{slug} [get]
-func RetrieveReactions(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveReactions(c *fiber.Ctx) error {
+	db := endpoint.DB
 	focus := c.Params("focus")
 	slug := c.Params("slug")
 
@@ -221,8 +221,8 @@ func RetrieveReactions(c *fiber.Ctx) error {
 // @Success 201 {object} schemas.ReactionResponseSchema
 // @Router /feed/reactions/{focus}/{slug} [post]
 // @Security BearerAuth
-func CreateReaction(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) CreateReaction(c *fiber.Ctx) error {
+	db := endpoint.DB
 	focus := c.Params("focus")
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
@@ -280,8 +280,8 @@ func CreateReaction(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /feed/reactions/{id} [delete]
 // @Security BearerAuth
-func DeleteReaction(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) DeleteReaction(c *fiber.Ctx) error {
+	db := endpoint.DB
 	id := c.Params("id")
 	// Parse the UUID parameter
 	reactionID, err := utils.ParseUUID(id)
@@ -326,8 +326,8 @@ var commentManager = managers.CommentManager{}
 // @Param page query int false "Current Page" default(1)
 // @Success 200 {object} schemas.CommentsResponseSchema
 // @Router /feed/posts/{slug}/comments [get]
-func RetrieveComments(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveComments(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 
 	// Get Post
@@ -363,8 +363,8 @@ func RetrieveComments(c *fiber.Ctx) error {
 // @Success 201 {object} schemas.CommentResponseSchema
 // @Router /feed/posts/{slug}/comments [post]
 // @Security BearerAuth
-func CreateComment(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) CreateComment(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
 
@@ -407,8 +407,8 @@ func CreateComment(c *fiber.Ctx) error {
 // @Param page query int false "Current Page" default(1)
 // @Success 200 {object} schemas.CommentWithRepliesResponseSchema
 // @Router /feed/comments/{slug} [get]
-func RetrieveCommentWithReplies(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveCommentWithReplies(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 
 	// Get Comment
@@ -447,8 +447,8 @@ var replyManager = managers.ReplyManager{}
 // @Success 201 {object} schemas.ReplyResponseSchema
 // @Router /feed/comments/{slug} [post]
 // @Security BearerAuth
-func CreateReply(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) CreateReply(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
 
@@ -493,8 +493,8 @@ func CreateReply(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.CommentResponseSchema
 // @Router /feed/comments/{slug} [put]
 // @Security BearerAuth
-func UpdateComment(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) UpdateComment(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
 
@@ -537,8 +537,8 @@ func UpdateComment(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /feed/comments/{slug} [delete]
 // @Security BearerAuth
-func DeleteComment(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) DeleteComment(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
 
@@ -573,8 +573,8 @@ func DeleteComment(c *fiber.Ctx) error {
 // @Param slug path string true "Reply Slug"
 // @Success 200 {object} schemas.ReplyResponseSchema
 // @Router /feed/replies/{slug} [get]
-func RetrieveReply(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveReply(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 
 	// Get Reply
@@ -600,8 +600,8 @@ func RetrieveReply(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ReplyResponseSchema
 // @Router /feed/replies/{slug} [put]
 // @Security BearerAuth
-func UpdateReply(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) UpdateReply(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
 
@@ -642,8 +642,8 @@ func UpdateReply(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /feed/replies/{slug} [delete]
 // @Security BearerAuth
-func DeleteReply(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) DeleteReply(c *fiber.Ctx) error {
+	db := endpoint.DB
 	slug := c.Params("slug")
 	user := c.Locals("user").(*ent.User)
 

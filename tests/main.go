@@ -78,14 +78,7 @@ func CloseTestDatabase(db *ent.Client) {
 func Setup(t *testing.T, app *fiber.App) *ent.Client {
 	// Set up the test database
 	db := SetupTestDatabase()
-
-	// Inject your test database and environment text into the Fiber app's context
-	app.Use(func(c *fiber.Ctx) error {
-		c.Locals("db", db)
-		c.Locals("env", "test")
-		return c.Next()
-	})
-	routes.SetupRoutes(app)
+	routes.SetupRoutes(app, db)
 	DropData(db)
 	CreateTables(db)
 	return db

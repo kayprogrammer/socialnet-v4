@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/ent/migrate"
 	_ "github.com/lib/pq"
 )
-
-var Database *ent.Client
 
 func ConnectDb() *ent.Client {
 	cfg := config.GetConfig()
@@ -40,13 +37,5 @@ func ConnectDb() *ent.Client {
 	); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
-	Database = client
 	return client
-}
-
-func DatabaseMiddleware(c *fiber.Ctx) error {
-	Database = ConnectDb()
-	c.Locals("db", Database)
-	defer Database.Close()
-	return c.Next()
 }

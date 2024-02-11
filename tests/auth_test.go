@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -270,6 +271,7 @@ func login(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		body = ParseResponseBody(t, res.Body).(map[string]interface{})
 		assert.Equal(t, "success", body["status"])
 		assert.Equal(t, "Login successful", body["message"])
+		user = userManager.GetById(db, user.ID) // Get updated user 
 		expectedData := map[string]string{
 			"access":  *user.Access,
 			"refresh": *user.Refresh,
@@ -289,12 +291,10 @@ func refresh(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 
 		url := fmt.Sprintf("%s/refresh", baseUrl)
 		refreshTokenData := schemas.RefreshTokenSchema{
-			Refresh: "invalid_token", // non-exisitent token
+			Refresh: "invalid_token",
 		}
 
 		// Test for invalid refresh token (invalid or expired)
-		user = userManager.UpdateTokens(user, "invalid_access", "invalid_refresh")
-		refreshTokenData.Refresh = *user.Refresh
 		res := ProcessTestBody(t, app, url, "POST", refreshTokenData)
 		// Assert Status code
 		assert.Equal(t, 401, res.StatusCode)
@@ -305,7 +305,12 @@ func refresh(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		assert.Equal(t, "Refresh token is invalid or expired", body["message"])
 
 		// Test for valid refresh token
-		user = userManager.UpdateTokens(user, *user.Access, auth.GenerateRefreshToken())
+		accessToken := user.Access
+		if accessToken == nil {
+			token := "token"
+			accessToken = &token
+		}
+		user = userManager.UpdateTokens(user, *accessToken, auth.GenerateRefreshToken())
 		refreshTokenData.Refresh = *user.Refresh
 		res = ProcessTestBody(t, app, url, "POST", refreshTokenData)
 		// Assert response
@@ -314,6 +319,7 @@ func refresh(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		body = ParseResponseBody(t, res.Body).(map[string]interface{})
 		assert.Equal(t, "success", body["status"])
 		assert.Equal(t, "Tokens refresh successful", body["message"])
+		user = userManager.GetById(db, user.ID) // Get updated user 
 		expectedData := map[string]string{
 			"access":  *user.Access,
 			"refresh": *user.Refresh,
@@ -361,6 +367,7 @@ func logout(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 }
 
 func TestAuth(t *testing.T) {
+	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
 	db := Setup(t, app)
 	BASEURL := "/api/v4/auth"

@@ -18,8 +18,8 @@ var cityManager = managers.CityManager{}
 // @Param name query string false "City name"
 // @Success 200 {object} schemas.CitiesResponseSchema
 // @Router /profiles/cities [get]
-func RetrieveCities(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveCities(c *fiber.Ctx) error {
+	db := endpoint.DB
 	message := "Cities Fetched"
 	name := c.Query("name")
 
@@ -51,8 +51,8 @@ var userProfileManager = managers.UserProfileManager{}
 // @Success 200 {object} schemas.ProfilesResponseSchema
 // @Router /profiles [get]
 // @Security BearerAuth
-func RetrieveUsers(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveUsers(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	users := userProfileManager.GetUsers(db, user)
@@ -79,8 +79,8 @@ func RetrieveUsers(c *fiber.Ctx) error {
 // @Param username path string true "Username of user"
 // @Success 200 {object} schemas.ProfileResponseSchema
 // @Router /profiles/profile/{username} [get]
-func RetrieveUserProfile(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveUserProfile(c *fiber.Ctx) error {
+	db := endpoint.DB
 	username := c.Params("username")
 
 	user, errData := userProfileManager.GetByUsername(db, username)
@@ -104,8 +104,8 @@ func RetrieveUserProfile(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ProfileResponseSchema
 // @Router /profiles/profile [patch]
 // @Security BearerAuth
-func UpdateProfile(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) UpdateProfile(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	profileData := schemas.ProfileUpdateSchema{}
@@ -149,8 +149,8 @@ func UpdateProfile(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /profiles/profile [post]
 // @Security BearerAuth
-func DeleteUser(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) DeleteUser(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	deleteUserData := schemas.DeleteUserSchema{}
@@ -186,8 +186,8 @@ var friendManager = managers.FriendManager{}
 // @Success 200 {object} schemas.ProfilesResponseSchema
 // @Router /profiles/friends [get]
 // @Security BearerAuth
-func RetrieveFriends(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveFriends(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	friends := friendManager.GetFriends(db, user)
@@ -215,8 +215,8 @@ func RetrieveFriends(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ProfilesResponseSchema
 // @Router /profiles/friends/requests [get]
 // @Security BearerAuth
-func RetrieveFriendRequests(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveFriendRequests(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	friendsRequests := friendManager.GetFriendRequests(db, user)
@@ -244,8 +244,8 @@ func RetrieveFriendRequests(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /profiles/friends/requests [post]
 // @Security BearerAuth
-func SendOrDeleteFriendRequest(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) SendOrDeleteFriendRequest(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	friendRequestData := schemas.SendFriendRequestSchema{}
@@ -293,8 +293,8 @@ func SendOrDeleteFriendRequest(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /profiles/friends/requests [put]
 // @Security BearerAuth
-func AcceptOrRejectFriendRequest(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) AcceptOrRejectFriendRequest(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	friendRequestData := schemas.AcceptFriendRequestSchema{}
@@ -339,8 +339,8 @@ var notificationManager = managers.NotificationManager{}
 // @Success 200 {object} schemas.NotificationsResponseSchema
 // @Router /profiles/notifications [get]
 // @Security BearerAuth
-func RetrieveUserNotifications(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveUserNotifications(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	notifications := notificationManager.GetQueryset(db, user.ID)
@@ -368,8 +368,8 @@ func RetrieveUserNotifications(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /profiles/notifications [post]
 // @Security BearerAuth
-func ReadNotification(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) ReadNotification(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	readNotificationData := schemas.ReadNotificationSchema{}

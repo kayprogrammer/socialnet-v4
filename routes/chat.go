@@ -20,8 +20,8 @@ var (
 // @Success 200 {object} schemas.ChatsResponseSchema
 // @Router /chats [get]
 // @Security BearerAuth
-func RetrieveUserChats(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveUserChats(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 	chats := chatManager.GetUserChats(db, user)
 
@@ -56,8 +56,8 @@ func RetrieveUserChats(c *fiber.Ctx) error {
 // @Success 201 {object} schemas.MessageCreateResponseSchema
 // @Router /chats [post]
 // @Security BearerAuth
-func SendMessage(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) SendMessage(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	messageData := schemas.MessageCreateSchema{}
@@ -120,8 +120,8 @@ func SendMessage(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ChatResponseSchema
 // @Router /chats/{chat_id} [get]
 // @Security BearerAuth
-func RetrieveMessages(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) RetrieveMessages(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 	// Parse the UUID parameter
 	chatID, err := utils.ParseUUID(c.Params("chat_id"))
@@ -159,8 +159,8 @@ func RetrieveMessages(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.GroupChatInputResponseSchema
 // @Router /chats/{chat_id} [patch]
 // @Security BearerAuth
-func UpdateGroupChat(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) UpdateGroupChat(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	chatID, err := utils.ParseUUID(c.Params("chat_id"))
@@ -203,8 +203,8 @@ func UpdateGroupChat(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /chats/{chat_id} [delete]
 // @Security BearerAuth
-func DeleteGroupChat(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) DeleteGroupChat(c *fiber.Ctx) error {
+	db := endpoint.DB
 	chatID, err := utils.ParseUUID(c.Params("chat_id"))
 	if err != nil {
 		return c.Status(400).JSON(err)
@@ -234,8 +234,8 @@ func DeleteGroupChat(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.MessageCreateResponseSchema
 // @Router /chats/messages/{message_id} [put]
 // @Security BearerAuth
-func UpdateMessage(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) UpdateMessage(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	messageID, err := utils.ParseUUID(c.Params("message_id"))
@@ -274,8 +274,8 @@ func UpdateMessage(c *fiber.Ctx) error {
 // @Success 200 {object} schemas.ResponseSchema
 // @Router /chats/messages/{message_id} [delete]
 // @Security BearerAuth
-func DeleteMessage(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) DeleteMessage(c *fiber.Ctx) error {
+	db := endpoint.DB
 	messageID, err := utils.ParseUUID(c.Params("message_id"))
 	if err != nil {
 		return c.Status(400).JSON(err)
@@ -316,8 +316,8 @@ func DeleteMessage(c *fiber.Ctx) error {
 // @Success 201 {object} schemas.GroupChatInputResponseSchema
 // @Router /chats/groups/group [post]
 // @Security BearerAuth
-func CreateGroupChat(c *fiber.Ctx) error {
-	db := c.Locals("db").(*ent.Client)
+func (endpoint Endpoint) CreateGroupChat(c *fiber.Ctx) error {
+	db := endpoint.DB
 	user := c.Locals("user").(*ent.User)
 
 	chatData := schemas.GroupChatCreateSchema{}
