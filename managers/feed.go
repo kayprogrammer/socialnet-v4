@@ -102,6 +102,9 @@ func (obj PostManager) Update(client *ent.Client, post *ent.Post, postData schem
 	p.Edges.Image = image
 	return p
 }
+func (obj PostManager) DropData(client *ent.Client) {
+	client.Post.Delete().ExecX(Ctx)
+}
 
 // ----------------------------------
 // COMMENT MANAGEMENT
@@ -162,6 +165,9 @@ func (obj CommentManager) Update(comment *ent.Comment, author *ent.User, text st
 	c.Edges.Replies = comment.Edges.Replies
 	return c
 }
+func (obj CommentManager) DropData(client *ent.Client) {
+	client.Comment.Delete().ExecX(Ctx)
+}
 
 // ----------------------------------
 // REPLY MANAGEMENT
@@ -211,6 +217,9 @@ func (obj ReplyManager) Update(reply *ent.Reply, author *ent.User, text string) 
 	return r
 }
 
+func (obj ReplyManager) DropData(client *ent.Client) {
+	client.Reply.Delete().ExecX(Ctx)
+}
 // ----------------------------------
 // REACTIONS MANAGEMENT
 // --------------------------------
@@ -346,4 +355,8 @@ func (obj ReactionManager) GetByID(client *ent.Client, id uuid.UUID) (*ent.React
 		return nil, &statusCode, &errData
 	}
 	return r, nil, nil
+}
+
+func (obj ReactionManager) DropData(client *ent.Client) {
+	client.Reaction.Delete().ExecX(Ctx)
 }

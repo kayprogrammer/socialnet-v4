@@ -1,7 +1,6 @@
 package managers
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -87,9 +86,13 @@ func (obj UserManager) GetOrCreate(client *ent.Client, userData schemas.Register
 	return user
 }
 
-func (obj UserManager) UpdateTokens(user *ent.User, access string, refresh string) (*ent.User, error) {
-	u, _ := user.Update().SetAccess(access).SetRefresh(refresh).Save(Ctx)
-	return u, nil
+func (obj UserManager) UpdateTokens(user *ent.User, access string, refresh string) *ent.User {
+	u := user.Update().SetAccess(access).SetRefresh(refresh).SaveX(Ctx)
+	return u
+}
+
+func (obj UserManager) DropData(client *ent.Client) {
+	client.User.Delete().ExecX(Ctx)
 }
 
 // ----------------------------------
@@ -100,7 +103,7 @@ type OtpManager struct {
 
 func (obj OtpManager) GetOrCreate(client *ent.Client, userId uuid.UUID) *ent.Otp {
 	code := utils.GetRandomInt(6)
-	o, _ := obj.GetByUserID(client, userId)
+	o := obj.GetByUserID(client, userId)
 
 	// Create Otp
 	if o == nil {
@@ -116,16 +119,12 @@ func (obj OtpManager) GetOrCreate(client *ent.Client, userId uuid.UUID) *ent.Otp
 	return o
 }
 
-func (obj OtpManager) GetByUserID(client *ent.Client, userId uuid.UUID) (*ent.Otp, error) {
-	o, err := client.Otp.
+func (obj OtpManager) GetByUserID(client *ent.Client, userId uuid.UUID) *ent.Otp {
+	o, _ := client.Otp.
 		Query().
 		Where(otp.UserID(userId)).
 		Only(Ctx)
-	if err != nil {
-		fmt.Printf("failed querying otp by user id: %v\n", err)
-		return nil, nil
-	}
-	return o, nil
+	return o
 }
 
 func (obj OtpManager) CheckExpiration(otpObj *ent.Otp) bool {

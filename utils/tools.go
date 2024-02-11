@@ -79,3 +79,13 @@ func ParseUUID(input string) (*uuid.UUID, *ErrorResponse) {
 	}
 	return &uuidVal, nil
 }
+
+// Check if keys exist in map
+func KeysExistInMap(keys []string, myMap map[string]interface{}) bool {
+    for _, key := range keys {
+        if _, ok := myMap[key]; !ok {
+            return false
+        }
+    }
+    return true
+}

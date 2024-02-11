@@ -3,8 +3,6 @@ package managers
 import (
 	"context"
 
-	"fmt"
-
 	"github.com/kayprogrammer/socialnet-v4/ent"
 )
 
@@ -13,32 +11,24 @@ type SiteDetailManager struct {
 
 var Ctx = context.Background()
 
-func (obj SiteDetailManager) Get(client *ent.Client) (*ent.SiteDetail, error) {
-	s, err := client.SiteDetail.
+func (obj SiteDetailManager) Get(client *ent.Client) *ent.SiteDetail {
+	s, _ := client.SiteDetail.
 		Query().
 		First(Ctx)
-	if err != nil {
-		fmt.Printf("failed querying site details: %v\n", err)
-		return nil, nil
-	}
-	return s, nil
+	return s
 }
 
-func (obj SiteDetailManager) Create(client *ent.Client) (*ent.SiteDetail, error) {
-	s, err := client.SiteDetail.
+func (obj SiteDetailManager) Create(client *ent.Client) *ent.SiteDetail {
+	s := client.SiteDetail.
 		Create().
-		Save(Ctx)
-	if err != nil {
-		fmt.Printf("failed creating site details: %v\n", err)
-		return nil, nil
-	}
-	return s, nil
+		SaveX(Ctx)
+	return s
 }
 
 func (obj SiteDetailManager) GetOrCreate (client *ent.Client) *ent.SiteDetail {
-	sitedetail, _ := obj.Get(client)
+	sitedetail := obj.Get(client)
 	if sitedetail == nil {
-		sitedetail, _ = obj.Create(client)
+		sitedetail = obj.Create(client)
 	}
 	return sitedetail
 }

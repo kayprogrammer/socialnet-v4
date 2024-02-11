@@ -83,7 +83,7 @@ func VerifyEmail(c *fiber.Ctx) error {
 		return c.Status(200).JSON(schemas.ResponseSchema{Message: "Email already verified"}.Init())
 	}
 
-	otp, _ := otpManager.GetByUserID(db, user.ID)
+	otp := otpManager.GetByUserID(db, user.ID)
 	if otp == nil || otp.Code != verifyEmail.Otp {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_OTP, "Incorrect Otp"))
 	}
@@ -197,7 +197,7 @@ func SetNewPassword(c *fiber.Ctx) error {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_EMAIL, "Incorrect Email"))
 	}
 
-	otp, _ := otpManager.GetByUserID(db, user.ID)
+	otp := otpManager.GetByUserID(db, user.ID)
 	if otp == nil || otp.Code != passwordResetSchema.Otp {
 		return c.Status(404).JSON(utils.RequestErr(utils.ERR_INCORRECT_OTP, "Incorrect Otp"))
 	}

@@ -35,6 +35,9 @@ func (obj CityManager) GetByID(client *ent.Client, cityID uuid.UUID) *ent.City {
 	return c
 }
 
+func (obj CityManager) DropData(client *ent.Client) {
+	client.City.Delete().ExecX(Ctx)
+}
 // ----------------------------------
 // USER PROFILE MANAGEMENT
 // --------------------------------
@@ -190,6 +193,10 @@ func (obj FriendManager) Create(client *ent.Client, requesterID uuid.UUID, reque
 		SaveX(Ctx)
 }
 
+func (obj FriendManager) DropData(client *ent.Client) {
+	client.Friend.Delete().ExecX(Ctx)
+}
+
 // ----------------------------------
 // NOTIFICATION MANAGEMENT
 // --------------------------------
@@ -300,4 +307,8 @@ func (obj NotificationManager) IsAmongReceivers(client *ent.Client, notification
 		).
 		ExistX(Ctx)
 	return exists 
+}
+
+func (obj NotificationManager) DropData(client *ent.Client) {
+	client.Notification.Delete().ExecX(Ctx)
 }

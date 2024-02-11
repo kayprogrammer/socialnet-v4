@@ -245,6 +245,10 @@ func (obj ChatManager) GetMessagesCount(client *ent.Client, chatID uuid.UUID) in
 	return messagesCount
 }
 
+func (obj ChatManager) DropData(client *ent.Client) {
+	client.Chat.Delete().ExecX(Ctx)
+}
+
 // ----------------------------------
 // MESSAGE MANAGEMENT
 // --------------------------------
@@ -321,4 +325,8 @@ func (obj MessageManager) GetByID(client *ent.Client, id uuid.UUID) *ent.Message
 		WithFile().
 		Only(Ctx)
 	return messageObj
+}
+
+func (obj MessageManager) DropData(client *ent.Client) {
+	client.Message.Delete().ExecX(Ctx)
 }
