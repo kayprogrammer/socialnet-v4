@@ -81,13 +81,10 @@ func getProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 }
 
 func updateProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
-	// Drop User Data since the previous test uses the verified_user it...
-	userManager.DropData(db)
 	firstName := "TestUpdated"
 	lastName := "VerifiedUpdated"
 	bio := "Updated my bio"
 	t.Run("Update Profile", func(t *testing.T) {
-		CreateTestVerifiedUser(db)
 		url := fmt.Sprintf("%s/profile", baseUrl)
 		updateProfileData := schemas.ProfileUpdateSchema{
 			FirstName: &firstName,
@@ -106,6 +103,36 @@ func updateProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 	})
 }
 
+func deleteProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	t.Run("Delete Profile", func(t *testing.T) {
+		url := fmt.Sprintf("%s/profile", baseUrl)
+		userData := schemas.DeleteUserSchema{
+			Password: "invalid_pass",
+		}
+
+		// Test for valid response for invalid entry
+		res := ProcessTestBody(t, app, url, "POST", userData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 422, res.StatusCode)
+
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_INVALID_ENTRY, body["code"])
+		assert.Equal(t, "Invalid Entry", body["message"])
+
+		// Test for valid response for valid entry
+		userData.Password = "testpassword"
+		res = ProcessTestBody(t, app, url, "POST", userData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "success", body["status"])
+		assert.Equal(t, "User deleted", body["message"])
+	})
+}
+
 func TestProfiles(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -116,6 +143,7 @@ func TestProfiles(t *testing.T) {
 	getCities(t, app, db, BASEURL)
 	getProfile(t, app, db, BASEURL)
 	updateProfile(t, app, db, BASEURL)
+	deleteProfile(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
