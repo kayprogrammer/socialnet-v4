@@ -49,3 +49,10 @@ func CreateJwt(db *ent.Client, user *ent.User) *ent.User {
 	user = userManager.UpdateTokens(user, auth.GenerateAccessToken(user.ID, user.Username), auth.GenerateRefreshToken())
 	return user
 }
+
+func CreateCity(db *ent.Client) *ent.City {
+	country := managers.CountryManager{}.Create(db, "Nigeria", "NG")
+	region := managers.RegionManager{}.Create(db, "Lagos", country)
+	city := managers.CityManager{}.Create(db, "Lekki", country, region)
+	return city
+}

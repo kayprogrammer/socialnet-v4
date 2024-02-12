@@ -13,6 +13,37 @@ import (
 )
 
 // ----------------------------------
+// COUNTRY MANAGEMENT
+// --------------------------------
+type CountryManager struct {
+}
+
+func (obj CountryManager) Create(client *ent.Client, name string, code string) *ent.Country {
+	countryObj := client.Country.Create().
+		SetName(name).
+		SetCode(code).
+		SaveX(Ctx)
+	return countryObj
+}
+
+// ----------------------------------
+// REGION MANAGEMENT
+// --------------------------------
+type RegionManager struct {
+}
+
+func (obj RegionManager) Create(client *ent.Client, name string, country *ent.Country) *ent.Region {
+	regionObj := client.Region.Create().
+		SetName(name).
+		SetCountry(country).
+		SaveX(Ctx)
+
+	// Set related objects to avoid fetching in another query
+	regionObj.Edges.Country = country
+	return regionObj
+}
+
+// ----------------------------------
 // CITY MANAGEMENT
 // --------------------------------
 type CityManager struct {
@@ -35,9 +66,27 @@ func (obj CityManager) GetByID(client *ent.Client, cityID uuid.UUID) *ent.City {
 	return c
 }
 
+func (obj CityManager) Create(client *ent.Client, name string, country *ent.Country, region *ent.Region) *ent.City {
+	var regionID *uuid.UUID
+	if region != nil {
+		regionID = &region.ID
+	}
+	cityObj := client.City.Create().
+		SetName(name).
+		SetCountry(country).
+		SetNillableRegionID(regionID).
+		SaveX(Ctx)
+
+	// Set related objects to avoid fetching in another query
+	cityObj.Edges.Country = country
+	cityObj.Edges.Region = region
+	return cityObj
+}
+
 func (obj CityManager) DropData(client *ent.Client) {
 	client.City.Delete().ExecX(Ctx)
 }
+
 // ----------------------------------
 // USER PROFILE MANAGEMENT
 // --------------------------------
@@ -119,7 +168,7 @@ func (obj FriendManager) GetFriends(client *ent.Client, userObj *ent.User) []*en
 	for i := range friendObjects {
 		requesterID := friendObjects[i].RequesterID
 		requesteeID := friendObjects[i].RequesteeID
-		if userObj.ID == requesterID{
+		if userObj.ID == requesterID {
 			friendIDs = append(friendIDs, requesteeID)
 		} else {
 			friendIDs = append(friendIDs, requesterID)
@@ -158,7 +207,7 @@ func (obj FriendManager) GetRequesteeAndFriendObj(client *ent.Client, userObj *e
 	requestee, _ := client.User.Query().
 		Where(user.Username(username)).
 		Only(Ctx)
-	
+
 	if requestee == nil {
 		errData := utils.RequestErr(utils.ERR_NON_EXISTENT, "User does not exist!")
 		return nil, nil, &errData
@@ -175,7 +224,7 @@ func (obj FriendManager) GetRequesteeAndFriendObj(client *ent.Client, userObj *e
 					friend.RequesteeIDEQ(userObj.ID),
 				),
 			),
-		) 
+		)
 	if len(statusOpts) > 0 {
 		// If status param is provided
 		fq = fq.Where(friend.StatusEQ(friend.Status(statusOpts[0])))
@@ -251,7 +300,7 @@ func (obj NotificationManager) Create(client *ent.Client, sender *ent.User, ntyp
 		nc = nc.SetReply(reply)
 	}
 
-	notification := nc.SaveX(Ctx) 
+	notification := nc.SaveX(Ctx)
 
 	// Set related data
 	notification.Edges.Sender = sender
@@ -281,7 +330,7 @@ func (obj NotificationManager) GetOrCreate(client *ent.Client, sender *ent.User,
 		// Create notification
 		n = obj.Create(client, sender, ntype, receiverIDs, post, comment, reply)
 	}
-	return n, created		 
+	return n, created
 }
 
 func (obj NotificationManager) Get(client *ent.Client, sender *ent.User, ntype notification.Ntype, post *ent.Post, comment *ent.Comment, reply *ent.Reply) *ent.Notification {
@@ -306,7 +355,7 @@ func (obj NotificationManager) IsAmongReceivers(client *ent.Client, notification
 			notification.HasReceiversWith(user.ID(receiverID)),
 		).
 		ExistX(Ctx)
-	return exists 
+	return exists
 }
 
 func (obj NotificationManager) DropData(client *ent.Client) {
