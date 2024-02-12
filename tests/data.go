@@ -50,6 +50,12 @@ func CreateJwt(db *ent.Client, user *ent.User) *ent.User {
 	return user
 }
 
+func AccessToken(db *ent.Client) string {
+	user := CreateTestVerifiedUser(db)
+	user = CreateJwt(db, user)
+	return *user.Access
+}
+
 func CreateCity(db *ent.Client) *ent.City {
 	country := managers.CountryManager{}.Create(db, "Nigeria", "NG")
 	region := managers.RegionManager{}.Create(db, "Lagos", country)

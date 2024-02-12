@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -79,6 +80,32 @@ func getProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	})
 }
 
+func updateProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	// Drop User Data since the previous test uses the verified_user it...
+	userManager.DropData(db)
+	firstName := "TestUpdated"
+	lastName := "VerifiedUpdated"
+	bio := "Updated my bio"
+	t.Run("Update Profile", func(t *testing.T) {
+		CreateTestVerifiedUser(db)
+		url := fmt.Sprintf("%s/profile", baseUrl)
+		updateProfileData := schemas.ProfileUpdateSchema{
+			FirstName: &firstName,
+			LastName:  &lastName,
+			Bio:       &bio,
+		}
+
+		// Test for valid response for valid entry
+		res := ProcessTestBody(t, app, url, "PATCH", updateProfileData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "success", body["status"])
+		assert.Equal(t, "User updated", body["message"])
+	})
+}
+
 func TestProfiles(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -88,6 +115,7 @@ func TestProfiles(t *testing.T) {
 	// Run Profiles Endpoint Tests
 	getCities(t, app, db, BASEURL)
 	getProfile(t, app, db, BASEURL)
+	updateProfile(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)

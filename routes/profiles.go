@@ -136,7 +136,7 @@ func (endpoint Endpoint) UpdateProfile(c *fiber.Ctx) error {
 	// Convert type and return User
 	convertedProfile := utils.ConvertStructData(updatedProfile, schemas.ProfileUpdateResponseDataSchema{}).(*schemas.ProfileUpdateResponseDataSchema)
 	response := schemas.ProfileUpdateResponseSchema{
-		ResponseSchema: schemas.ResponseSchema{Message: "User updated fetched"}.Init(),
+		ResponseSchema: schemas.ResponseSchema{Message: "User updated"}.Init(),
 		Data:           convertedProfile.Init(profileData.FileType),
 	}
 	return c.Status(200).JSON(response)
