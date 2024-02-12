@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,6 +47,38 @@ func getCities(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	})
 }
 
+func getProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	t.Run("Retrieve Profile", func(t *testing.T) {
+		// Test for valid response for non-existent username
+		url := fmt.Sprintf("%s/profile/invalid_username", baseUrl)
+		req := httptest.NewRequest("GET", url, nil)
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "No user with that username", body["message"])
+
+		// Test for valid response for valid entry
+		user := CreateTestVerifiedUser(db)
+		url = fmt.Sprintf("%s/profile/%s", baseUrl, user.Username)
+		req = httptest.NewRequest("GET", url, nil)
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "success", body["status"])
+		assert.Equal(t, "User details fetched", body["message"])
+	})
+}
+
 func TestProfiles(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -54,6 +87,7 @@ func TestProfiles(t *testing.T) {
 
 	// Run Profiles Endpoint Tests
 	getCities(t, app, db, BASEURL)
+	getProfile(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
