@@ -11,6 +11,7 @@ import (
 
 var (
 	userManager = managers.UserManager{}
+	friendManager = managers.FriendManager{}
 )
 
 func CreateTestUser(db *ent.Client) *ent.User {
@@ -68,7 +69,7 @@ func CreateCity(db *ent.Client) *ent.City {
 func CreateFriend(db *ent.Client) *ent.Friend {
 	verifiedUser := CreateTestVerifiedUser(db)
 	anotherVerifiedUser := CreateAnotherTestVerifiedUser(db)
-	friend := managers.FriendManager{}.Create(db, verifiedUser, anotherVerifiedUser, "ACCEPTED")
+	friend := friendManager.Create(db, verifiedUser, anotherVerifiedUser, "ACCEPTED")
 	return friend
 }
 

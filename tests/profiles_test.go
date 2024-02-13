@@ -178,6 +178,37 @@ func getFriends(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	})
 }
 
+func sendFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	// Drop Friends data
+	friendManager.DropData(db)
+	user := CreateAnotherTestVerifiedUser(db)
+	t.Run("Send Friend Request", func(t *testing.T) {
+		url := fmt.Sprintf("%s/friends/requests", baseUrl)
+		userData := schemas.SendFriendRequestSchema{
+			Username: "invalid_username",
+		}
+		// Test for valid response for non-existent user name
+		res := ProcessTestBody(t, app, url, "POST", userData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "User does not exist!", body["message"])
+
+		// Test for valid response for valid entry
+		userData.Username = user.Username
+		res = ProcessTestBody(t, app, url, "POST", userData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 201, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "success", body["status"])
+		assert.Equal(t, "Friend Request sent", body["message"])
+	})
+}
+
 func TestProfiles(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -190,6 +221,7 @@ func TestProfiles(t *testing.T) {
 	updateProfile(t, app, db, BASEURL)
 	deleteProfile(t, app, db, BASEURL)
 	getFriends(t, app, db, BASEURL)
+	sendFriendRequest(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
