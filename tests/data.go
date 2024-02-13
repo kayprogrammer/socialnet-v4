@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"time"
+
 	auth "github.com/kayprogrammer/socialnet-v4/authentication"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/managers"
@@ -68,4 +70,8 @@ func CreateFriend(db *ent.Client) *ent.Friend {
 	anotherVerifiedUser := CreateAnotherTestVerifiedUser(db)
 	friend := managers.FriendManager{}.Create(db, verifiedUser, anotherVerifiedUser, "ACCEPTED")
 	return friend
+}
+
+func ConvertDateTime (timeObj time.Time) string {
+	return timeObj.Round(time.Microsecond).Format("2006-01-02T15:04:05.000000-07:00")
 }

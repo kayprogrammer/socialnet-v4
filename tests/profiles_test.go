@@ -12,6 +12,7 @@ import (
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
 	"github.com/stretchr/testify/assert"
+	_ "github.com/stretchr/testify/mock"
 )
 
 func getCities(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
@@ -167,13 +168,11 @@ func getFriends(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 					"avatar":     nil,
 					"dob":        requestee.Dob,
 					"city":       nil,
-					"created_at": requestee.CreatedAt,
-					"updated_at": requestee.UpdatedAt,
+					"created_at": ConvertDateTime(requestee.CreatedAt),
+					"updated_at": ConvertDateTime(requestee.UpdatedAt),
 				},
 			},
 		}
-		fmt.Println(expectedData)
-		fmt.Println(body["data"])
 		expectedDataJson, _ := json.Marshal(expectedData)
 		assert.Equal(t, expectedDataJson, data)
 	})
