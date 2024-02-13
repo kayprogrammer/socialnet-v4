@@ -10,14 +10,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
-	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
 	"github.com/stretchr/testify/assert"
-)
-
-var (
-	notificationManager = managers.NotificationManager{}
 )
 
 func getCities(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
@@ -247,9 +242,7 @@ func acceptOrRejectFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, b
 }
 
 func getNotifications(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
-	user := CreateTestVerifiedUser(db)
-	text := "A new update is coming!"
-	notification := notificationManager.Create(db, nil, "ADMIN", []uuid.UUID{user.ID}, nil, nil, nil, &text)
+	notification := CreateNotification(db)
 	t.Run("Retrieve Notifications", func(t *testing.T) {
 		// Test for valid response
 		url := fmt.Sprintf("%s/notifications", baseUrl)
@@ -289,6 +282,36 @@ func getNotifications(t *testing.T, app *fiber.App, db *ent.Client, baseUrl stri
 	})
 }
 
+func readNotification(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	notification := CreateNotification(db) 
+	t.Run("Read Notification", func(t *testing.T) {
+		url := fmt.Sprintf("%s/notifications", baseUrl)
+		invalidUUID := uuid.New()
+		notificationData := schemas.ReadNotificationSchema{
+			ID:            &invalidUUID,
+			MarkAllAsRead: false,
+		}
+		// Test for valid response for non-existent id
+		res := ProcessTestBody(t, app, url, "POST", notificationData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "User has no notification with that ID", body["message"])
+
+		// Test for valid response for valid entry
+		notificationData.ID = &notification.ID
+		res = ProcessTestBody(t, app, url, "POST", notificationData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "success", body["status"])
+		assert.Equal(t, "Notification read", body["message"])
+	})
+}
 func TestProfiles(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -304,6 +327,7 @@ func TestProfiles(t *testing.T) {
 	sendFriendRequest(t, app, db, BASEURL)
 	acceptOrRejectFriendRequest(t, app, db, BASEURL)
 	getNotifications(t, app, db, BASEURL)
+	readNotification(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)

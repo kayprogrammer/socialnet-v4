@@ -3,6 +3,7 @@ package tests
 import (
 	"time"
 
+	"github.com/google/uuid"
 	auth "github.com/kayprogrammer/socialnet-v4/authentication"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/ent/friend"
@@ -13,6 +14,7 @@ import (
 var (
 	userManager = managers.UserManager{}
 	friendManager = managers.FriendManager{}
+	notificationManager = managers.NotificationManager{}
 )
 
 func CreateTestUser(db *ent.Client) *ent.User {
@@ -80,6 +82,13 @@ func CreateFriend(db *ent.Client, status friend.Status) *ent.Friend {
 	return friend
 }
 
-func ConvertDateTime (timeObj time.Time) string {
+func CreateNotification(db *ent.Client) *ent.Notification {
+	user := CreateTestVerifiedUser(db)
+	text := "A new update is coming!"
+	notification := notificationManager.Create(db, nil, "ADMIN", []uuid.UUID{user.ID}, nil, nil, nil, &text)
+	return notification
+}
+
+func ConvertDateTime(timeObj time.Time) string {
 	return timeObj.Round(time.Microsecond).Format("2006-01-02T15:04:05.000000-07:00")
 }
