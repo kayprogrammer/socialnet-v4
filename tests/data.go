@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	userManager = managers.UserManager{}
-	friendManager = managers.FriendManager{}
+	userManager         = managers.UserManager{}
+	friendManager       = managers.FriendManager{}
 	notificationManager = managers.NotificationManager{}
+	chatManager = managers.ChatManager{}
 )
 
 func CreateTestUser(db *ent.Client) *ent.User {
@@ -87,6 +88,13 @@ func CreateNotification(db *ent.Client) *ent.Notification {
 	text := "A new update is coming!"
 	notification := notificationManager.Create(db, nil, "ADMIN", []uuid.UUID{user.ID}, nil, nil, nil, &text)
 	return notification
+}
+
+func CreateChat(db *ent.Client) *ent.Chat {
+	verifiedUser := CreateTestVerifiedUser(db)
+	anotherVerifiedUser := CreateAnotherTestVerifiedUser(db)
+	chat := chatManager.Create(db, verifiedUser, "DM", []*ent.User{anotherVerifiedUser})
+	return chat
 }
 
 func ConvertDateTime(timeObj time.Time) string {
