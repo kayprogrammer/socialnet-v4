@@ -136,7 +136,7 @@ func deleteProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 
 func getFriends(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	t.Run("Retrieve Friends", func(t *testing.T) {
-		friend := CreateFriend(db)
+		friend := CreateFriend(db, "ACCEPTED")
 		requestee := friend.Edges.Requestee
 
 		// Test for valid response
@@ -209,6 +209,38 @@ func sendFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, baseUrl str
 	})
 }
 
+func acceptOrRejectFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	// Drop & Create Friends data
+	friendManager.DropData(db)
+	friend := CreateFriend(db, "PENDING")
+	t.Run("Accept Or Reject Friend Request", func(t *testing.T) {
+		url := fmt.Sprintf("%s/friends/requests", baseUrl)
+		userData := schemas.AcceptFriendRequestSchema{
+			Username: "invalid_username",
+			Accepted: true,
+		}
+		// Test for valid response for non-existent user name
+		res := ProcessTestBody(t, app, url, "PUT", userData, AnotherAccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "User does not exist!", body["message"])
+
+		// Test for valid response for valid entry
+		userData.Username = friend.Edges.Requester.Username
+		res = ProcessTestBody(t, app, url, "PUT", userData, AnotherAccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "success", body["status"])
+		assert.Equal(t, "Friend Request Accepted", body["message"])
+	})
+}
+
 func TestProfiles(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -222,6 +254,7 @@ func TestProfiles(t *testing.T) {
 	deleteProfile(t, app, db, BASEURL)
 	getFriends(t, app, db, BASEURL)
 	sendFriendRequest(t, app, db, BASEURL)
+	acceptOrRejectFriendRequest(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)

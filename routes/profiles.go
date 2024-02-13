@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/gofiber/fiber/v2"
@@ -327,7 +328,7 @@ func (endpoint Endpoint) AcceptOrRejectFriendRequest(c *fiber.Ctx) error {
 		message = "Rejected"
 		db.Friend.DeleteOne(friend).Exec(managers.Ctx)
 	}
-	response := schemas.ResponseSchema{Message: message}.Init()
+	response := schemas.ResponseSchema{Message: fmt.Sprintf("Friend Request %s", message)}.Init()
 	return c.Status(200).JSON(response)
 }
 

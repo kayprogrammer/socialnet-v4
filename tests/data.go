@@ -5,6 +5,7 @@ import (
 
 	auth "github.com/kayprogrammer/socialnet-v4/authentication"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/ent/friend"
 	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 )
@@ -59,6 +60,12 @@ func AccessToken(db *ent.Client) string {
 	return *user.Access
 }
 
+func AnotherAccessToken(db *ent.Client) string {
+	user := CreateAnotherTestVerifiedUser(db)
+	user = CreateJwt(db, user)
+	return *user.Access
+}
+
 func CreateCity(db *ent.Client) *ent.City {
 	country := managers.CountryManager{}.Create(db, "Nigeria", "NG")
 	region := managers.RegionManager{}.Create(db, "Lagos", country)
@@ -66,10 +73,10 @@ func CreateCity(db *ent.Client) *ent.City {
 	return city
 }
 
-func CreateFriend(db *ent.Client) *ent.Friend {
+func CreateFriend(db *ent.Client, status friend.Status) *ent.Friend {
 	verifiedUser := CreateTestVerifiedUser(db)
 	anotherVerifiedUser := CreateAnotherTestVerifiedUser(db)
-	friend := friendManager.Create(db, verifiedUser, anotherVerifiedUser, "ACCEPTED")
+	friend := friendManager.Create(db, verifiedUser, anotherVerifiedUser, status)
 	return friend
 }
 
