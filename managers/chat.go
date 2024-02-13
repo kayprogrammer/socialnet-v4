@@ -82,6 +82,7 @@ func (obj ChatManager) Create(client *ent.Client, owner *ent.User, ctype chat.Ct
 		chatObjCreationQuery = chatObjCreationQuery.AddUsers(recipientsOpts[0]...)
 	}
 	chatObj := chatObjCreationQuery.SaveX(Ctx)
+	chatObj.Edges.Owner = owner
 	return chatObj
 }
 
