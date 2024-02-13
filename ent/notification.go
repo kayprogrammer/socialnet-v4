@@ -27,7 +27,7 @@ type Notification struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// SenderID holds the value of the "sender_id" field.
-	SenderID uuid.UUID `json:"sender_id,omitempty"`
+	SenderID *uuid.UUID `json:"sender_id,omitempty"`
 	// Ntype holds the value of the "ntype" field.
 	Ntype notification.Ntype `json:"ntype,omitempty"`
 	// PostID holds the value of the "post_id" field.
@@ -138,13 +138,13 @@ func (*Notification) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case notification.FieldPostID, notification.FieldCommentID, notification.FieldReplyID:
+		case notification.FieldSenderID, notification.FieldPostID, notification.FieldCommentID, notification.FieldReplyID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case notification.FieldNtype, notification.FieldText:
 			values[i] = new(sql.NullString)
 		case notification.FieldCreatedAt, notification.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case notification.FieldID, notification.FieldSenderID:
+		case notification.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -180,10 +180,11 @@ func (n *Notification) assignValues(columns []string, values []any) error {
 				n.UpdatedAt = value.Time
 			}
 		case notification.FieldSenderID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field sender_id", values[i])
-			} else if value != nil {
-				n.SenderID = *value
+			} else if value.Valid {
+				n.SenderID = new(uuid.UUID)
+				*n.SenderID = *value.S.(*uuid.UUID)
 			}
 		case notification.FieldNtype:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -291,8 +292,10 @@ func (n *Notification) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(n.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("sender_id=")
-	builder.WriteString(fmt.Sprintf("%v", n.SenderID))
+	if v := n.SenderID; v != nil {
+		builder.WriteString("sender_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("ntype=")
 	builder.WriteString(fmt.Sprintf("%v", n.Ntype))

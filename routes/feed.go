@@ -388,7 +388,7 @@ func (endpoint Endpoint) CreateComment(c *fiber.Ctx) error {
 
 	// Created & Send Notification
 	if user.ID != post.AuthorID {
-		notification := notificationManager.Create(db, user, "COMMENT", []uuid.UUID{post.AuthorID}, nil, comment, nil)
+		notification := notificationManager.Create(db, user, "COMMENT", []uuid.UUID{post.AuthorID}, nil, comment, nil, nil)
 		SendNotificationInSocket(c, notification, nil, nil)
 	}
 	// Convert type and return comment
@@ -472,7 +472,7 @@ func (endpoint Endpoint) CreateReply(c *fiber.Ctx) error {
 
 	// Created & Send Notification
 	if user.ID != comment.AuthorID {
-		notification := notificationManager.Create(db, user, "REPLY", []uuid.UUID{comment.AuthorID}, nil, nil, reply)
+		notification := notificationManager.Create(db, user, "REPLY", []uuid.UUID{comment.AuthorID}, nil, nil, reply, nil)
 		SendNotificationInSocket(c, notification, nil, nil)
 	}
 

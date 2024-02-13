@@ -59,6 +59,14 @@ func (nc *NotificationCreate) SetSenderID(u uuid.UUID) *NotificationCreate {
 	return nc
 }
 
+// SetNillableSenderID sets the "sender_id" field if the given value is not nil.
+func (nc *NotificationCreate) SetNillableSenderID(u *uuid.UUID) *NotificationCreate {
+	if u != nil {
+		nc.SetSenderID(*u)
+	}
+	return nc
+}
+
 // SetNtype sets the "ntype" field.
 func (nc *NotificationCreate) SetNtype(n notification.Ntype) *NotificationCreate {
 	nc.mutation.SetNtype(n)
@@ -242,9 +250,6 @@ func (nc *NotificationCreate) check() error {
 	if _, ok := nc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Notification.updated_at"`)}
 	}
-	if _, ok := nc.mutation.SenderID(); !ok {
-		return &ValidationError{Name: "sender_id", err: errors.New(`ent: missing required field "Notification.sender_id"`)}
-	}
 	if _, ok := nc.mutation.Ntype(); !ok {
 		return &ValidationError{Name: "ntype", err: errors.New(`ent: missing required field "Notification.ntype"`)}
 	}
@@ -252,9 +257,6 @@ func (nc *NotificationCreate) check() error {
 		if err := notification.NtypeValidator(v); err != nil {
 			return &ValidationError{Name: "ntype", err: fmt.Errorf(`ent: validator failed for field "Notification.ntype": %w`, err)}
 		}
-	}
-	if _, ok := nc.mutation.SenderID(); !ok {
-		return &ValidationError{Name: "sender", err: errors.New(`ent: missing required edge "Notification.sender"`)}
 	}
 	return nil
 }
@@ -321,7 +323,7 @@ func (nc *NotificationCreate) createSpec() (*Notification, *sqlgraph.CreateSpec)
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.SenderID = nodes[0]
+		_node.SenderID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := nc.mutation.ReceiversIDs(); len(nodes) > 0 {

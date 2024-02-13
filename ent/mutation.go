@@ -5860,7 +5860,7 @@ func (m *NotificationMutation) SenderID() (r uuid.UUID, exists bool) {
 // OldSenderID returns the old "sender_id" field's value of the Notification entity.
 // If the Notification object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotificationMutation) OldSenderID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *NotificationMutation) OldSenderID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSenderID is only allowed on UpdateOne operations")
 	}
@@ -5874,9 +5874,22 @@ func (m *NotificationMutation) OldSenderID(ctx context.Context) (v uuid.UUID, er
 	return oldValue.SenderID, nil
 }
 
+// ClearSenderID clears the value of the "sender_id" field.
+func (m *NotificationMutation) ClearSenderID() {
+	m.sender = nil
+	m.clearedFields[notification.FieldSenderID] = struct{}{}
+}
+
+// SenderIDCleared returns if the "sender_id" field was cleared in this mutation.
+func (m *NotificationMutation) SenderIDCleared() bool {
+	_, ok := m.clearedFields[notification.FieldSenderID]
+	return ok
+}
+
 // ResetSenderID resets all changes to the "sender_id" field.
 func (m *NotificationMutation) ResetSenderID() {
 	m.sender = nil
+	delete(m.clearedFields, notification.FieldSenderID)
 }
 
 // SetNtype sets the "ntype" field.
@@ -6119,7 +6132,7 @@ func (m *NotificationMutation) ClearSender() {
 
 // SenderCleared reports if the "sender" edge to the User entity was cleared.
 func (m *NotificationMutation) SenderCleared() bool {
-	return m.clearedsender
+	return m.SenderIDCleared() || m.clearedsender
 }
 
 // SenderIDs returns the "sender" edge IDs in the mutation.
@@ -6530,6 +6543,9 @@ func (m *NotificationMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *NotificationMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(notification.FieldSenderID) {
+		fields = append(fields, notification.FieldSenderID)
+	}
 	if m.FieldCleared(notification.FieldPostID) {
 		fields = append(fields, notification.FieldPostID)
 	}
@@ -6556,6 +6572,9 @@ func (m *NotificationMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *NotificationMutation) ClearField(name string) error {
 	switch name {
+	case notification.FieldSenderID:
+		m.ClearSenderID()
+		return nil
 	case notification.FieldPostID:
 		m.ClearPostID()
 		return nil

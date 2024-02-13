@@ -83,7 +83,7 @@ type AcceptFriendRequestSchema struct {
 type NotificationSchema struct {
 	Edges        	*ent.NotificationEdges 	`json:"edges,omitempty" swaggerignore:"true"`
 	ID				uuid.UUID				`json:"id"`
-	Sender			UserDataSchema			`json:"sender"`
+	Sender			*UserDataSchema			`json:"sender"`
 	Ntype			string					`json:"ntype" example:"REACTION"`
 	Text        	*string 				`json:"text,omitempty" swaggerignore:"true"`
 	Message			string					`json:"message" example:"John Doe reacted to your post"`
@@ -95,7 +95,11 @@ type NotificationSchema struct {
 
 func (notification NotificationSchema) Init (currentUserID *uuid.UUID) NotificationSchema {
 	// Set Related Data.
-	notification.Sender = notification.Sender.Init(notification.Edges.Sender)
+	sender := notification.Edges.Sender
+	if sender != nil {
+		senderData := UserDataSchema{}.Init(sender)
+		notification.Sender = &senderData
+	}
 
 	// Set Target slug
 	notification = notification.SetTargetSlug()

@@ -621,7 +621,10 @@ func (nq *NotificationQuery) loadSender(ctx context.Context, query *UserQuery, n
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Notification)
 	for i := range nodes {
-		fk := nodes[i].SenderID
+		if nodes[i].SenderID == nil {
+			continue
+		}
+		fk := *nodes[i].SenderID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}

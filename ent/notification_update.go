@@ -67,6 +67,12 @@ func (nu *NotificationUpdate) SetNillableSenderID(u *uuid.UUID) *NotificationUpd
 	return nu
 }
 
+// ClearSenderID clears the value of the "sender_id" field.
+func (nu *NotificationUpdate) ClearSenderID() *NotificationUpdate {
+	nu.mutation.ClearSenderID()
+	return nu
+}
+
 // SetNtype sets the "ntype" field.
 func (nu *NotificationUpdate) SetNtype(n notification.Ntype) *NotificationUpdate {
 	nu.mutation.SetNtype(n)
@@ -324,9 +330,6 @@ func (nu *NotificationUpdate) check() error {
 		if err := notification.NtypeValidator(v); err != nil {
 			return &ValidationError{Name: "ntype", err: fmt.Errorf(`ent: validator failed for field "Notification.ntype": %w`, err)}
 		}
-	}
-	if _, ok := nu.mutation.SenderID(); nu.mutation.SenderCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Notification.sender"`)
 	}
 	return nil
 }
@@ -618,6 +621,12 @@ func (nuo *NotificationUpdateOne) SetNillableSenderID(u *uuid.UUID) *Notificatio
 	return nuo
 }
 
+// ClearSenderID clears the value of the "sender_id" field.
+func (nuo *NotificationUpdateOne) ClearSenderID() *NotificationUpdateOne {
+	nuo.mutation.ClearSenderID()
+	return nuo
+}
+
 // SetNtype sets the "ntype" field.
 func (nuo *NotificationUpdateOne) SetNtype(n notification.Ntype) *NotificationUpdateOne {
 	nuo.mutation.SetNtype(n)
@@ -888,9 +897,6 @@ func (nuo *NotificationUpdateOne) check() error {
 		if err := notification.NtypeValidator(v); err != nil {
 			return &ValidationError{Name: "ntype", err: fmt.Errorf(`ent: validator failed for field "Notification.ntype": %w`, err)}
 		}
-	}
-	if _, ok := nuo.mutation.SenderID(); nuo.mutation.SenderCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Notification.sender"`)
 	}
 	return nil
 }

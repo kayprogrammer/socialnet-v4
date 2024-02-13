@@ -8,11 +8,16 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
 	"github.com/stretchr/testify/assert"
-	_ "github.com/stretchr/testify/mock"
+)
+
+var (
+	notificationManager = managers.NotificationManager{}
 )
 
 func getCities(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
@@ -241,6 +246,49 @@ func acceptOrRejectFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, b
 	})
 }
 
+func getNotifications(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	user := CreateTestVerifiedUser(db)
+	text := "A new update is coming!"
+	notification := notificationManager.Create(db, nil, "ADMIN", []uuid.UUID{user.ID}, nil, nil, nil, &text)
+	t.Run("Retrieve Notifications", func(t *testing.T) {
+		// Test for valid response
+		url := fmt.Sprintf("%s/notifications", baseUrl)
+		req := httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", AccessToken(db)))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Notifications fetched",
+			"data": map[string]interface{}{
+				"per_page":     50,
+				"current_page": 1,
+				"last_page":    1,
+				"notifications": []map[string]interface{}{
+					{
+						"id":           notification.ID,
+						"sender":       nil,
+						"ntype":        notification.Ntype,
+						"message":      notification.Text,
+						"post_slug":    nil,
+						"comment_slug": nil,
+						"reply_slug":   nil,
+						"is_read":      false,
+					},
+				},
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.Equal(t, expectedDataJson, data)
+	})
+}
+
 func TestProfiles(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -255,6 +303,7 @@ func TestProfiles(t *testing.T) {
 	getFriends(t, app, db, BASEURL)
 	sendFriendRequest(t, app, db, BASEURL)
 	acceptOrRejectFriendRequest(t, app, db, BASEURL)
+	getNotifications(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)

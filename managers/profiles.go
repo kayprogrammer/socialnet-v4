@@ -292,12 +292,16 @@ func (obj NotificationManager) ReadOne(client *ent.Client, userID uuid.UUID, not
 	return nil
 }
 
-func (obj NotificationManager) Create(client *ent.Client, sender *ent.User, ntype notification.Ntype, receiverIDs []uuid.UUID, post *ent.Post, comment *ent.Comment, reply *ent.Reply) *ent.Notification {
+func (obj NotificationManager) Create(client *ent.Client, sender *ent.User, ntype notification.Ntype, receiverIDs []uuid.UUID, post *ent.Post, comment *ent.Comment, reply *ent.Reply, text *string) *ent.Notification {
 	// Create Notification
 	nc := client.Notification.Create().
-		SetSender(sender).
 		SetNtype(ntype).
+		SetNillableText(text).
 		AddReceiverIDs(receiverIDs...)
+	
+	if sender != nil {
+		nc = nc.SetSender(sender)
+	}
 	if post != nil {
 		nc = nc.SetPost(post)
 	} else if comment != nil {
@@ -334,7 +338,7 @@ func (obj NotificationManager) GetOrCreate(client *ent.Client, sender *ent.User,
 	if n == nil {
 		created = true
 		// Create notification
-		n = obj.Create(client, sender, ntype, receiverIDs, post, comment, reply)
+		n = obj.Create(client, sender, ntype, receiverIDs, post, comment, reply, nil)
 	}
 	return n, created
 }

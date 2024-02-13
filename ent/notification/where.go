@@ -191,6 +191,16 @@ func SenderIDNotIn(vs ...uuid.UUID) predicate.Notification {
 	return predicate.Notification(sql.FieldNotIn(FieldSenderID, vs...))
 }
 
+// SenderIDIsNil applies the IsNil predicate on the "sender_id" field.
+func SenderIDIsNil() predicate.Notification {
+	return predicate.Notification(sql.FieldIsNull(FieldSenderID))
+}
+
+// SenderIDNotNil applies the NotNil predicate on the "sender_id" field.
+func SenderIDNotNil() predicate.Notification {
+	return predicate.Notification(sql.FieldNotNull(FieldSenderID))
+}
+
 // NtypeEQ applies the EQ predicate on the "ntype" field.
 func NtypeEQ(v Ntype) predicate.Notification {
 	return predicate.Notification(sql.FieldEQ(FieldNtype, v))

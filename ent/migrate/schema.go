@@ -213,7 +213,7 @@ var (
 		{Name: "comment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "post_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "reply_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "sender_id", Type: field.TypeUUID},
+		{Name: "sender_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// NotificationsTable holds the schema information for the "notifications" table.
 	NotificationsTable = &schema.Table{

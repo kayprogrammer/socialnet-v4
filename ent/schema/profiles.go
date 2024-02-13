@@ -66,7 +66,7 @@ type Notification struct {
 func (Notification) Fields() []ent.Field {
 	return append(
 		CommonFields,
-		field.UUID("sender_id", uuid.UUID{}),
+		field.UUID("sender_id", uuid.UUID{}).Nillable().Optional(),
 		field.Enum("ntype").Values("REACTION", "COMMENT", "REPLY", "ADMIN"),
 		field.UUID("post_id", uuid.UUID{}).Nillable().Optional(),    // For reactions or admin reference to a post
 		field.UUID("comment_id", uuid.UUID{}).Nillable().Optional(), // For comments and reactions
@@ -78,7 +78,7 @@ func (Notification) Fields() []ent.Field {
 // Edges of the Notification.
 func (Notification) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("sender", User.Type).Ref("notifications_from").Field("sender_id").Unique().Required(),
+		edge.From("sender", User.Type).Ref("notifications_from").Field("sender_id").Unique(),
 		edge.From("receivers", User.Type).Ref("notifications"),
 		edge.From("post", Post.Type).Ref("notifications").Field("post_id").Unique(),
 		edge.From("comment", Comment.Type).Ref("notifications").Field("comment_id").Unique(),
