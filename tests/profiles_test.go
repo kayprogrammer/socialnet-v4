@@ -133,6 +133,52 @@ func deleteProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 	})
 }
 
+func getFriends(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	t.Run("Retrieve Friends", func(t *testing.T) {
+		friend := CreateFriend(db)
+		requestee := friend.Edges.Requestee
+
+		// Test for valid response
+		url := fmt.Sprintf("%s/friends", baseUrl)
+		req := httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", AccessToken(db)))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "success", body["status"])
+		assert.Equal(t, "Friends fetched", body["message"])
+
+		data, _ := json.Marshal(body["data"])
+		expectedData := map[string]interface{}{
+			"per_page":     20,
+			"current_page": 1,
+			"last_page":    1,
+			"users": []map[string]interface{}{
+				{
+					"first_name": requestee.FirstName,
+					"last_name":  requestee.LastName,
+					"username":   requestee.Username,
+					"email":      requestee.Email,
+					"bio":        requestee.Bio,
+					"avatar":     nil,
+					"dob":        requestee.Dob,
+					"city":       nil,
+					"created_at": requestee.CreatedAt,
+					"updated_at": requestee.UpdatedAt,
+				},
+			},
+		}
+		fmt.Println(expectedData)
+		fmt.Println(body["data"])
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.Equal(t, expectedDataJson, data)
+	})
+}
+
 func TestProfiles(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -144,6 +190,7 @@ func TestProfiles(t *testing.T) {
 	getProfile(t, app, db, BASEURL)
 	updateProfile(t, app, db, BASEURL)
 	deleteProfile(t, app, db, BASEURL)
+	getFriends(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)

@@ -234,12 +234,18 @@ func (obj FriendManager) GetRequesteeAndFriendObj(client *ent.Client, userObj *e
 	return requestee, friend, nil
 }
 
-func (obj FriendManager) Create(client *ent.Client, requesterID uuid.UUID, requesteeID uuid.UUID) {
-	client.Friend.
+func (obj FriendManager) Create(client *ent.Client, requester *ent.User, requestee *ent.User, status friend.Status ) *ent.Friend {
+	friendObj := client.Friend.
 		Create().
-		SetRequesterID(requesterID).
-		SetRequesteeID(requesteeID).
+		SetStatus(status).
+		SetRequester(requester).
+		SetRequestee(requestee).
 		SaveX(Ctx)
+
+	// Set related data
+	friendObj.Edges.Requester = requester
+	friendObj.Edges.Requestee = requestee
+	return friendObj
 }
 
 func (obj FriendManager) DropData(client *ent.Client) {

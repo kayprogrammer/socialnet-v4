@@ -279,7 +279,7 @@ func (endpoint Endpoint) SendOrDeleteFriendRequest(c *fiber.Ctx) error {
 
 	} else {
 		// Create Friend Object
-		friendManager.Create(db, user.ID, requestee.ID)
+		friendManager.Create(db, user, requestee, "PENDING")
 	}
 
 	response := schemas.ResponseSchema{Message: message}.Init()

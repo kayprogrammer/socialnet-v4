@@ -346,9 +346,7 @@ func logout(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 
 		// Ensures an authorized user can log out
 		req = httptest.NewRequest("GET", url, nil)
-		user := CreateTestVerifiedUser(db)
-		user = CreateJwt(db, user)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *user.Access))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", AccessToken(db)))
 		res, _ = app.Test(req)
 
 		// Assert Status code

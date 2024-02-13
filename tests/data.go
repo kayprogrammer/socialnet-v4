@@ -62,3 +62,10 @@ func CreateCity(db *ent.Client) *ent.City {
 	city := managers.CityManager{}.Create(db, "Lekki", country, region)
 	return city
 }
+
+func CreateFriend(db *ent.Client) *ent.Friend {
+	verifiedUser := CreateTestVerifiedUser(db)
+	anotherVerifiedUser := CreateAnotherTestVerifiedUser(db)
+	friend := managers.FriendManager{}.Create(db, verifiedUser, anotherVerifiedUser, "ACCEPTED")
+	return friend
+}
