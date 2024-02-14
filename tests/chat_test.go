@@ -354,6 +354,58 @@ func deleteMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 	})
 }
 
+func createGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	user := CreateAnotherTestVerifiedUser(db)
+	token := AccessToken(db)
+	t.Run("Create A Group Chat", func(t *testing.T) {
+		url := fmt.Sprintf("%s/groups/group", baseUrl)
+		desc := "JESUS is KING"
+		chatData := schemas.GroupChatCreateSchema{Name: "New Group Chat", Description: &desc, UsernamesToAdd: []string{"invalid_username"}}
+
+		// Verify the requests fails with invalid username
+		res := ProcessTestBody(t, app, url, "POST", chatData, token)
+		// Assert Status code
+		assert.Equal(t, 422, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_INVALID_ENTRY, body["code"])
+		assert.Equal(t, "Invalid Entry", body["message"])
+		expectedDataErr := map[string]interface{}{"usernames_to_add": "Enter at least one valid username"}
+		assert.Equal(t, expectedDataErr, body["data"])
+
+		// Test for valid response for valid entry
+		chatData.UsernamesToAdd = []string{user.Username}
+		url = fmt.Sprintf("%s/groups/group", baseUrl)
+		res = ProcessTestBody(t, app, url, "POST", chatData, token)
+		// Assert Status code
+		assert.Equal(t, 201, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		dataBody := body["data"].(map[string]interface{})
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Chat created",
+			"data": map[string]interface{}{
+				"id":          dataBody["id"],
+				"name":        chatData.Name,
+				"description": chatData.Description,
+				"users": []map[string]interface{}{
+					{
+						"name":     schemas.FullName(user),
+						"username": user.Username,
+						"avatar":   nil,
+					},
+				},
+				"file_upload_data": nil,
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
 func TestChat(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -368,6 +420,7 @@ func TestChat(t *testing.T) {
 	deleteGroupChat(t, app, db, BASEURL)
 	updateMessage(t, app, db, BASEURL)
 	deleteMessage(t, app, db, BASEURL)
+	createGroupChat(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
