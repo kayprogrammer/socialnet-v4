@@ -1,6 +1,9 @@
 package tests
 
 import (
+	// "strings"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,7 +18,8 @@ var (
 	userManager         = managers.UserManager{}
 	friendManager       = managers.FriendManager{}
 	notificationManager = managers.NotificationManager{}
-	chatManager = managers.ChatManager{}
+	chatManager         = managers.ChatManager{}
+	messageManager      = managers.MessageManager{}
 )
 
 func CreateTestUser(db *ent.Client) *ent.User {
@@ -93,10 +97,49 @@ func CreateNotification(db *ent.Client) *ent.Notification {
 func CreateChat(db *ent.Client) *ent.Chat {
 	verifiedUser := CreateTestVerifiedUser(db)
 	anotherVerifiedUser := CreateAnotherTestVerifiedUser(db)
-	chat := chatManager.Create(db, verifiedUser, "DM", []*ent.User{anotherVerifiedUser})
+	chat := chatManager.GetDMChat(db, verifiedUser, anotherVerifiedUser)
+	if chat == nil {
+		chat = chatManager.Create(db, verifiedUser, "DM", []*ent.User{anotherVerifiedUser})
+	} else {
+		// Set useful related data
+		chat.Edges.Owner = verifiedUser
+	}
+	chat.Edges.Users = []*ent.User{anotherVerifiedUser}
 	return chat
 }
 
+func CreateMessage(db *ent.Client) *ent.Message {
+	messageManager.DropData(db)
+	chat := CreateChat(db)
+	text := "Hello Boss"
+	message := messageManager.Create(db, chat.Edges.Owner, chat, &text, nil)
+	return message
+}
+
+// func ConvertDateTime(timeObj time.Time) string {
+// 	// Format time with six digits for microseconds
+// 	formatted := fmt.Sprintf("%s.%06d%03d", timeObj.Format("2006-01-02T15:04:05"), timeObj.Nanosecond()/1e3, (timeObj.Nanosecond()%1e3)/1e6)
+
+// 	// Remove trailing zeros from the microseconds
+// 	for len(formatted) > 0 && (formatted[len(formatted)-1] == '0' || formatted[len(formatted)-1] == '.') {
+// 		formatted = formatted[:len(formatted)-1]
+// 	}
+
+// 	return formatted + timeObj.Format("-07:00")
+// }
+
 func ConvertDateTime(timeObj time.Time) string {
-	return timeObj.Round(time.Microsecond).Format("2006-01-02T15:04:05.000000-07:00")
+	roundedTime := timeObj.Round(time.Microsecond)
+	formatted := roundedTime.Format("2006-01-02T15:04:05")
+
+	// Get the microsecond part and round it
+	microseconds := roundedTime.Nanosecond() / 1000
+
+	// Append the rounded microsecond part to the formatted string
+	formatted = fmt.Sprintf("%s.%06d", formatted, microseconds)
+	formatted = strings.TrimRight(formatted, "0")
+	// Append the timezone information
+	formatted = fmt.Sprintf("%s%s", formatted, roundedTime.Format("-07:00"))
+
+	return formatted
 }

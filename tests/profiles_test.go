@@ -152,7 +152,6 @@ func getFriends(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		body := ParseResponseBody(t, res.Body).(map[string]interface{})
 		assert.Equal(t, "success", body["status"])
 		assert.Equal(t, "Friends fetched", body["message"])
-
 		data, _ := json.Marshal(body["data"])
 		expectedData := map[string]interface{}{
 			"per_page":     20,

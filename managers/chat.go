@@ -277,8 +277,12 @@ func (obj MessageManager) Create(client *ent.Client, sender *ent.User, chat *ent
 		messageObj.Edges.File = file
 	}
 
-	// Update Chat
-	client.Chat.UpdateOneID(messageObj.ChatID).Save(Ctx)
+	// Update Chat to intentionally update the updatedAt
+	updatedChat := chat.Update().SaveX(Ctx)
+	updatedChat.Edges.Owner = chat.Edges.Owner
+	updatedChat.Edges.Image = chat.Edges.Image
+	updatedChat.Edges.Users = chat.Edges.Users
+	messageObj.Edges.Chat = updatedChat
 	return messageObj
 }
 

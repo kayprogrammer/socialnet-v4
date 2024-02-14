@@ -128,9 +128,11 @@ func (endpoint Endpoint) RetrieveMessages(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(err)
 	}
-
 	chat := chatManager.GetSingleUserChatFullDetails(db, user, *chatID)
-
+	if chat == nil {
+		return c.Status(404).JSON(utils.RequestErr(utils.ERR_NON_EXISTENT, "User has no chat with that ID"))
+	}
+	
 	// Paginate, Convert type and return Messages
 	convertedChat := utils.ConvertStructData(chat, schemas.ChatSchema{}).(*schemas.ChatSchema)
 	paginatedData, paginatedMessages, err := PaginateQueryset(chat.Edges.Messages, c, 400)

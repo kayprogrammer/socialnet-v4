@@ -37,8 +37,6 @@ func getChats(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 }
 
 func sendMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
-	// Drop and Create Chat
-	chatManager.DropData(db)
 	chat := CreateChat(db)
 	sender := chat.Edges.Owner
 	t.Run("Send Message", func(t *testing.T) {
@@ -86,6 +84,92 @@ func sendMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	})
 }
 
+func getChatMessages(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	message := CreateMessage(db)
+	chat := message.Edges.Chat
+	owner := chat.Edges.Owner
+	accessToken := AccessToken(db)
+	t.Run("Retrieve Chat Messages", func(t *testing.T) {
+		invalidChatID := uuid.New()
+		url := fmt.Sprintf("%s/%s", baseUrl, invalidChatID)
+		req := httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		res, _ := app.Test(req)
+
+		// Verify the request fails with invalid chat ID
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, 404, res.StatusCode)
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "User has no chat with that ID", body["message"])
+
+		// Verify the request succeeds with valid chat ID
+		url = fmt.Sprintf("%s/%s", baseUrl, chat.ID)
+		req = httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		ownerData := map[string]interface{}{
+			"name":     fmt.Sprintf("%s %s", owner.FirstName, owner.LastName),
+			"username": owner.Username,
+			"avatar":   nil,
+		}
+		recipientUser := chat.Edges.Users[0]
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Messages fetched",
+			"data": map[string]interface{}{
+				"chat": map[string]interface{}{
+					"id":          chat.ID,
+					"name":        chat.Name,
+					"owner":       ownerData,
+					"ctype":       chat.Ctype,
+					"description": chat.Description,
+					"image":       nil,
+					"latest_message": map[string]interface{}{
+						"sender": ownerData,
+						"text":   message.Text,
+						"file":   nil,
+					},
+					"created_at": ConvertDateTime(chat.CreatedAt),
+					"updated_at": ConvertDateTime(chat.UpdatedAt),
+				},
+				"messages": map[string]interface{}{
+					"per_page":     400,
+					"current_page": 1,
+					"last_page":    1,
+					"items": []map[string]interface{}{
+						{
+							"id":         message.ID,
+							"chat_id":    chat.ID,
+							"sender":     ownerData,
+							"text":       message.Text,
+							"file":       nil,
+							"created_at": ConvertDateTime(message.CreatedAt),
+							"updated_at": ConvertDateTime(message.UpdatedAt),
+						},
+					},
+				},
+				"users": []map[string]interface{}{
+					{
+						"name":     fmt.Sprintf("%s %s", recipientUser.FirstName, recipientUser.LastName),
+						"username": recipientUser.Username,
+						"avatar":   nil,
+					},
+				},
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
 func TestChat(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -95,6 +179,7 @@ func TestChat(t *testing.T) {
 	// Run Chat Endpoint Tests
 	getChats(t, app, db, BASEURL)
 	sendMessage(t, app, db, BASEURL)
+	getChatMessages(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
