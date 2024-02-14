@@ -264,6 +264,58 @@ func deleteGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 	})
 }
 
+func updateMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	message := CreateMessage(db)
+	sender := message.Edges.Sender
+	token := AccessToken(db)
+	t.Run("Update A Message", func(t *testing.T) {
+		url := fmt.Sprintf("%s/messages/%s", baseUrl, uuid.New())
+		text := "Jesus is Lord"
+		messageData := schemas.MessageUpdateSchema{Text: &text}
+
+		// Test for valid response for invalid message id
+		res := ProcessTestBody(t, app, url, "PUT", messageData, token)
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "User has no message with that ID", body["message"])
+
+		// Test for valid response for valid entry
+		url = fmt.Sprintf("%s/messages/%s", baseUrl, message.ID)
+		res = ProcessTestBody(t, app, url, "PUT", messageData, token)
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Message updated",
+			"data": map[string]interface{}{
+				"id":      message.ID,
+				"chat_id": message.ChatID,
+				"sender": map[string]interface{}{
+					"name":     schemas.FullName(sender),
+					"username": sender.Username,
+					"avatar":   nil,
+				},
+				"text":        messageData.Text,
+				"created_at": ConvertDateTime(message.CreatedAt),
+				"updated_at": body["data"].(map[string]interface{})["updated_at"],
+				"file_upload_data": nil,
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+
+		// You can test for other error responses yourself
+
+	})
+}
+
 func TestChat(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -276,6 +328,7 @@ func TestChat(t *testing.T) {
 	getChatMessages(t, app, db, BASEURL)
 	updateGroupChat(t, app, db, BASEURL)
 	deleteGroupChat(t, app, db, BASEURL)
+	updateMessage(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
