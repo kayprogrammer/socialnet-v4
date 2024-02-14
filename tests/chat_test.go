@@ -69,7 +69,7 @@ func sendMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 				"id":      body["data"].(map[string]interface{})["id"],
 				"chat_id": chat.ID,
 				"sender": map[string]interface{}{
-					"name":     fmt.Sprintf("%s %s", sender.FirstName, sender.LastName),
+					"name":     schemas.FullName(sender),
 					"username": sender.Username,
 					"avatar":   nil,
 				},
@@ -116,7 +116,7 @@ func getChatMessages(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 		body = ParseResponseBody(t, res.Body).(map[string]interface{})
 		data, _ := json.Marshal(body)
 		ownerData := map[string]interface{}{
-			"name":     fmt.Sprintf("%s %s", owner.FirstName, owner.LastName),
+			"name":     schemas.FullName(owner),
 			"username": owner.Username,
 			"avatar":   nil,
 		}
@@ -158,11 +158,60 @@ func getChatMessages(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 				},
 				"users": []map[string]interface{}{
 					{
-						"name":     fmt.Sprintf("%s %s", recipientUser.FirstName, recipientUser.LastName),
+						"name":     schemas.FullName(recipientUser),
 						"username": recipientUser.Username,
 						"avatar":   nil,
 					},
 				},
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
+func updateGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	chat := CreateGroupChat(db)
+	user := chat.Edges.Users[0]
+	t.Run("Update Group Chat", func(t *testing.T) {
+		url := fmt.Sprintf("%s/%s", baseUrl, uuid.New())
+		name := "Updated Group chat name"
+		desc := "Updated group chat description"
+		chatData := schemas.GroupChatInputSchema{Name: &name, Description: &desc}
+
+		// Test for valid response for invalid chat id
+		res := ProcessTestBody(t, app, url, "PATCH", chatData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "User owns no group chat with that ID", body["message"])
+
+		// Test for valid response for valid entry
+		url = fmt.Sprintf("%s/%s", baseUrl, chat.ID)
+		res = ProcessTestBody(t, app, url, "PATCH", chatData, AccessToken(db))
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Chat updated",
+			"data": map[string]interface{}{
+				"id":          chat.ID,
+				"name":        chatData.Name,
+				"description": chatData.Description,
+				"users": []map[string]interface{}{
+					{
+						"name":     schemas.FullName(user),
+						"username": user.Username,
+						"avatar":   nil,
+					},
+				},
+				"file_upload_data": nil,
 			},
 		}
 		expectedDataJson, _ := json.Marshal(expectedData)
@@ -180,6 +229,7 @@ func TestChat(t *testing.T) {
 	getChats(t, app, db, BASEURL)
 	sendMessage(t, app, db, BASEURL)
 	getChatMessages(t, app, db, BASEURL)
+	updateGroupChat(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)

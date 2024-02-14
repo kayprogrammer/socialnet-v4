@@ -108,6 +108,16 @@ func CreateChat(db *ent.Client) *ent.Chat {
 	return chat
 }
 
+func CreateGroupChat(db *ent.Client) *ent.Chat {
+	verifiedUser := CreateTestVerifiedUser(db)
+	anotherVerifiedUser := CreateAnotherTestVerifiedUser(db)
+	chatManager.DropData(db)
+	dataToCreate := schemas.GroupChatCreateSchema{Name: "My New Group"}
+	chat := chatManager.CreateGroup(db, verifiedUser, []*ent.User{anotherVerifiedUser}, dataToCreate)
+	chat.Edges.Users = []*ent.User{anotherVerifiedUser}
+	return chat
+}
+
 func CreateMessage(db *ent.Client) *ent.Message {
 	messageManager.DropData(db)
 	chat := CreateChat(db)
@@ -115,18 +125,6 @@ func CreateMessage(db *ent.Client) *ent.Message {
 	message := messageManager.Create(db, chat.Edges.Owner, chat, &text, nil)
 	return message
 }
-
-// func ConvertDateTime(timeObj time.Time) string {
-// 	// Format time with six digits for microseconds
-// 	formatted := fmt.Sprintf("%s.%06d%03d", timeObj.Format("2006-01-02T15:04:05"), timeObj.Nanosecond()/1e3, (timeObj.Nanosecond()%1e3)/1e6)
-
-// 	// Remove trailing zeros from the microseconds
-// 	for len(formatted) > 0 && (formatted[len(formatted)-1] == '0' || formatted[len(formatted)-1] == '.') {
-// 		formatted = formatted[:len(formatted)-1]
-// 	}
-
-// 	return formatted + timeObj.Format("-07:00")
-// }
 
 func ConvertDateTime(timeObj time.Time) string {
 	roundedTime := timeObj.Round(time.Microsecond)
