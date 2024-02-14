@@ -302,9 +302,9 @@ func updateMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 					"username": sender.Username,
 					"avatar":   nil,
 				},
-				"text":        messageData.Text,
-				"created_at": ConvertDateTime(message.CreatedAt),
-				"updated_at": body["data"].(map[string]interface{})["updated_at"],
+				"text":             messageData.Text,
+				"created_at":       ConvertDateTime(message.CreatedAt),
+				"updated_at":       body["data"].(map[string]interface{})["updated_at"],
 				"file_upload_data": nil,
 			},
 		}
@@ -313,6 +313,44 @@ func updateMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 
 		// You can test for other error responses yourself
 
+	})
+}
+
+func deleteMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	message := CreateMessage(db)
+	token := AccessToken(db)
+	t.Run("Delete A Message", func(t *testing.T) {
+		url := fmt.Sprintf("%s/messages/%s", baseUrl, uuid.New())
+		// Test for valid response for invalid message id
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "User has no message with that ID", body["message"])
+
+		// Test for valid response for valid entry
+		url = fmt.Sprintf("%s/messages/%s", baseUrl, message.ID)
+		req = httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Message Deleted",
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
 	})
 }
 
@@ -329,6 +367,7 @@ func TestChat(t *testing.T) {
 	updateGroupChat(t, app, db, BASEURL)
 	deleteGroupChat(t, app, db, BASEURL)
 	updateMessage(t, app, db, BASEURL)
+	deleteMessage(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
