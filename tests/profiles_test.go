@@ -105,6 +105,7 @@ func updateProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 }
 
 func deleteProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	token := AccessToken(db)
 	t.Run("Delete Profile", func(t *testing.T) {
 		url := fmt.Sprintf("%s/profile", baseUrl)
 		userData := schemas.DeleteUserSchema{
@@ -112,7 +113,7 @@ func deleteProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 		}
 
 		// Test for valid response for invalid entry
-		res := ProcessTestBody(t, app, url, "POST", userData, AccessToken(db))
+		res := ProcessTestBody(t, app, url, "POST", userData, token)
 		// Assert Status code
 		assert.Equal(t, 422, res.StatusCode)
 
@@ -124,7 +125,7 @@ func deleteProfile(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 
 		// Test for valid response for valid entry
 		userData.Password = "testpassword"
-		res = ProcessTestBody(t, app, url, "POST", userData, AccessToken(db))
+		res = ProcessTestBody(t, app, url, "POST", userData, token)
 		// Assert Status code
 		assert.Equal(t, 200, res.StatusCode)
 		// Parse and assert body
@@ -178,6 +179,7 @@ func getFriends(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 }
 
 func sendFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	token := AccessToken(db)
 	// Drop Friends data
 	friendManager.DropData(db)
 	user := CreateAnotherTestVerifiedUser(db)
@@ -187,7 +189,7 @@ func sendFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, baseUrl str
 			Username: "invalid_username",
 		}
 		// Test for valid response for non-existent user name
-		res := ProcessTestBody(t, app, url, "POST", userData, AccessToken(db))
+		res := ProcessTestBody(t, app, url, "POST", userData, token)
 		// Assert Status code
 		assert.Equal(t, 404, res.StatusCode)
 		// Parse and assert body
@@ -198,7 +200,7 @@ func sendFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, baseUrl str
 
 		// Test for valid response for valid entry
 		userData.Username = user.Username
-		res = ProcessTestBody(t, app, url, "POST", userData, AccessToken(db))
+		res = ProcessTestBody(t, app, url, "POST", userData, token)
 		// Assert Status code
 		assert.Equal(t, 201, res.StatusCode)
 		// Parse and assert body
@@ -209,6 +211,7 @@ func sendFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, baseUrl str
 }
 
 func acceptOrRejectFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	token := AnotherAccessToken(db)
 	// Drop & Create Friends data
 	friendManager.DropData(db)
 	friend := CreateFriend(db, "PENDING")
@@ -219,7 +222,7 @@ func acceptOrRejectFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, b
 			Accepted: true,
 		}
 		// Test for valid response for non-existent user name
-		res := ProcessTestBody(t, app, url, "PUT", userData, AnotherAccessToken(db))
+		res := ProcessTestBody(t, app, url, "PUT", userData, token)
 		// Assert Status code
 		assert.Equal(t, 404, res.StatusCode)
 		// Parse and assert body
@@ -230,7 +233,7 @@ func acceptOrRejectFriendRequest(t *testing.T, app *fiber.App, db *ent.Client, b
 
 		// Test for valid response for valid entry
 		userData.Username = friend.Edges.Requester.Username
-		res = ProcessTestBody(t, app, url, "PUT", userData, AnotherAccessToken(db))
+		res = ProcessTestBody(t, app, url, "PUT", userData, token)
 		// Assert Status code
 		assert.Equal(t, 200, res.StatusCode)
 		// Parse and assert body
@@ -282,6 +285,7 @@ func getNotifications(t *testing.T, app *fiber.App, db *ent.Client, baseUrl stri
 }
 
 func readNotification(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	token := AccessToken(db)
 	notification := CreateNotification(db) 
 	t.Run("Read Notification", func(t *testing.T) {
 		url := fmt.Sprintf("%s/notifications", baseUrl)
@@ -291,7 +295,7 @@ func readNotification(t *testing.T, app *fiber.App, db *ent.Client, baseUrl stri
 			MarkAllAsRead: false,
 		}
 		// Test for valid response for non-existent id
-		res := ProcessTestBody(t, app, url, "POST", notificationData, AccessToken(db))
+		res := ProcessTestBody(t, app, url, "POST", notificationData, token)
 		// Assert Status code
 		assert.Equal(t, 404, res.StatusCode)
 		// Parse and assert body
@@ -302,7 +306,7 @@ func readNotification(t *testing.T, app *fiber.App, db *ent.Client, baseUrl stri
 
 		// Test for valid response for valid entry
 		notificationData.ID = &notification.ID
-		res = ProcessTestBody(t, app, url, "POST", notificationData, AccessToken(db))
+		res = ProcessTestBody(t, app, url, "POST", notificationData, token)
 		// Assert Status code
 		assert.Equal(t, 200, res.StatusCode)
 		// Parse and assert body

@@ -39,13 +39,14 @@ func getChats(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 func sendMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	chat := CreateChat(db)
 	sender := chat.Edges.Owner
+	token := AccessToken(db)
 	t.Run("Send Message", func(t *testing.T) {
 		url := baseUrl
 		invalidUUID := uuid.New()
 		text := "JESUS is KING"
 		messageData := schemas.MessageCreateSchema{ChatID: &invalidUUID, Text: &text}
 		// Test for valid response for invalid chat id
-		res := ProcessTestBody(t, app, url, "POST", messageData, AccessToken(db))
+		res := ProcessTestBody(t, app, url, "POST", messageData, token)
 		// Assert Status code
 		assert.Equal(t, 404, res.StatusCode)
 		// Parse and assert body
@@ -56,7 +57,7 @@ func sendMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 
 		// Test for valid response for valid entry
 		messageData.ChatID = &chat.ID
-		res = ProcessTestBody(t, app, url, "POST", messageData, AccessToken(db))
+		res = ProcessTestBody(t, app, url, "POST", messageData, token)
 		// Assert Status code
 		assert.Equal(t, 201, res.StatusCode)
 		// Parse and assert body
@@ -88,12 +89,12 @@ func getChatMessages(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 	message := CreateMessage(db)
 	chat := message.Edges.Chat
 	owner := chat.Edges.Owner
-	accessToken := AccessToken(db)
+	token := AccessToken(db)
 	t.Run("Retrieve Chat Messages", func(t *testing.T) {
 		invalidChatID := uuid.New()
 		url := fmt.Sprintf("%s/%s", baseUrl, invalidChatID)
 		req := httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ := app.Test(req)
 
 		// Verify the request fails with invalid chat ID
@@ -106,7 +107,7 @@ func getChatMessages(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 		// Verify the request succeeds with valid chat ID
 		url = fmt.Sprintf("%s/%s", baseUrl, chat.ID)
 		req = httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ = app.Test(req)
 
 		// Assert Status code
@@ -173,6 +174,7 @@ func getChatMessages(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 func updateGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	chat := CreateGroupChat(db)
 	user := chat.Edges.Users[0]
+	token := AccessToken(db)
 	t.Run("Update Group Chat", func(t *testing.T) {
 		url := fmt.Sprintf("%s/%s", baseUrl, uuid.New())
 		name := "Updated Group chat name"
@@ -180,7 +182,7 @@ func updateGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 		chatData := schemas.GroupChatInputSchema{Name: &name, Description: &desc}
 
 		// Test for valid response for invalid chat id
-		res := ProcessTestBody(t, app, url, "PATCH", chatData, AccessToken(db))
+		res := ProcessTestBody(t, app, url, "PATCH", chatData, token)
 		// Assert Status code
 		assert.Equal(t, 404, res.StatusCode)
 		// Parse and assert body
@@ -191,7 +193,7 @@ func updateGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 
 		// Test for valid response for valid entry
 		url = fmt.Sprintf("%s/%s", baseUrl, chat.ID)
-		res = ProcessTestBody(t, app, url, "PATCH", chatData, AccessToken(db))
+		res = ProcessTestBody(t, app, url, "PATCH", chatData, token)
 		// Assert Status code
 		assert.Equal(t, 200, res.StatusCode)
 		// Parse and assert body
@@ -216,6 +218,49 @@ func updateGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 		}
 		expectedDataJson, _ := json.Marshal(expectedData)
 		assert.JSONEq(t, string(expectedDataJson), string(data))
+
+		// You can test for other error responses yourself
+
+	})
+}
+
+func deleteGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	chat := CreateGroupChat(db)
+	token := AccessToken(db)
+	t.Run("Delete Group Chat", func(t *testing.T) {
+		url := fmt.Sprintf("%s/%s", baseUrl, uuid.New())
+		// Test for valid response for invalid chat id
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "User owns no group chat with that ID", body["message"])
+
+		// Test for valid response for valid entry
+		url = fmt.Sprintf("%s/%s", baseUrl, chat.ID)
+		req = httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Group Chat Deleted",
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+		// You can test for other error responses yourself
+
 	})
 }
 
@@ -230,6 +275,7 @@ func TestChat(t *testing.T) {
 	sendMessage(t, app, db, BASEURL)
 	getChatMessages(t, app, db, BASEURL)
 	updateGroupChat(t, app, db, BASEURL)
+	deleteGroupChat(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
