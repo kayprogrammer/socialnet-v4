@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
+	"github.com/kayprogrammer/socialnet-v4/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -62,7 +63,7 @@ func getPosts(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 func createPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	sender := CreateTestVerifiedUser(db)
 	token := AccessToken(db)
-	t.Run("Send Message", func(t *testing.T) {
+	t.Run("Create Post", func(t *testing.T) {
 		url := fmt.Sprintf("%s/posts", baseUrl)
 		postData := schemas.PostInputSchema{Text: "My new Post"}
 
@@ -96,6 +97,60 @@ func createPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	})
 }
 
+func getPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	post := CreatePost(db)
+	user := post.Edges.Author
+	token := AccessToken(db)
+	t.Run("Retrieve Post", func(t *testing.T) {
+		// Test for post with invalid slug
+		url := fmt.Sprintf("%s/posts/invalid_slug", baseUrl)
+		req := httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "Post does not exist", body["message"])
+
+		// Test for post with valid slug
+		url = fmt.Sprintf("%s/posts/%s", baseUrl, post.Slug)
+		req = httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Post Detail fetched",
+			"data": map[string]interface{}{
+				"author": map[string]interface{}{
+					"name":     schemas.FullName(user),
+					"username": user.Username,
+					"avatar":   nil,
+				},
+				"text":            post.Text,
+				"slug":            post.Slug,
+				"reactions_count": 0,
+				"comments_count":  0,
+				"image":           nil,
+				"created_at":      ConvertDateTime(post.CreatedAt),
+				"updated_at":      ConvertDateTime(post.UpdatedAt),
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -105,6 +160,7 @@ func TestFeed(t *testing.T) {
 	// Run Feed Endpoint Tests
 	getPosts(t, app, db, BASEURL)
 	createPost(t, app, db, BASEURL)
+	getPost(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
