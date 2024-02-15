@@ -18,11 +18,9 @@ import (
 func getPosts(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	post := CreatePost(db)
 	user := post.Edges.Author
-	token := AccessToken(db)
 	t.Run("Retrieve Posts", func(t *testing.T) {
 		url := fmt.Sprintf("%s/posts", baseUrl)
 		req := httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ := app.Test(req)
 
 		// Assert Status code
@@ -93,12 +91,10 @@ func createPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 func getPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	post := CreatePost(db)
 	user := post.Edges.Author
-	token := AccessToken(db)
 	t.Run("Retrieve Post", func(t *testing.T) {
 		// Test for post with invalid slug
 		url := fmt.Sprintf("%s/posts/invalid_slug", baseUrl)
 		req := httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ := app.Test(req)
 
 		// Assert Status code
@@ -112,7 +108,6 @@ func getPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		// Test for post with valid slug
 		url = fmt.Sprintf("%s/posts/%s", baseUrl, post.Slug)
 		req = httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ = app.Test(req)
 
 		// Assert Status code
@@ -239,12 +234,10 @@ func getReactions(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) 
 	reaction := CreateReaction(db)
 	user := reaction.Edges.User
 	post := reaction.Edges.Post
-	token := AccessToken(db)
 	t.Run("Retrieve Reactions", func(t *testing.T) {
 		// Test for invalid focus_value
 		url := fmt.Sprintf("%s/reactions/invalid_focus/%s", baseUrl, post.Slug)
 		req := httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ := app.Test(req)
 
 		// Assert Status code
@@ -258,7 +251,6 @@ func getReactions(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) 
 		// Test for invalid slug
 		url = fmt.Sprintf("%s/reactions/POST/invalid_slug", baseUrl)
 		req = httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ = app.Test(req)
 
 		// Assert Status code
@@ -272,7 +264,6 @@ func getReactions(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) 
 		// Test for valid values
 		url = fmt.Sprintf("%s/reactions/POST/%s", baseUrl, post.Slug)
 		req = httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ = app.Test(req)
 
 		// Assert Status code
@@ -371,12 +362,10 @@ func getComments(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	comment := CreateComment(db)
 	user := comment.Edges.Author
 	post := comment.Edges.Post
-	token := AccessToken(db)
 	t.Run("Retrieve Comments", func(t *testing.T) {
 		// Test for invalid slug
 		url := fmt.Sprintf("%s/posts/invalid_slug/comments", baseUrl)
 		req := httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ := app.Test(req)
 
 		// Assert Status code
@@ -390,7 +379,6 @@ func getComments(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		// Test for valid values
 		url = fmt.Sprintf("%s/posts/%s/comments", baseUrl, post.Slug)
 		req = httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ = app.Test(req)
 
 		// Assert Status code
@@ -456,12 +444,10 @@ func getCommentWithReplies(t *testing.T, app *fiber.App, db *ent.Client, baseUrl
 	reply := CreateReply(db)
 	comment := reply.Edges.Comment
 	user := GetUserMap(reply.Edges.Author)
-	token := AccessToken(db)
 	t.Run("Retrieve Comment With Replies", func(t *testing.T) {
 		// Test for comment slug
 		url := fmt.Sprintf("%s/comments/invalid_slug", baseUrl)
 		req := httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ := app.Test(req)
 
 		// Assert Status code
@@ -475,7 +461,6 @@ func getCommentWithReplies(t *testing.T, app *fiber.App, db *ent.Client, baseUrl
 		// Test for valid values
 		url = fmt.Sprintf("%s/comments/%s", baseUrl, comment.Slug)
 		req = httptest.NewRequest("GET", url, nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		res, _ = app.Test(req)
 
 		// Assert Status code
@@ -515,6 +500,34 @@ func getCommentWithReplies(t *testing.T, app *fiber.App, db *ent.Client, baseUrl
 	})
 }
 
+func createReply(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	comment := CreateComment(db)
+	user := comment.Edges.Author
+	token := AccessToken(db)
+	t.Run("Create Reply", func(t *testing.T) {
+		url := fmt.Sprintf("%s/comments/%s", baseUrl, comment.Slug)
+		replyData := schemas.CommentInputSchema{Text: "New Cool reply"}
+
+		res := ProcessTestBody(t, app, url, "POST", replyData, token)
+		// Assert Status code
+		assert.Equal(t, 201, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Reply created",
+			"data": map[string]interface{}{
+				"author":          GetUserMap(user),
+				"slug":            body["data"].(map[string]interface{})["slug"],
+				"text":            replyData.Text,
+				"reactions_count": 0,
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -533,6 +546,7 @@ func TestFeed(t *testing.T) {
 	getComments(t, app, db, BASEURL)
 	createComment(t, app, db, BASEURL)
 	getCommentWithReplies(t, app, db, BASEURL)
+	createReply(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
