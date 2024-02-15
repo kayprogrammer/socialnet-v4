@@ -301,6 +301,33 @@ func getReactions(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) 
 	})
 }
 
+func createReaction(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	post := CreatePost(db)
+	token := AccessToken(db)
+	t.Run("Create Reaction", func(t *testing.T) {
+		url := fmt.Sprintf("%s/reactions/POST/%s", baseUrl, post.Slug)
+		reactionData := schemas.ReactionInputSchema{Rtype: "LIKE"}
+
+		res := ProcessTestBody(t, app, url, "POST", reactionData, token)
+		// Assert Status code
+		assert.Equal(t, 201, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Reaction created",
+			"data": map[string]interface{}{
+				"id":    body["data"].(map[string]interface{})["id"],
+				"user":  GetUserMap(post.Edges.Author),
+				"rtype": reactionData.Rtype,
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -314,6 +341,7 @@ func TestFeed(t *testing.T) {
 	updatePost(t, app, db, BASEURL)
 	deletePost(t, app, db, BASEURL)
 	getReactions(t, app, db, BASEURL)
+	createReaction(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
