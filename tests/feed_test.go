@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
@@ -328,6 +329,43 @@ func createReaction(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string
 	})
 }
 
+func deleteReaction(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	reaction := CreateReaction(db)
+	token := AccessToken(db)
+	t.Run("Delete A Reaction", func(t *testing.T) {
+		url := fmt.Sprintf("%s/reactions/%s", baseUrl, uuid.New())
+		// Test for valid response for invalid reaction id
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "Reaction does not exist", body["message"])
+
+		// Test for valid response for valid entry
+		url = fmt.Sprintf("%s/reactions/%s", baseUrl, reaction.ID)
+		req = httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Reaction Deleted",
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -342,6 +380,7 @@ func TestFeed(t *testing.T) {
 	deletePost(t, app, db, BASEURL)
 	getReactions(t, app, db, BASEURL)
 	createReaction(t, app, db, BASEURL)
+	deleteReaction(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
