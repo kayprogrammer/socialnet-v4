@@ -421,6 +421,37 @@ func getComments(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		assert.JSONEq(t, string(expectedDataJson), string(data))
 	})
 }
+
+func createComment(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	post := CreatePost(db)
+	user := post.Edges.Author
+	token := AccessToken(db)
+	t.Run("Create Comment", func(t *testing.T) {
+		url := fmt.Sprintf("%s/posts/%s/comments", baseUrl, post.Slug)
+		commentData := schemas.CommentInputSchema{Text: "My new comment"}
+
+		res := ProcessTestBody(t, app, url, "POST", commentData, token)
+		// Assert Status code
+		assert.Equal(t, 201, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Comment created",
+			"data": map[string]interface{}{
+				"author":          GetUserMap(user),
+				"slug":            body["data"].(map[string]interface{})["slug"],
+				"text":            commentData.Text,
+				"reactions_count": 0,
+				"replies_count":   0,
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -437,6 +468,7 @@ func TestFeed(t *testing.T) {
 	createReaction(t, app, db, BASEURL)
 	deleteReaction(t, app, db, BASEURL)
 	getComments(t, app, db, BASEURL)
+	createComment(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
