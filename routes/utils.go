@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -27,6 +28,10 @@ func ValidateReactionFocus(focus string) *utils.ErrorResponse {
 }
 
 func SendNotificationInSocket(fiberCtx *fiber.Ctx, notification *ent.Notification, commentSlug *string, replySlug *string, statusOpts ...string) error {
+	if os.Getenv("ENVIRONMENT") == "TESTING" {
+		return nil
+	}
+	
 	// Check if page size is provided as an argument
 	status := "CREATED"
 	if len(statusOpts) > 0 {
@@ -80,7 +85,9 @@ func SendNotificationInSocket(fiberCtx *fiber.Ctx, notification *ent.Notificatio
 }
 
 func SendMessageDeletionInSocket(fiberCtx *fiber.Ctx, chatID uuid.UUID, messageID uuid.UUID) error {
-	// Check if page size is provided as an argument
+	if os.Getenv("ENVIRONMENT") == "TESTING" {
+		return nil
+	}
 	webSocketScheme := "ws://"
 	if fiberCtx.Secure() {
 		webSocketScheme = "wss://"

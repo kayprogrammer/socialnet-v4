@@ -133,6 +133,14 @@ func CreatePost(db *ent.Client) *ent.Post {
 	return post
 }
 
+func GetUserMap(user *ent.User) map[string]interface{} {
+	return map[string]interface{}{
+		"name":     schemas.FullName(user),
+		"username": user.Username,
+		"avatar":   nil,
+	}
+}
+
 func ConvertDateTime(timeObj time.Time) string {
 	roundedTime := timeObj.Round(time.Microsecond)
 	formatted := roundedTime.Format("2006-01-02T15:04:05")

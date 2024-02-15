@@ -67,13 +67,9 @@ func sendMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 			"status":  "success",
 			"message": "Message sent",
 			"data": map[string]interface{}{
-				"id":      body["data"].(map[string]interface{})["id"],
-				"chat_id": chat.ID,
-				"sender": map[string]interface{}{
-					"name":     schemas.FullName(sender),
-					"username": sender.Username,
-					"avatar":   nil,
-				},
+				"id":               body["data"].(map[string]interface{})["id"],
+				"chat_id":          chat.ID,
+				"sender":           GetUserMap(sender),
 				"text":             messageData.Text,
 				"created_at":       body["data"].(map[string]interface{})["created_at"],
 				"updated_at":       body["data"].(map[string]interface{})["updated_at"],
@@ -116,11 +112,7 @@ func getChatMessages(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 		// Parse and assert body
 		body = ParseResponseBody(t, res.Body).(map[string]interface{})
 		data, _ := json.Marshal(body)
-		ownerData := map[string]interface{}{
-			"name":     schemas.FullName(owner),
-			"username": owner.Username,
-			"avatar":   nil,
-		}
+		ownerData := GetUserMap(owner)
 		recipientUser := chat.Edges.Users[0]
 		expectedData := map[string]interface{}{
 			"status":  "success",
@@ -158,11 +150,7 @@ func getChatMessages(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 					},
 				},
 				"users": []map[string]interface{}{
-					{
-						"name":     schemas.FullName(recipientUser),
-						"username": recipientUser.Username,
-						"avatar":   nil,
-					},
+					GetUserMap(recipientUser),
 				},
 			},
 		}
@@ -207,11 +195,7 @@ func updateGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 				"name":        chatData.Name,
 				"description": chatData.Description,
 				"users": []map[string]interface{}{
-					{
-						"name":     schemas.FullName(user),
-						"username": user.Username,
-						"avatar":   nil,
-					},
+					GetUserMap(user),
 				},
 				"file_upload_data": nil,
 			},
@@ -295,13 +279,9 @@ func updateMessage(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 			"status":  "success",
 			"message": "Message updated",
 			"data": map[string]interface{}{
-				"id":      message.ID,
-				"chat_id": message.ChatID,
-				"sender": map[string]interface{}{
-					"name":     schemas.FullName(sender),
-					"username": sender.Username,
-					"avatar":   nil,
-				},
+				"id":               message.ID,
+				"chat_id":          message.ChatID,
+				"sender":           GetUserMap(sender),
 				"text":             messageData.Text,
 				"created_at":       ConvertDateTime(message.CreatedAt),
 				"updated_at":       body["data"].(map[string]interface{})["updated_at"],
@@ -392,11 +372,7 @@ func createGroupChat(t *testing.T, app *fiber.App, db *ent.Client, baseUrl strin
 				"name":        chatData.Name,
 				"description": chatData.Description,
 				"users": []map[string]interface{}{
-					{
-						"name":     schemas.FullName(user),
-						"username": user.Username,
-						"avatar":   nil,
-					},
+					GetUserMap(user),
 				},
 				"file_upload_data": nil,
 			},
