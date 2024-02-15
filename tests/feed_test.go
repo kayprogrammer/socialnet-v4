@@ -234,6 +234,73 @@ func deletePost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 	})
 }
 
+func getReactions(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	reaction := CreateReaction(db)
+	user := reaction.Edges.User
+	post := reaction.Edges.Post
+	token := AccessToken(db)
+	t.Run("Retrieve Reactions", func(t *testing.T) {
+		// Test for invalid focus_value
+		url := fmt.Sprintf("%s/reactions/invalid_focus/%s", baseUrl, post.Slug)
+		req := httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_INVALID_VALUE, body["code"])
+		assert.Equal(t, "Invalid 'focus' value", body["message"])
+
+		// Test for invalid slug
+		url = fmt.Sprintf("%s/reactions/POST/invalid_slug", baseUrl)
+		req = httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "Post does not exist", body["message"])
+
+		// Test for valid values
+		url = fmt.Sprintf("%s/reactions/POST/%s", baseUrl, post.Slug)
+		req = httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Reactions fetched",
+			"data": map[string]interface{}{
+				"per_page":     50,
+				"current_page": 1,
+				"last_page":    1,
+				"reactions": []map[string]interface{}{
+					{
+						"id":    reaction.ID,
+						"user":  GetUserMap(user),
+						"rtype": reaction.Rtype,
+					},
+				},
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -246,6 +313,7 @@ func TestFeed(t *testing.T) {
 	getPost(t, app, db, BASEURL)
 	updatePost(t, app, db, BASEURL)
 	deletePost(t, app, db, BASEURL)
+	getReactions(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)

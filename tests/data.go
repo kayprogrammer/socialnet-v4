@@ -20,7 +20,8 @@ var (
 	notificationManager = managers.NotificationManager{}
 	chatManager         = managers.ChatManager{}
 	messageManager      = managers.MessageManager{}
-	postManager      = managers.PostManager{}
+	postManager         = managers.PostManager{}
+	reactionManager     = managers.ReactionManager{}
 )
 
 func CreateTestUser(db *ent.Client) *ent.User {
@@ -133,6 +134,15 @@ func CreatePost(db *ent.Client) *ent.Post {
 	return post
 }
 
+func CreateReaction(db *ent.Client) *ent.Reaction {
+	post := CreatePost(db)
+	reaction := reactionManager.Create(db, post.AuthorID, "POST", post.ID, "LIKE")
+	reaction.Edges.Post = post
+	reaction.Edges.User = post.Edges.Author
+	return reaction
+}
+
+// Utils
 func GetUserMap(user *ent.User) map[string]interface{} {
 	return map[string]interface{}{
 		"name":     schemas.FullName(user),
