@@ -39,7 +39,7 @@ func getPosts(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 				"last_page":    1,
 				"posts": []map[string]interface{}{
 					{
-						"author": GetUserMap(user),
+						"author":          GetUserMap(user),
 						"text":            post.Text,
 						"slug":            post.Slug,
 						"reactions_count": 0,
@@ -74,7 +74,7 @@ func createPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 			"status":  "success",
 			"message": "Post created",
 			"data": map[string]interface{}{
-				"author": GetUserMap(sender),
+				"author":           GetUserMap(sender),
 				"text":             postData.Text,
 				"slug":             dataRep["slug"],
 				"reactions_count":  0,
@@ -124,7 +124,7 @@ func getPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 			"status":  "success",
 			"message": "Post Detail fetched",
 			"data": map[string]interface{}{
-				"author": GetUserMap(user),
+				"author":          GetUserMap(user),
 				"text":            post.Text,
 				"slug":            post.Slug,
 				"reactions_count": 0,
@@ -157,7 +157,7 @@ func updatePost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		assert.Equal(t, "failure", body["status"])
 		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
 		assert.Equal(t, "Post does not exist", body["message"])
-		
+
 		// Check if endpoint fails for invalid owner
 		url = fmt.Sprintf("%s/posts/%s", baseUrl, post.Slug)
 		res = ProcessTestBody(t, app, url, "PUT", postData, AnotherAccessToken(db))
@@ -181,7 +181,7 @@ func updatePost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 			"status":  "success",
 			"message": "Post updated",
 			"data": map[string]interface{}{
-				"author": GetUserMap(user),
+				"author":           GetUserMap(user),
 				"text":             postData.Text,
 				"slug":             dataRep["slug"],
 				"reactions_count":  0,
@@ -190,6 +190,44 @@ func updatePost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 				"updated_at":       dataRep["updated_at"],
 				"file_upload_data": nil,
 			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
+func deletePost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	post := CreatePost(db)
+	token := AccessToken(db)
+	t.Run("Delete A Post", func(t *testing.T) {
+		url := fmt.Sprintf("%s/posts/invalid_slug", baseUrl)
+		// Test for valid response for invalid post id
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "Post does not exist", body["message"])
+
+		// Test for valid response for valid entry
+		url = fmt.Sprintf("%s/posts/%s", baseUrl, post.Slug)
+		req = httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Post Deleted",
 		}
 		expectedDataJson, _ := json.Marshal(expectedData)
 		assert.JSONEq(t, string(expectedDataJson), string(data))
@@ -207,6 +245,7 @@ func TestFeed(t *testing.T) {
 	createPost(t, app, db, BASEURL)
 	getPost(t, app, db, BASEURL)
 	updatePost(t, app, db, BASEURL)
+	deletePost(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
