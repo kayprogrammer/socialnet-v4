@@ -452,6 +452,69 @@ func createComment(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string)
 	})
 }
 
+func getCommentWithReplies(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	reply := CreateReply(db)
+	comment := reply.Edges.Comment
+	user := GetUserMap(reply.Edges.Author)
+	token := AccessToken(db)
+	t.Run("Retrieve Comment With Replies", func(t *testing.T) {
+		// Test for comment slug
+		url := fmt.Sprintf("%s/comments/invalid_slug", baseUrl)
+		req := httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "Comment does not exist", body["message"])
+
+		// Test for valid values
+		url = fmt.Sprintf("%s/comments/%s", baseUrl, comment.Slug)
+		req = httptest.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Comment with replies fetched",
+			"data": map[string]interface{}{
+				"comment": map[string]interface{}{
+					"author":          user,
+					"slug":            comment.Slug,
+					"text":            comment.Text,
+					"reactions_count": 0,
+					"replies_count":   1,
+				},
+				"replies": map[string]interface{}{
+					"per_page":     50,
+					"current_page": 1,
+					"last_page":    1,
+					"items": []map[string]interface{}{
+						{
+							"author":          user,
+							"slug":            reply.Slug,
+							"text":            reply.Text,
+							"reactions_count": 0,
+						},
+					},
+				},
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -469,6 +532,7 @@ func TestFeed(t *testing.T) {
 	deleteReaction(t, app, db, BASEURL)
 	getComments(t, app, db, BASEURL)
 	createComment(t, app, db, BASEURL)
+	getCommentWithReplies(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
