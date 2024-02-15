@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/kayprogrammer/socialnet-v4/ent"
+	"github.com/kayprogrammer/socialnet-v4/managers"
 	"github.com/kayprogrammer/socialnet-v4/schemas"
 	"github.com/kayprogrammer/socialnet-v4/utils"
 	"github.com/stretchr/testify/assert"
@@ -528,6 +529,158 @@ func createReply(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		assert.JSONEq(t, string(expectedDataJson), string(data))
 	})
 }
+
+func updateComment(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	comment := CreateComment(db)
+	user := comment.Edges.Author
+	token := AccessToken(db)
+	t.Run("Update Comment", func(t *testing.T) {
+		url := fmt.Sprintf("%s/comments/%s", baseUrl, comment.Slug)
+		commentData := schemas.CommentInputSchema{Text: "New updated comment"}
+
+		res := ProcessTestBody(t, app, url, "PUT", commentData, token)
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Comment updated",
+			"data": map[string]interface{}{
+				"author":          GetUserMap(user),
+				"slug":            comment.Slug,
+				"text":            commentData.Text,
+				"reactions_count": 0,
+				"replies_count":   len(comment.QueryReplies().AllX(managers.Ctx)),
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
+func deleteComment(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	comment := CreateComment(db)
+	token := AccessToken(db)
+	t.Run("Delete A Comment", func(t *testing.T) {
+		url := fmt.Sprintf("%s/comments/%s", baseUrl, comment.Slug)
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Comment Deleted",
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+	// You can test for other error responses yourself
+}
+
+func getReply(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	reply := CreateReply(db)
+	user := reply.Edges.Author
+	t.Run("Retrieve Reply", func(t *testing.T) {
+		// Test for reply with invalid slug
+		url := fmt.Sprintf("%s/replies/invalid_slug", baseUrl)
+		req := httptest.NewRequest("GET", url, nil)
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 404, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		assert.Equal(t, "failure", body["status"])
+		assert.Equal(t, utils.ERR_NON_EXISTENT, body["code"])
+		assert.Equal(t, "Reply does not exist", body["message"])
+
+		// Test for reply with valid slug
+		url = fmt.Sprintf("%s/replies/%s", baseUrl, reply.Slug)
+		req = httptest.NewRequest("GET", url, nil)
+		res, _ = app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+
+		// Parse and assert body
+		body = ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Reply Fetched",
+			"data": map[string]interface{}{
+				"author":          GetUserMap(user),
+				"slug":            reply.Slug,
+				"text":            reply.Text,
+				"reactions_count": 0,
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
+func updateReply(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	reply := CreateReply(db)
+	user := reply.Edges.Author
+	token := AccessToken(db)
+	t.Run("Update A Reply", func(t *testing.T) {
+		url := fmt.Sprintf("%s/replies/%s", baseUrl, reply.Slug)
+		replyData := schemas.CommentInputSchema{Text: "New updated reply"}
+
+		res := ProcessTestBody(t, app, url, "PUT", replyData, token)
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Reply updated",
+			"data": map[string]interface{}{
+				"author":          GetUserMap(user),
+				"slug":            reply.Slug,
+				"text":            replyData.Text,
+				"reactions_count": 0,
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+	// You can test for other error responses yourself
+}
+
+func deleteReply(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	reply := CreateReply(db)
+	token := AccessToken(db)
+	t.Run("Delete A Reply", func(t *testing.T) {
+		url := fmt.Sprintf("%s/replies/%s", baseUrl, reply.Slug)
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		res, _ := app.Test(req)
+
+		// Assert Status code
+		assert.Equal(t, 200, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Reply Deleted",
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+	// You can test for other error responses yourself
+}
+
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -547,6 +700,11 @@ func TestFeed(t *testing.T) {
 	createComment(t, app, db, BASEURL)
 	getCommentWithReplies(t, app, db, BASEURL)
 	createReply(t, app, db, BASEURL)
+	updateComment(t, app, db, BASEURL)
+	deleteComment(t, app, db, BASEURL)
+	getReply(t, app, db, BASEURL)
+	updateReply(t, app, db, BASEURL)
+	deleteReply(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
