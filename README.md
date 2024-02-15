@@ -1,11 +1,11 @@
-# SOCIALNET V4 (WORK IN PROGRESS)
-A realtime social networking API built with Fiber 
+# SOCIALNET V4
+A realtime social networking API built with Fiber & ENT ORM
 
 ![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/fiber.png?raw=true)
 
 
 #### FIBER DOCS: [Documentation](https://docs.gofiber.io/)
-<!-- #### GORM DOCS: [Documentation](https://gorm.io/) -->
+#### ENT DOCS: [Documentation](https://entgo.io/docs/getting-started/)
 #### PG ADMIN: [Documentation](https://pgadmin.org) 
 
 
@@ -46,21 +46,14 @@ OR
 ```bash
     $ make test
 ```
-<!-- 
-## Docs
-#### API Url: [BidOut Docs](http://127.0.0.1:8000/) 
-#### Swagger: [Documentation](https://swagger.io/docs/)
 
-![alt text](https://github.com/kayprogrammer/bidout-auction-v7/blob/main/display/display1.png?raw=true)
-
-![alt text](https://github.com/kayprogrammer/bidout-auction-v7/blob/main/display/display2.png?raw=true)
-
-![alt text](https://github.com/kayprogrammer/bidout-auction-v7/blob/main/display/display3.png?raw=true)
-
-![alt text](https://github.com/kayprogrammer/bidout-auction-v7/blob/main/display/display4.png?raw=true)
-
-![alt text](https://github.com/kayprogrammer/bidout-auction-v7/blob/main/display/display5.png?raw=true)
-
-![alt text](https://github.com/kayprogrammer/bidout-auction-v7/blob/main/display/display6.png?raw=true)
-
-![alt text](https://github.com/kayprogrammer/bidout-auction-v7/blob/main/display/display7.png?raw=true) -->
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp1.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp2.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp3.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp4.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp5.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp6.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp7.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp8.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp9.png?raw=true)
+![alt text](https://github.com/kayprogrammer/socialnet-v4/blob/main/display/disp10.png?raw=true)

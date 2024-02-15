@@ -14,7 +14,7 @@ import (
 func ConnectDb() *ent.Client {
 	cfg := config.GetConfig()
 
-	dbUrlTemplate := "host=%s port=%s user=%s dbname=%s password=%s"
+	dbUrlTemplate := "host=%s port=%s user=%s dbname=%s password=%s sslmode=disable"
 
 	dbUrl := fmt.Sprintf(
 		dbUrlTemplate,

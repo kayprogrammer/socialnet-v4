@@ -519,8 +519,6 @@ func (endpoint Endpoint) UpdateComment(c *fiber.Ctx) error {
 	// Update Comment
 	comment = commentManager.Update(comment, user, commentData.Text)
 
-	// Send Notifications here later
-
 	// Convert type and return comment
 	convertedComment := utils.ConvertStructData(comment, schemas.CommentSchema{}).(*schemas.CommentSchema)
 	response := schemas.CommentResponseSchema{
@@ -562,7 +560,6 @@ func (endpoint Endpoint) DeleteComment(c *fiber.Ctx) error {
 	}
 
 	// Delete and return response
-	// db.Comment.DeleteOne(comment).Exec(managers.Ctx)
 	response := schemas.ResponseSchema{Message: "Comment Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }
@@ -667,7 +664,6 @@ func (endpoint Endpoint) DeleteReply(c *fiber.Ctx) error {
 	}
 
 	// Delete and return response
-	// db.Reply.DeleteOne(reply).Exec(managers.Ctx)
 	response := schemas.ResponseSchema{Message: "Reply Deleted"}.Init()
 	return c.Status(200).JSON(response)
 }
