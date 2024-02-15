@@ -1,8 +1,6 @@
 package managers
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
@@ -32,7 +30,7 @@ func (obj PostManager) All(client *ent.Client) []*ent.Post {
 	return posts
 }
 
-func (obj PostManager) Create(client *ent.Client, author *ent.User, postData schemas.PostInputSchema) (*ent.Post, error) {
+func (obj PostManager) Create(client *ent.Client, author *ent.User, postData schemas.PostInputSchema) *ent.Post {
 	id := uuid.New()
 	slug := slug.Make(author.FirstName + "-" + author.LastName + "-" + id.String())
 
@@ -42,26 +40,21 @@ func (obj PostManager) Create(client *ent.Client, author *ent.User, postData sch
 		image = FileManager{}.Create(client, *postData.FileType)
 		imageId = &image.ID
 	}
-	p, err := client.Post.
+	p := client.Post.
 		Create().
 		SetID(id).
 		SetAuthor(author).
 		SetSlug(slug).
 		SetText(postData.Text).
 		SetNillableImageID(imageId).
-		Save(Ctx)
+		SaveX(Ctx)
 
 	// Set related values
 	p.Edges.Author = author
 	if imageId != nil {
 		p.Edges.Image = image
 	}
-
-	if err != nil {
-		fmt.Printf("failed creating post: %v\n", err)
-		return nil, nil
-	}
-	return p, nil
+	return p
 }
 
 func (obj PostManager) GetBySlug(client *ent.Client, slug string, opts ...bool) (*ent.Post, *int, *utils.ErrorResponse) {

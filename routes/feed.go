@@ -61,7 +61,7 @@ func (endpoint Endpoint) CreatePost(c *fiber.Ctx) error {
 		return c.Status(422).JSON(err)
 	}
 
-	post, _ := postManager.Create(db, user, postData)
+	post := postManager.Create(db, user, postData)
 
 	// Convert type and return Post
 	convertedPost := utils.ConvertStructData(post, schemas.PostInputResponseDataSchema{}).(*schemas.PostInputResponseDataSchema)

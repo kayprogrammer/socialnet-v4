@@ -20,6 +20,7 @@ var (
 	notificationManager = managers.NotificationManager{}
 	chatManager         = managers.ChatManager{}
 	messageManager      = managers.MessageManager{}
+	postManager      = managers.PostManager{}
 )
 
 func CreateTestUser(db *ent.Client) *ent.User {
@@ -124,6 +125,12 @@ func CreateMessage(db *ent.Client) *ent.Message {
 	text := "Hello Boss"
 	message := messageManager.Create(db, chat.Edges.Owner, chat, &text, nil)
 	return message
+}
+
+func CreatePost(db *ent.Client) *ent.Post {
+	author := CreateTestVerifiedUser(db)
+	post := postManager.Create(db, author, schemas.PostInputSchema{Text: "This is a nice new platform."})
+	return post
 }
 
 func ConvertDateTime(timeObj time.Time) string {
