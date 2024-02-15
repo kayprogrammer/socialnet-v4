@@ -1,7 +1,6 @@
 package tests
 
 import (
-	// "strings"
 	"fmt"
 	"strings"
 	"time"
@@ -22,8 +21,11 @@ var (
 	messageManager      = managers.MessageManager{}
 	postManager         = managers.PostManager{}
 	reactionManager     = managers.ReactionManager{}
+	commentManager      = managers.CommentManager{}
+	replyManager        = managers.ReplyManager{}
 )
 
+// AUTH FIXTURES
 func CreateTestUser(db *ent.Client) *ent.User {
 	userData := schemas.RegisterUser{
 		FirstName:      "Test",
@@ -75,6 +77,9 @@ func AnotherAccessToken(db *ent.Client) string {
 	return *user.Access
 }
 
+// ----------------------------------------------------------------------------
+
+// PROFILE FIXTURES
 func CreateCity(db *ent.Client) *ent.City {
 	country := managers.CountryManager{}.Create(db, "Nigeria", "NG")
 	region := managers.RegionManager{}.Create(db, "Lagos", country)
@@ -96,6 +101,9 @@ func CreateNotification(db *ent.Client) *ent.Notification {
 	return notification
 }
 
+// ----------------------------------------------------------------------------
+
+// CHAT FIXTURES
 func CreateChat(db *ent.Client) *ent.Chat {
 	verifiedUser := CreateTestVerifiedUser(db)
 	anotherVerifiedUser := CreateAnotherTestVerifiedUser(db)
@@ -128,6 +136,9 @@ func CreateMessage(db *ent.Client) *ent.Message {
 	return message
 }
 
+// ----------------------------------------------------------------------------
+
+// FEED FIXTURES
 func CreatePost(db *ent.Client) *ent.Post {
 	author := CreateTestVerifiedUser(db)
 	post := postManager.Create(db, author, schemas.PostInputSchema{Text: "This is a nice new platform."})
@@ -141,6 +152,22 @@ func CreateReaction(db *ent.Client) *ent.Reaction {
 	reaction.Edges.User = post.Edges.Author
 	return reaction
 }
+
+func CreateComment(db *ent.Client) *ent.Comment {
+	post := CreatePost(db)
+	comment := commentManager.Create(db, post.Edges.Author, post.ID, "Just a comment")
+	comment.Edges.Post = post
+	return comment
+}
+
+func CreateReply(db *ent.Client) *ent.Reply {
+	comment := CreateComment(db)
+	reply := replyManager.Create(db, comment.Edges.Author, comment.ID, "Simple reply")
+	reply.Edges.Comment = comment
+	return reply
+}
+
+// ----------------------------------------------------------------------------
 
 // Utils
 func GetUserMap(user *ent.User) map[string]interface{} {
@@ -166,3 +193,5 @@ func ConvertDateTime(timeObj time.Time) string {
 
 	return formatted
 }
+
+// ----------------------------------------------------------------------------
