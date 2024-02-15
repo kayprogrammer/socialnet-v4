@@ -33,23 +33,23 @@ func getPosts(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 			"status":  "success",
 			"message": "Posts fetched",
 			"data": map[string]interface{}{
-				"per_page": 50,
+				"per_page":     50,
 				"current_page": 1,
-				"last_page": 1,
+				"last_page":    1,
 				"posts": []map[string]interface{}{
 					{
-						"author":      map[string]interface{}{
+						"author": map[string]interface{}{
 							"name":     schemas.FullName(user),
 							"username": user.Username,
 							"avatar":   nil,
 						},
-						"text":        post.Text,
-						"slug":       post.Slug,
+						"text":            post.Text,
+						"slug":            post.Slug,
 						"reactions_count": 0,
-						"comments_count": 0,
-						"image":       nil,
-						"created_at": ConvertDateTime(post.CreatedAt),
-						"updated_at": ConvertDateTime(post.UpdatedAt),
+						"comments_count":  0,
+						"image":           nil,
+						"created_at":      ConvertDateTime(post.CreatedAt),
+						"updated_at":      ConvertDateTime(post.UpdatedAt),
 					},
 				},
 			},
@@ -58,6 +58,44 @@ func getPosts(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
 		assert.JSONEq(t, string(expectedDataJson), string(data))
 	})
 }
+
+func createPost(t *testing.T, app *fiber.App, db *ent.Client, baseUrl string) {
+	sender := CreateTestVerifiedUser(db)
+	token := AccessToken(db)
+	t.Run("Send Message", func(t *testing.T) {
+		url := fmt.Sprintf("%s/posts", baseUrl)
+		postData := schemas.PostInputSchema{Text: "My new Post"}
+
+		res := ProcessTestBody(t, app, url, "POST", postData, token)
+		// Assert Status code
+		assert.Equal(t, 201, res.StatusCode)
+		// Parse and assert body
+		body := ParseResponseBody(t, res.Body).(map[string]interface{})
+		data, _ := json.Marshal(body)
+		dataRep := body["data"].(map[string]interface{})
+		expectedData := map[string]interface{}{
+			"status":  "success",
+			"message": "Post created",
+			"data": map[string]interface{}{
+				"author": map[string]interface{}{
+					"name":     schemas.FullName(sender),
+					"username": sender.Username,
+					"avatar":   nil,
+				},
+				"text":             postData.Text,
+				"slug":             dataRep["slug"],
+				"reactions_count":  0,
+				"comments_count":   0,
+				"created_at":       dataRep["created_at"],
+				"updated_at":       dataRep["updated_at"],
+				"file_upload_data": nil,
+			},
+		}
+		expectedDataJson, _ := json.Marshal(expectedData)
+		assert.JSONEq(t, string(expectedDataJson), string(data))
+	})
+}
+
 func TestFeed(t *testing.T) {
 	os.Setenv("ENVIRONMENT", "TESTING")
 	app := fiber.New()
@@ -66,6 +104,7 @@ func TestFeed(t *testing.T) {
 
 	// Run Feed Endpoint Tests
 	getPosts(t, app, db, BASEURL)
+	createPost(t, app, db, BASEURL)
 
 	// Drop Tables and Close Connectiom
 	DropData(db)
