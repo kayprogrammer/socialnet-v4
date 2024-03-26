@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/kayprogrammer/socialnet-v4/config"
 	"github.com/kayprogrammer/socialnet-v4/database"
-	"github.com/kayprogrammer/socialnet-v4/initials"
+	"github.com/kayprogrammer/socialnet-v4/initials"	
 	"github.com/kayprogrammer/socialnet-v4/routes"
 
 	_ "github.com/kayprogrammer/socialnet-v4/docs"
@@ -40,12 +40,6 @@ func main() {
 		AllowCredentials: true,
 		AllowMethods:     "GET, POST, PUT, PATCH, DELETE, OPTIONS",
 	}))
-
-	// Inject environment text
-	app.Use(func(c *fiber.Ctx) error {
-		c.Locals("env", "normal")
-		return c.Next()
-	})
 
 	// Swagger Config
 	swaggerCfg := swagger.Config{

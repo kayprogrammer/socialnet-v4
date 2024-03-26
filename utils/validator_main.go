@@ -60,7 +60,6 @@ func registerTranslations(param string) {
 	registerTranslation("file_type_validator", "Invalid file type", translator)
 	registerTranslation("reaction_type_validator", "Invalid reaction type", translator)
 	registerTranslation("usernames_to_update_validator", "Must not have any matching items with usernames to add", translator)
-	// registerTranslation("is_uuid", "Invalid UUID!", translator)
 	registerTranslation("required", "This field is required.", translator)
 	registerTranslation("required_if", "This field is required.", translator)
 	registerTranslation("required_without", "This field is required.", translator)
