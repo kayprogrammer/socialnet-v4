@@ -38,7 +38,7 @@ func (chat ChatSchema) Init() ChatSchema {
 		chat.Image = &url
 	}
 
-	// Set Reactions & Comments Count
+	// Set Latest Message
 	latestMessages := chat.Edges.Messages
 	if len(latestMessages) > 0 {
 		latestMessage := latestMessages[0]
